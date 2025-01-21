@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 export class User {
     constructor(
       public _id: string,
@@ -12,4 +13,12 @@ export class User {
       public createdAt?: Date,
       public updatedAt?: Date
     ) {}
+
+    omitPassword(){
+      const {password, ...rest} = this;
+      return rest;
+    }
+    comparePassword(val: string ): Promise<boolean> {
+      return bcrypt.compare(val, this.password);
+    }
 }

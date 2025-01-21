@@ -15,6 +15,7 @@ export interface UserDocument extends Document {
   createdAt?: Date;
   updatedAt?: Date;
   comparePassword(val: string): Promise<boolean>;
+  omitPassword(): Pick<UserDocument, "_id" | "name" | "email" | "isActive" | "isPremium" | "role" | "isVerfied" | "status" | "createdAt" | "updatedAt">;
 }
 
 const UserSchema: Schema = new Schema<UserDocument>(
@@ -71,5 +72,11 @@ UserSchema.pre("save", async function (next) {
 UserSchema.methods.comparePassword = async function (val: string): Promise<boolean> {
   return comparePassword(val, this.password);
 };
+
+UserSchema.methods.omitPassword = function () {
+  const user = this.toObject();
+  delete user.password;
+  return user;
+}
 
 export const UserModel : Model<UserDocument> = mongoose.model<UserDocument>("User", UserSchema);

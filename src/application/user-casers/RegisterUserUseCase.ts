@@ -4,7 +4,7 @@ import {
   IUserRepository,
   IUserRepositoryToken,
 } from "../repositories/IUserRepository";
-import { RegisterUserParams } from "../../domain/types/userTypes";
+import { LoginUserParams, RegisterUserParams } from "../../domain/types/userTypes";
 import {
   IVerficaitonCodeRepository,
   IVerficaitonCodeRepositoryToken,
@@ -17,6 +17,8 @@ import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISe
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../shared/constants/env";
 import { generateAccessToken, generateRefreshToken } from "../../shared/utils/tokenUtilty";
+import appAssert from "../../shared/utils/appAssert";
+import { CONFLICT, UNAUTHORIZED } from "../../shared/constants/http";
 
 @Service()
 export class RegisterUserUseCase {
@@ -33,9 +35,7 @@ export class RegisterUserUseCase {
     const existingUser = await this.userRepository.findUserByEmail(
       userData.email
     );
-    if (existingUser) {
-      throw new Error("User already exists");
-    }
+    appAssert(!existingUser, CONFLICT , "Email already in use");
 
     // Create user
     const newUser = new User(
@@ -69,6 +69,34 @@ export class RegisterUserUseCase {
     //sign access token and refresh token
     const refreshToken = generateRefreshToken({ sessionId: session._id as mongoose.Types.ObjectId });
     const accessToken = generateAccessToken({   userId: new mongoose.Types.ObjectId(newUser._id), sessionId: session._id as mongoose.Types.ObjectId  });
-    return {user , accessToken, refreshToken };
+    return {
+       user : user.omitPassword() ,
+       accessToken, 
+       refreshToken 
+      };
 }
+
+     // User login
+     async loginUser(userData : LoginUserParams){
+     const existingUser = await this.userRepository.findUserByEmail(userData.email);
+     appAssert(existingUser, UNAUTHORIZED,"Invalid email or password");
+
+     const isValid = await existingUser.comparePassword(userData.password);
+     appAssert(isValid, UNAUTHORIZED,"Invalid email or password");
+
+     const newSession = {
+      userId: new mongoose.Types.ObjectId(existingUser._id),
+      userAgent: userData.userAgent,
+      createdAt: new Date(),
+      expiresAt: oneYearFromNow()
+    };
+    const session =  await this.sessionRepository.createSession(newSession);
+    const refreshToken = generateRefreshToken({ sessionId: session._id as mongoose.Types.ObjectId });
+    const accessToken = generateAccessToken({   userId: new mongoose.Types.ObjectId(existingUser._id), sessionId: session._id as mongoose.Types.ObjectId  });
+    return {
+      user : existingUser.omitPassword() ,
+      accessToken, 
+      refreshToken 
+     };
+    }
 }
