@@ -1,7 +1,8 @@
 import bcrypt from "bcrypt";
+import mongoose from "mongoose";
 export class User {
     constructor(
-      public _id: string,
+      public _id: mongoose.Types.ObjectId,
       public name: string,
       public email: string,
       public password: string,

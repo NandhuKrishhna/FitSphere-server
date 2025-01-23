@@ -3,6 +3,7 @@ import mongoose, { Document, Model,  Schema } from "mongoose";
 import { comparePassword, hashPassword } from "../../shared/utils/bcrypt";
 
 export interface UserDocument extends Document {
+  _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
   password: string;

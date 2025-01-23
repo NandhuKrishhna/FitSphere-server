@@ -3,10 +3,22 @@ import catchErrors from "../../../shared/utils/catchErrors";
 import Container, { Inject, Service } from "typedi";
 import { CREATED, OK, UNAUTHORIZED } from "../../../shared/constants/http";
 import { RegisterUserUseCase } from "../../../application/user-casers/RegisterUserUseCase";
-import { loginSchema, userRegisterSchema } from "../../validations/userSchema";
-import { clearAuthCookies, generateRefreshTokenCookieOptions, getAccessTokenCookieOptions, setAuthCookies } from "../../../shared/utils/setAuthCookies";
+import {
+  emailSchema,
+  loginSchema,
+  resetPasswordSchema,
+  userRegisterSchema,
+  verificationCodeSchema,
+} from "../../validations/userSchema";
+import {
+  clearAuthCookies,
+  generateRefreshTokenCookieOptions,
+  getAccessTokenCookieOptions,
+  setAuthCookies,
+} from "../../../shared/utils/setAuthCookies";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
+import { clear } from "console";
 
 @Service()
 export class UserController {
@@ -40,8 +52,8 @@ export class UserController {
 
   logoutHandler = catchErrors(async (req: Request, res: Response) => {
     const accessToken = req.cookies.accessToken as string | undefined;
-    const {payload} = verfiyToken(accessToken || "");
-    if(payload){
+    const { payload } = verfiyToken(accessToken || "");
+    if (payload) {
       await this.registerUserUseCase.logoutUser(payload);
     }
     return clearAuthCookies(res).status(OK).json({
@@ -52,12 +64,48 @@ export class UserController {
   refreshHandler = catchErrors(async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken as string | undefined;
     appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token");
-    const {accessToken, newRefreshToken} = await this.registerUserUseCase.setRefreshToken(refreshToken);
-    if(newRefreshToken){
-      res.cookie("refreshToken", newRefreshToken, generateRefreshTokenCookieOptions())
+    const { accessToken, newRefreshToken } =
+      await this.registerUserUseCase.setRefreshToken(refreshToken);
+    if (newRefreshToken) {
+      res.cookie(
+        "refreshToken",
+        newRefreshToken,
+        generateRefreshTokenCookieOptions()
+      );
     }
-    return res.status(OK).cookie("accessToken", accessToken , getAccessTokenCookieOptions()).json({
-      message : "Access token refreshed"
-    })
+    return res
+      .status(OK)
+      .cookie("accessToken", accessToken, getAccessTokenCookieOptions())
+      .json({
+        message: "Access token refreshed",
+      });
   });
+
+  // verify email handler
+  verifyEmailHandler = catchErrors(async (req: Request, res: Response) => {
+    const verificationCode = verificationCodeSchema.parse(req.params.code);
+    await this.registerUserUseCase.verifyEmail(verificationCode);
+    return res.status(OK).json({
+      message: "Email was successfully verfied",
+    });
+  });
+
+  sendPasswordResetHandler = catchErrors(async (req: Request, res: Response) => {
+    const email = emailSchema.parse(req.body.email);
+   const response = await this.registerUserUseCase.sendPasswordResetEmail(email);
+   return res.status(OK).json({
+    message: "Password reset email sent successfully",
+   });
+    
+  });
+
+
+  resetPasswordHandler = catchErrors(async (req: Request, res: Response) => {
+    const request = resetPasswordSchema.parse(req.body);
+    console.log("Incoming request: ",request)
+    await this.registerUserUseCase.resetPassword(request);
+    return  clearAuthCookies(res).status(OK).json({
+      message : "Password reset successful"
+    })
+  })
 }

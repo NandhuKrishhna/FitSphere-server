@@ -10,7 +10,7 @@ export type RefreshTokenPayload  = {
 }
 
 export type AccessTokenPayload = {
-    userId : string,
+    userId : mongoose.Types.ObjectId,
     sessionId : mongoose.Types.ObjectId
 }
 

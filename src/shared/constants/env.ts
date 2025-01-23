@@ -16,3 +16,5 @@ const getEnv = (key : string , defaltvalue?:string) :string =>{
    export const SMTP_PASS = getEnv('SMTP_PASS');
    export const SENDER_EMAIL = getEnv('SENDER_EMAIL');
    export const JWT_REFRESH_SECRET = getEnv('JWT_REFRESH_SECRET');
+   export const RESEND_API_KEY = getEnv('RESEND_API_KEY');
+   export const EMAIL_SENDER = getEnv('EMAIL_SENDER');

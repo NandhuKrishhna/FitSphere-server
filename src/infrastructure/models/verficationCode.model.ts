@@ -6,6 +6,7 @@ export interface VerficationCodeDocument extends Document {
   type: VerificationCodeTypes;
   expiresAt: Date;
   createdAt: Date;
+  _id:mongoose.Types.ObjectId
 }
 
 const verificationCodeSchema = new Schema<VerficationCodeDocument>({

@@ -2,6 +2,7 @@ import { Service } from "typedi";
 import { IUserRepository, IUserRepositoryToken } from "../../application/repositories/IUserRepository";
 import { UserModel } from "../models/UserModel";
 import { User } from "../../domain/entities/User";
+import mongoose, { mongo } from "mongoose";
 
 @Service({ id: IUserRepositoryToken })
 export class UserRepository implements IUserRepository {
@@ -16,4 +17,15 @@ export class UserRepository implements IUserRepository {
   async updateUserStatus(email: string, isActive: boolean): Promise<void> {
     await UserModel.updateOne({ email }, { isActive });
   }
+
+  async updateUserById(id: mongoose.Types.ObjectId, updates: Partial<User>): Promise<User | null> {
+    const result = await UserModel.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true }
+    )
+    return result;
+}
+
+
 }
