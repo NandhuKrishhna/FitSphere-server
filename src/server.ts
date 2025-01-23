@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import './infrastructure/di/container'
 import "dotenv/config";
 import cors from "cors";
 import connectToDatabase from "./infrastructure/database/MongoDBClient";
@@ -18,7 +19,7 @@ app.use(cors({
 }))
 app.use(cookieParser())
 
-app.get("/api/health", (req: Request, res: Response , next) => {
+app.get("/health", (req: Request, res: Response , next) => {
     return res.status(OK).json({
       status:'healthy'
     })
