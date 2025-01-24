@@ -22,4 +22,4 @@ export class User {
     comparePassword(val: string ): Promise<boolean> {
       return bcrypt.compare(val, this.password);
     }
-}
+};

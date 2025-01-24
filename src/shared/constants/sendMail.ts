@@ -1,4 +1,4 @@
-import resend from "../../application/user-casers/Resend"
+import resend from "../../application/services/Resend"
 import { EMAIL_SENDER, NODE_ENV } from "./env";
 
 

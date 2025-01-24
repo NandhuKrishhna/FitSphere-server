@@ -37,9 +37,10 @@ import {
 } from "../../shared/utils/jwt";
 import { refreshTokenSignOptions } from "../../shared/utils/jwt";
 import { sendMail } from "../../shared/constants/sendMail";
-import { getResetPasswordEmailTemplates, getVerifyEmailTemplates } from "../../shared/utils/emialTemplates";
 import { APP_ORIGIN } from "../../shared/constants/env";
 import {hashPassword} from "../../shared/utils/bcrypt";
+import { getVerifyEmailTemplates } from "../../shared/utils/EmailTemplates/VerifyEmailTemplate";
+import { getResetPasswordTemplates } from "../../shared/utils/EmailTemplates/ResetPasswordTemplate";
 export type TokenPayload = {
   sessionId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -239,7 +240,7 @@ export class RegisterUserUseCase {
     const url = `${APP_ORIGIN}/password/reset?code=${verficationEmailCode._id}$exp=${expiresAt.getTime()}`;
     const {data, error} =  await sendMail({
       to:user.email,
-      ...getResetPasswordEmailTemplates(url)
+      ...getResetPasswordTemplates(url)
     })
     appAssert(data?.id, INTERNAL_SERVER_ERROR,`${error?.name} -${error?.message}`);
     return {
