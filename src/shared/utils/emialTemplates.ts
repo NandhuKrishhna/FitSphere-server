@@ -44,7 +44,7 @@ export const getVerifyEmailTemplates = (url: string) => ({
           </tr>
         </table>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">If the button doesn't work, you can copy and paste this link into your browser:</p>
-        <p style="font-size: 14px; line-height: 1.5; margin-bottom: 20px; word-break: break-all; color: #6366f1;">https://example.com/verify?token=your-token-here</p>
+        <p style="font-size: 14px; line-height: 1.5; margin-bottom: 20px; word-break: break-all; color: #6366f1;">${url}</p>
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">If you didn't request this email, no worries – you can safely ignore it.</p>
         <p style="font-size: 16px; line-height: 1.5;">Stay cool,<br>The Awesome App Team</p>
       </td>

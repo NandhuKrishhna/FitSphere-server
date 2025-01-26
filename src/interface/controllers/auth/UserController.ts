@@ -29,12 +29,12 @@ export class UserController {
       ...req.body,
       userAgent: req.headers["user-agent"],
     });
-    const { user, accessToken, refreshToken } =
+    const { user, accessToken, refreshToken , code } =
       await this.registerUserUseCase.registerUser(request);
 
     return setAuthCookies({ res, accessToken, refreshToken })
       .status(CREATED)
-      .json(user);
+      .json({user, code});
   });
 
   // user login handler
@@ -108,4 +108,12 @@ export class UserController {
       message : "Password reset successful"
     })
   })
+
+  //auth check 
+  checkAuthHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log("check auth handler called")
+    res.status(OK).json({
+      message: "Authenticated",
+    });
+  });
 }

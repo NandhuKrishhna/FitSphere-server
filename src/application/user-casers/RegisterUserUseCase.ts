@@ -81,7 +81,7 @@ export class RegisterUserUseCase {
     const verficationEmailCode = await this.verificationCodeRepository.createVerificationCode(
       verificationCode
     );
-    const url = `${APP_ORIGIN}/email/verify/${verficationEmailCode._id}`
+    const url = `${APP_ORIGIN}/verify/email/${verficationEmailCode._id}`
     // send verification email
       await sendMail({
         to: user.email,
@@ -112,6 +112,7 @@ export class RegisterUserUseCase {
       user: user.omitPassword(),
       accessToken,
       refreshToken,
+      code : verficationEmailCode._id
     };
   }
 

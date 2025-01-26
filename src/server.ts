@@ -24,7 +24,7 @@ app.get("/health", (req: Request, res: Response , next) => {
       status:'healthy'
     })
 });
-app.use('/auth', authRouter)
+app.use('/api/auth', authRouter)
 app.use(errorHandler)
 
 app.listen(PORT, async() => {
