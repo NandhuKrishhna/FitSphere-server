@@ -1,6 +1,12 @@
-const enum VerificationCodeTypes {
+export const enum VerificationCodeTypes {
     EmailVerficaton = 'EMAIL_VERIFICATION',
     PasswordReset = 'PASSWORD_RESET',
     };
 
-export default VerificationCodeTypes;
+
+
+export const enum OtpCodeTypes {
+    EmailVerficaton = 'EMAIL_VERIFICATION',
+    PasswordReset = 'PASSWORD_RESET',
+    };
+

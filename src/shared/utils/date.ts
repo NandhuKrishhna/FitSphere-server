@@ -16,3 +16,6 @@ export const oneYearFromNow = (): Date =>
 
  export const oneHourFromNow = (): Date =>
     new Date(Date.now() + 60 * 60 * 1000);
+
+ export const genrateOtpExpiration = () : Date =>
+    new Date(Date.now() + 5 * 60 * 1000);
