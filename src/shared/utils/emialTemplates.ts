@@ -1,99 +1,162 @@
 export const getVerifyEmailTemplates = (otp: string, name: string) => ({
-  subject: "Verify Your Email Address",
-  text: `Hi ${name}, 
-
-Thank you for signing up with us! Please use the following OTP to verify your email address:
-
-OTP: ${otp}
-
-If you didn’t sign up for this account, you can safely ignore this email.
-
-Best regards,
-The FitSphere Team`,
-  html: `
-   <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your OTP Code</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
-      <tr>
-          <td align="center" style="padding: 40px 0;">
-              <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                  <tr>
-                      <td style="padding: 40px 30px; text-align: center;">
-                          <h1 style="color: #333333; font-size: 24px; margin-bottom: 20px;">Hello, ${name}!</h1>
-                          <p style="color: #666666; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">Use the following OTP to complete your action:</p>
-                          <div style="background-color: #f0f0f0; border-radius: 4px; padding: 20px; margin-bottom: 30px;">
-                              <span style="font-size: 36px; font-weight: bold; color: #4a4a4a; letter-spacing: 5px;">${otp}</span>
-                          </div>
-                          <p style="color: #666666; font-size: 14px; line-height: 1.5; margin-bottom: 0;">This OTP will expire in 10 minutes. Do not share this code with anyone.</p>
-                      </td>
-                  </tr>
-                  <tr>
-                      <td style="background-color: #f8f8f8; padding: 20px 30px; text-align: center; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
-                          <p style="color: #999999; font-size: 14px; margin: 0;">If you didn't request this OTP, please ignore this email.</p>
-                      </td>
-                  </tr>
-              </table>
-          </td>
-      </tr>
-  </table>
-</body>
-</html>
-  `
-});
-
+    subject: "Verify Your Email Address",
+    text: `Hi ${name}, 
   
-
-export const getResetPasswordEmailTemplates = (otp: string, name: string) => ({
-  subject: "Reset Your Password",
-  text: `Hi ${name}, 
+  Thank you for signing up with us! Please use the following OTP to verify your email address:
   
-We received a request to reset your password. Please use the following OTP to reset your password:
-
-OTP: ${otp}
-
-If you didn’t request this, you can safely ignore this email.
-
-Best regards,  
-The FitSphere Team`,
-  html: `
+  OTP: ${otp}
+  
+  If you didn’t sign up for this account, you can safely ignore this email.
+  
+  Best regards,
+  The FitSphere Team`,
+    html: `
     <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Reset Your Password</title>
-    </head>
-    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email Address</title>
+        <style>
+    @import url('https://fonts.cdnfonts.com/css/satoshi');
+
+    body {
+      font-family: 'Satoshi', sans-serif;
+    }
+  </style>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+      <tr>
+        <td align="center" style="padding: 40px 0;">
+          <table role="presentation" style="width: 100%; max-width: 400px; border-collapse: collapse; background-color: #E6E6FA; border-radius: 20px; overflow: hidden;">
             <tr>
-                <td align="center" style="padding: 40px 0;">
-                    <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <tr>
-                            <td style="padding: 40px 30px; text-align: center;">
-                                <h1 style="color: #333333; font-size: 24px; margin-bottom: 20px;">Hello, ${name}!</h1>
-                                <p style="color: #666666; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">We received a request to reset your password. Use the following OTP to proceed:</p>
-                                <div style="background-color: #f0f0f0; border-radius: 4px; padding: 20px; margin-bottom: 30px;">
-                                    <span style="font-size: 36px; font-weight: bold; color: #4a4a4a; letter-spacing: 5px;">${otp}</span>
-                                </div>
-                                <p style="color: #666666; font-size: 14px; line-height: 1.5; margin-bottom: 0;">This OTP will expire in 10 minutes. Do not share this code with anyone.</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="background-color: #f8f8f8; padding: 20px 30px; text-align: center; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
-                                <p style="color: #999999; font-size: 14px; margin: 0;">If you didn’t request a password reset, please ignore this email or contact our support team.</p>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
+              <td align="center" style="padding: 30px 20px;">
+                <!-- Check Icon -->
+                <div style="background-color: #4CAF50; width: 50px; height: 50px; border-radius: 25px; margin-bottom: 20px; display: inline-flex; align-items: center; justify-content: center;">
+                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OPH6ohG3iFN25adc4J8ff5TXQELYtc.png" alt="Success" style="width: 30px; height: 30px;">
+                </div>
+  
+                <!-- Title -->
+                <h1 style="color: #000; font-size: 20px; margin: 0 0 20px 0;">
+                  ✨ Verify Your Email Address! ✨
+                </h1>
+  
+                <!-- OTP Box -->
+                <div style="background-color: #f0f0f0; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                  <span style="font-size: 36px; font-weight: bold; color: #4a4a4a; letter-spacing: 5px;">${otp}</span>
+                </div>
+  
+                <!-- Main Content Box -->
+                <div style="background-color: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 15px; margin: 0 10px;">
+                  <p style="color: #000; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">
+                    Thank you for signing up with us, ${name}! Please use the OTP above to verify your email address.
+                  </p>
+                  <p style="color: #000; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">
+                    This OTP will expire in 10 minutes. Do not share this code with anyone.
+                  </p>
+                  <p style="color: #000; font-size: 14px; line-height: 1.6; margin: 0;">
+                    If you didn’t sign up for this account, you can safely ignore this email.
+                  </p>
+                </div>
+  
+                <!-- Footer Logo -->
+                <div style="margin-top: 30px;">
+                  <span style="color: #4169E1; font-size: 20px; font-weight: bold;">FitSphere</span>
+                  <span style="color: #4CAF50; font-size: 20px;">●</span>
+                </div>
+              </td>
             </tr>
-        </table>
-    </body>
-    </html>
-  `,
-});
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>
+    `,
+  });
+  
+  
+
+  export const getResetPasswordEmailTemplates = (otp: string, name: string) => ({
+    subject: "Reset Your Password",
+    text: `Hi ${name}, 
+    
+  We received a request to reset your password. Please use the following OTP to reset your password:
+  
+  OTP: ${otp}
+  
+  If you didn’t request this, you can safely ignore this email.
+  
+  Best regards,  
+  The FitSphere Team`,
+    html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Reset Your Password</title>
+      </head>
+       <style>
+    @import url('https://fonts.cdnfonts.com/css/satoshi');
+
+    body {
+      font-family: 'Satoshi', sans-serif;
+    }
+  </style>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+          <table role="presentation" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                  <td align="center" style="padding: 40px 0;">
+                      <table role="presentation" style="width: 100%; max-width: 400px; border-collapse: collapse; background-color: #E6E6FA; border-radius: 20px; overflow: hidden;">
+                          <tr>
+                              <td align="center" style="padding: 30px 20px;">
+                                  <!-- Check Icon -->
+                                  <div style="background-color: #4CAF50; width: 50px; height: 50px; border-radius: 25px; margin-bottom: 20px; display: inline-flex; align-items: center; justify-content: center;">
+                                      <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OPH6ohG3iFN25adc4J8ff5TXQELYtc.png" alt="Reset" style="width: 30px; height: 30px;">
+                                  </div>
+  
+                                  <!-- Title -->
+                                  <h1 style="color: #000; font-size: 24px; margin: 0 0 20px 0;">
+                                      🔒 Reset Your Password
+                                  </h1>
+  
+                                  <!-- OTP Box -->
+                                  <div style="background-color: #f0f0f0; border-radius: 4px; padding: 20px; margin-bottom: 20px;">
+                                      <span style="font-size: 36px; font-weight: bold; color: #4a4a4a; letter-spacing: 5px;">${otp}</span>
+                                  </div>
+  
+                                  <!-- Main Content Box -->
+                                  <div style="background-color: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 15px; margin: 0 10px;">
+                                      <p style="color: #000; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">
+                                          We received a request to reset your password. Use the OTP above to complete the process.
+                                      </p>
+                                      <p style="color: #000; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">
+                                          This OTP will expire in 10 minutes. Do not share this code with anyone.
+                                      </p>
+                                      <p style="color: #000; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">
+                                          If you didn’t request a password reset, please ignore this email or contact our support team at<br>
+                                          <a href="mailto:fitSpheresupport@gmail.com" style="color: #4169E1; text-decoration: none;">fitSpheresupport@gmail.com</a>
+                                      </p>
+                                      <p style="color: #000; font-size: 14px; line-height: 1.6; margin: 0;">
+                                          Thank you for being a part of <span style="color: #4169E1; font-weight: bold;">FitSphere</span>.
+                                      </p>
+                                  </div>
+  
+                                  <!-- Footer Logo -->
+                                  <div style="margin-top: 30px;">
+                                      <span style="color: #4169E1; font-size: 20px; font-weight: bold;">FitSphere</span>
+                                      <span style="color: #4CAF50; font-size: 20px;">●</span>
+                                  </div>
+                              </td>
+                          </tr>
+                      </table>
+                  </td>
+              </tr>
+          </table>
+      </body>
+      </html>
+    `,
+  });
+  

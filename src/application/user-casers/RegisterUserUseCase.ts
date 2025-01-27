@@ -1,66 +1,22 @@
 import { Inject, Service } from "typedi";
 import { User } from "../../domain/entities/User";
-import {
-  IUserRepository,
-  IUserRepositoryToken,
-} from "../repositories/IUserRepository";
-import {
-  LoginUserParams,
-  RegisterUserParams,
-  ResetPasswordParams,
-} from "../../domain/types/userTypes";
-import {
-  IVerficaitonCodeRepository,
-  IVerficaitonCodeRepositoryToken,
-} from "../repositories/IVerificaitonCodeRepository";
-import { VerificationCode } from "../../domain/entities/VerificationCode";
-import mongoose, { now } from "mongoose";
-import {
-  fiveMinutesAgo,
-  genrateOtpExpiration,
-  ONE_DAY_MS,
-  oneHourFromNow,
-  oneYearFromNow,
-  thirtyDaysFromNow,
-} from "../../shared/utils/date";
-import {
-  ISessionRepository,
-  ISessionRepositoryToken,
-} from "../repositories/ISessionRepository";
-
+import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
+import { LoginUserParams, RegisterUserParams, ResetPasswordParams } from "../../domain/types/userTypes";
+import { IVerficaitonCodeRepository, IVerficaitonCodeRepositoryToken } from "../repositories/IVerificaitonCodeRepository";
+import mongoose from "mongoose";
+import { fiveMinutesAgo, genrateOtpExpiration, ONE_DAY_MS, oneYearFromNow, thirtyDaysFromNow } from "../../shared/utils/date";
+import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISessionRepository";
 import appAssert from "../../shared/utils/appAssert";
-import {
-  BAD_REQUEST,
-  CONFLICT,
-  INTERNAL_SERVER_ERROR,
-  NOT_FOUND,
-  TOO_MANY_REQUESTS,
-  UNAUTHORIZED,
-} from "../../shared/constants/http";
-import {
-  AccessTokenPayload,
-  RefreshTokenPayload,
-  signToken,
-  verfiyToken,
-} from "../../shared/utils/jwt";
+import { BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND, TOO_MANY_REQUESTS, UNAUTHORIZED } from "../../shared/constants/http";
+import { AccessTokenPayload, RefreshTokenPayload, signToken, verfiyToken } from "../../shared/utils/jwt";
 import { refreshTokenSignOptions } from "../../shared/utils/jwt";
 import { sendMail } from "../../shared/constants/sendMail";
-import {
-  getResetPasswordEmailTemplates,
-  getVerifyEmailTemplates,
-} from "../../shared/utils/emialTemplates";
-import { APP_ORIGIN } from "../../shared/constants/env";
+import { getResetPasswordEmailTemplates, getVerifyEmailTemplates } from "../../shared/utils/emialTemplates";
 import { hashPassword } from "../../shared/utils/bcrypt";
-import {
-  OtpCodeTypes,
-  VerificationCodeTypes,
-} from "../../shared/constants/verficationCodeTypes";
+import { OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verficationCodeTypes";
 import { Otp } from "../../domain/entities/Otp";
 import { generateOTP } from "../../shared/utils/otpGenerator";
-import {
-  IOptverificationRepository,
-  IOtpReposirtoryCodeToken,
-} from "../repositories/IOtpReposirtory";
+import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../repositories/IOtpReposirtory";
 export type TokenPayload = {
   sessionId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;

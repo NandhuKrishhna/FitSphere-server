@@ -15,4 +15,5 @@ authRouter.get("/verify/email/:code" , userController.verifyEmailHandler);
 authRouter.post("/password/forgot",userController.sendPasswordResetHandler);
 authRouter.post("/password/reset/:userId",userController.resetPasswordHandler);
 authRouter.get("/check-auth",verifyToken, userController.checkAuthHandler);
-export default authRouter
+export default authRouter;
+
