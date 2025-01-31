@@ -10,10 +10,10 @@ authRouter.post("/signup" , userController.registerHandler);
 authRouter.post("/login" , userController.loginHandler);
 authRouter.get("/refresh" , userController.refreshHandler);
 authRouter.get("/logout" , userController.logoutHandler);
-authRouter.post("/verify/otp" , userController.otpVerifyHandler);
+authRouter.post("/verify-email" , userController.otpVerifyHandler);
 authRouter.get("/verify/email/:code" , userController.verifyEmailHandler);
 authRouter.post("/password/forgot",userController.sendPasswordResetHandler);
-authRouter.post("/password/reset/:userId",userController.resetPasswordHandler);
+authRouter.post("/password/reset",userController.resetPasswordHandler);
 authRouter.get("/check-auth",verifyToken, userController.checkAuthHandler);
 export default authRouter;
 

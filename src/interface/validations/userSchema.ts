@@ -1,20 +1,12 @@
 import { z } from "zod";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const nameSchema = z.string().min(3, { message: "Name must be at least 3 characters long" }) 
 
-const nameSchema = z.string()
-  .nonempty({ message: "Name is required" }) 
-  .min(3, { message: "Name must be at least 3 characters long" }) 
-
-.regex(/^[a-zA-Z\s]+$/, { message: "Name should only contain letters and spaces" })
-
-export const emailSchema = z.string().email({ message: "Email is required" })
-export const passwordSchema = z.string()
-.min(1, { message: "Password is required" })
-  .min(6, { message: "Password must be at least 6 characters long" })
-  .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
-  .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-  .regex(/[0-9]/, { message: "Password must contain at least one number" })
-  .regex(/[^A-Za-z0-9]/, { message: "Password must contain at least one special character" })
+export const emailSchema = z
+  .string()
+  .regex(emailRegex, { message: "Invalid email format" });
+  export const passwordSchema = z.string().min(6, { message: "Password must be at least 6 characters long" })
 export const userAgentSchema =  z.string().optional()
 export const confirmPasswordSchema =  z.string().min(6, { message: "Confirm password is required" })
 
@@ -53,7 +45,7 @@ export const resetPasswordSchema = z.object({
 
 
 export const otpVerificationSchema = z.object({
-  code: z.string().min(5, {
-    message: "OTP must be at least 5 characters long",
+  code: z.string().min(6, {
+    message: "OTP must be at least 6 characters long",
   }),
 });

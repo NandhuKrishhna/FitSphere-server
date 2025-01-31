@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import catchErrors from "../../../shared/utils/catchErrors";
-import Container, { Inject, Service } from "typedi";
+import{ Inject, Service } from "typedi";
 import { CREATED, OK, UNAUTHORIZED } from "../../../shared/constants/http";
 import { RegisterUserUseCase } from "../../../application/user-casers/RegisterUserUseCase";
 import {
@@ -13,14 +13,15 @@ import {
 } from "../../validations/userSchema";
 import {
   clearAuthCookies,
+  clearTempAuthCookies,
   generateRefreshTokenCookieOptions,
   getAccessTokenCookieOptions,
   setAuthCookies,
+  setTempAuthCookies,
 } from "../../../shared/utils/setAuthCookies";
-import { verfiyToken } from "../../../shared/utils/jwt";
+import { verfiyToken, verifyResetToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
 
-import mongoose from "mongoose";
 
 @Service()
 export class UserController {
@@ -36,13 +37,14 @@ export class UserController {
 
     return setAuthCookies({ res, accessToken, refreshToken })
       .status(CREATED)
-      .json({user});
+      .json({user , accessToken});
   });
   // verfiy Otp;
    otpVerifyHandler = catchErrors(async(req:Request, res:Response) => {
        const {code} = otpVerificationSchema.parse(req.body);
        await this.registerUserUseCase.verifyOtp(code); 
        return res.status(OK).json({
+        success : true,
         message: "Email was successfully verfied",
       }); 
 
@@ -106,20 +108,29 @@ export class UserController {
 
   sendPasswordResetHandler = catchErrors(async (req: Request, res: Response) => {
     const email = emailSchema.parse(req.body.email);
-   const response = await this.registerUserUseCase.sendPasswordResetEmail(email);
+   const {resetToken} = await this.registerUserUseCase.sendPasswordResetEmail(email);
+   setTempAuthCookies({res, accessToken: resetToken})
    return res.status(OK).json({
     message: "Password reset email sent successfully",
+    resetToken
    });
     
   });
 
 
   resetPasswordHandler = catchErrors(async (req: Request, res: Response) => {
-    const userId = new mongoose.Types.ObjectId(req.params.userId);
+    const token = req.cookies.accessToken 
+    const {payload} = verifyResetToken(token)
+    appAssert(payload, UNAUTHORIZED, "Invalid token")
+    const userId = payload.userId
+
     const request = resetPasswordSchema.parse(req.body);
+
     console.log("Incoming request: ",request)
+
     await this.registerUserUseCase.resetPassword({userId, ...request});
-    return  clearAuthCookies(res).status(OK).json({
+
+    return  clearTempAuthCookies(res).status(OK).json({
       message : "Password reset successful"
     })
   })
