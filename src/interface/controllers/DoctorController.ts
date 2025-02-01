@@ -20,6 +20,7 @@ export class DoctorController {
     const request = doctorRegisterSchema.parse({...req.body,userAgent: req.headers["user-agent"],});
     const { user, accessToken, refreshToken } =
     await this.doctorUseCase.registerDoctor(request);
+    (req.session as any).email = user.email;
     return setAuthCookies({ res, accessToken, refreshToken }).status(CREATED).json(user);
   });
 
@@ -33,8 +34,9 @@ export class DoctorController {
 
     // otp verification
   otpVerifyHandler = catchErrors(async(req:Request, res:Response) => {
+    const email = (req.session as any).email;
     const {code} = otpVerificationSchema.parse(req.body);
-    await this.doctorUseCase.verifyOtp(code); 
+    await this.doctorUseCase.verifyOtp(code ,email); 
     return res.status(OK).json({message: "Email was successfully verfied",}); 
 
 })

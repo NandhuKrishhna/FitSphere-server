@@ -13,16 +13,26 @@ export class OtpRepository implements IOptverificationRepository {
     const result = await OtpVerficationModel.create(otp);
     return result as Otp;
   }
-  async findOtpById(code: string, type: string): Promise<Otp | null> {
-    return OtpVerficationModel.findOne({
+  async findOtpById(code: string , userId: string, type: string): Promise<Otp | null> {
+    console.log("Querying OTP with:", { code, userId, type });
+  
+    const otpEntry = await OtpVerficationModel.findOne({
       code: code,
+      userId: userId,
       type: type,
-      expiresAt: { $gt: new Date() },
+      expiresAt: { $gt: new Date() }, 
     });
+  
+    console.log("Found OTP entry:", otpEntry);
+    return otpEntry as Otp
   }
+  
  // delete after verification
   async deleteOtp(id: mongoose.Types.ObjectId): Promise<void> {
     await OtpVerficationModel.deleteOne({ _id: id });
+  }
+  async deleteOtpByEmail(email: string): Promise<void> {
+    await OtpVerficationModel.deleteMany({ email });
   }
   // count documents in collection
   async countVerificationCodes(
@@ -37,4 +47,9 @@ export class OtpRepository implements IOptverificationRepository {
     });
     return result;
   }
+
+
+
+
+
 }

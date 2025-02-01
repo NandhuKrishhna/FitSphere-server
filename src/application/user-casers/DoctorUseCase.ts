@@ -2,7 +2,7 @@ import { Inject, Service } from "typedi";
 import appAssert from "../../shared/utils/appAssert";
 import { BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND } from "../../shared/constants/http";
 import mongoose from "mongoose";
-import { genrateOtpExpiration, oneYearFromNow } from "../../shared/utils/date";
+import { generateOtpExpiration, oneYearFromNow } from "../../shared/utils/date";
 import { IVerficaitonCodeRepository, IVerficaitonCodeRepositoryToken } from "../repositories/IVerificaitonCodeRepository";
 import { sendMail } from "../../shared/constants/sendMail";
 import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISessionRepository";
@@ -46,8 +46,8 @@ const otpCode: Otp = new Otp(
       new mongoose.Types.ObjectId(),
       newDoctor._id,
       generateOTP(),
-      VerificationCodeTypes.EmailVerficaton,
-      genrateOtpExpiration()
+      VerificationCodeTypes.EmailVerification,
+      generateOtpExpiration()
     );
     const newOtp = await this.otpRepository.saveOtp(otpCode);
     console.log("new created Otp : ", newOtp);
@@ -116,7 +116,7 @@ const otpCode: Otp = new Otp(
 
     //verify email
     async verifyEmail(code: string) {
-    const valideCode = await this.verificationCodeRepository.findVerificationCode(code, VerificationCodeTypes.EmailVerficaton);
+    const valideCode = await this.verificationCodeRepository.findVerificationCode(code, VerificationCodeTypes.EmailVerification);
     appAssert(valideCode, NOT_FOUND , "Invalid or expired verification code");
     const updatedUser = await this.doctorRepository.updateUserById(valideCode!.userId, {isVerified:true});
     appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
@@ -126,8 +126,9 @@ const otpCode: Otp = new Otp(
   }
   }
 
-  async verifyOtp(code: string) {
+  async verifyOtp(code: string ,email: string) {
     const validCode = await this.otpRepository.findOtpById(
+      email,
       code,
       OtpCodeTypes.EmailVerficaton
     );

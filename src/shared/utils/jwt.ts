@@ -29,7 +29,7 @@ export const verfiyToken = <TPayload extends object = AccessTokenPayload>(token:
   }
 };
 
-export const signResetToken = (payload : {userId : mongoose.Types.ObjectId}) =>{
+export const signResetToken = (payload : {userId : mongoose.Types.ObjectId , email : string}) =>{
   const {secret , ...signOtps} = resetTokenOptions;
   return jwt.sign(payload, secret, { ...defaults, ...signOtps });
 };
@@ -40,7 +40,7 @@ export const verifyResetToken = (token: string) => {
     const payload = jwt.verify(token, secret, {
       ...defaults,
       ...verifyOpts,
-    }) as { userId: mongoose.Types.ObjectId };
+    }) as { userId: mongoose.Types.ObjectId , email : string};
     return { payload };
   } catch (error: any) {
     return { error: error.message };

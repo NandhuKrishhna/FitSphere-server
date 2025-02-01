@@ -4,7 +4,7 @@ import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepo
 import { LoginUserParams, RegisterUserParams, ResetPasswordParams } from "../../domain/types/userTypes";
 import { IVerficaitonCodeRepository, IVerficaitonCodeRepositoryToken } from "../repositories/IVerificaitonCodeRepository";
 import mongoose from "mongoose";
-import { fiveMinutesAgo, genrateOtpExpiration, ONE_DAY_MS, oneYearFromNow, thirtyDaysFromNow } from "../../shared/utils/date";
+import { fiveMinutesAgo, generateOtpExpiration, ONE_DAY_MS, oneYearFromNow, thirtyDaysFromNow } from "../../shared/utils/date";
 import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISessionRepository";
 import appAssert from "../../shared/utils/appAssert";
 import { BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND, TOO_MANY_REQUESTS, UNAUTHORIZED } from "../../shared/constants/http";
@@ -17,6 +17,9 @@ import { OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verf
 import { Otp } from "../../domain/entities/Otp";
 import { generateOTP } from "../../shared/utils/otpGenerator";
 import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../repositories/IOtpReposirtory";
+export const ERRORS = {
+  EMAIL_VERIFICATION_REQUIRED: "Please verify your email. A verification code has been sent to your email."
+};
 export type TokenPayload = {
   sessionId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -50,8 +53,8 @@ export class RegisterUserUseCase {
       new mongoose.Types.ObjectId(),
       user._id,
       generateOTP(),
-      VerificationCodeTypes.EmailVerficaton,
-      genrateOtpExpiration()
+      VerificationCodeTypes.EmailVerification,
+      generateOtpExpiration()
     );
     const newOtp = await this.otpRepository.saveOtp(otpCode);
     console.log("new created Otp : ", newOtp);
@@ -75,7 +78,6 @@ export class RegisterUserUseCase {
       userId: userId,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
-
     return {
       user: user.omitPassword(),
       accessToken,
@@ -83,12 +85,13 @@ export class RegisterUserUseCase {
     };
   }
 
-  async verifyOtp(code: string) {
+  async verifyOtp(code: string ,userId: string) {
     const validCode = await this.otpRepository.findOtpById(
       code,
+      userId,
       OtpCodeTypes.EmailVerficaton
     );
-    appAssert(validCode, NOT_FOUND, "Invalid code");
+    appAssert(validCode, NOT_FOUND, "Invalid code or expired . Please try again");
 
     if (validCode.expiresAt < new Date()) {
       appAssert(false, BAD_REQUEST, "OTP has expired");
@@ -101,6 +104,7 @@ export class RegisterUserUseCase {
     appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
 
     await this.otpRepository.deleteOtp(validCode._id);
+    
 
     return {
       user: updatedUser.omitPassword(),
@@ -108,15 +112,33 @@ export class RegisterUserUseCase {
   }
 
   async loginUser(userData: LoginUserParams) {
-    const existingUser = await this.userRepository.findUserByEmail(
-      userData.email
-    );
+    const existingUser = await this.userRepository.findUserByEmail(userData.email);
     appAssert(existingUser, UNAUTHORIZED, "Invalid email or password");
-    appAssert(existingUser.isVerfied, UNAUTHORIZED, "Please verify your email");
-
-    const isValid = await existingUser.comparePassword(userData.password);
+  
+    if (!existingUser.isVerfied) {
+      const otpCode: Otp = new Otp(
+        new mongoose.Types.ObjectId(),
+        existingUser._id,
+        generateOTP(),
+        VerificationCodeTypes.EmailVerification,
+        generateOtpExpiration()
+      );
+      const newOtp = await this.otpRepository.saveOtp(otpCode);
+      console.log("Newly created OTP:", newOtp);
+      await sendMail({
+        to: existingUser.email,
+        ...getVerifyEmailTemplates(newOtp.code, existingUser.name),
+      });
+      appAssert(
+        false,
+        UNAUTHORIZED,
+        ERRORS.EMAIL_VERIFICATION_REQUIRED
+      );
+      
+    }
+    const isValid = await existingUser.comparePassword(existingUser.password);
     appAssert(isValid, UNAUTHORIZED, "Invalid email or password");
-
+  
     const newSession = {
       userId: new mongoose.Types.ObjectId(existingUser._id),
       userAgent: userData.userAgent,
@@ -124,7 +146,7 @@ export class RegisterUserUseCase {
       expiresAt: oneYearFromNow(),
     };
     const session = await this.sessionRepository.createSession(newSession);
-
+  
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
     };
@@ -134,13 +156,14 @@ export class RegisterUserUseCase {
       userId: userId,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
-
+  
     return {
       user: existingUser.omitPassword(),
       accessToken,
       refreshToken,
     };
   }
+  
 
   async logoutUser(payload: AccessTokenPayload) {
     await this.sessionRepository.findByIdAndDelete(payload.sessionId);
@@ -189,7 +212,7 @@ export class RegisterUserUseCase {
     const valideCode =
       await this.verificationCodeRepository.findVerificationCode(
         code,
-        VerificationCodeTypes.EmailVerficaton
+        VerificationCodeTypes.EmailVerification
       );
     appAssert(valideCode, NOT_FOUND, "Invalid or expired verification code");
 
@@ -208,22 +231,20 @@ export class RegisterUserUseCase {
     };
   }
 
+  // handler for user forgot password [user enter the email for getting the reset otp]
   async sendPasswordResetEmail(email: string) {
     const user = await this.userRepository.findUserByEmail(email);
     appAssert(user, NOT_FOUND, "User not found");
-
+    console.log(user, "User after sending email for otp")
     const fiveMinAgo = fiveMinutesAgo();
     const count = await this.otpRepository.countVerificationCodes(user._id,OtpCodeTypes.PasswordReset,fiveMinAgo);
     appAssert(count <= 1,TOO_MANY_REQUESTS,"Too many requests. Please try again later.");
-    const resetToken = signResetToken({ userId: user._id });
-    console.log("Temp reset token : ",resetToken)
-
     const otpCode: Otp = new Otp(
       new mongoose.Types.ObjectId(),
       user._id,
       generateOTP(),
-      OtpCodeTypes.EmailVerficaton,
-      genrateOtpExpiration()
+      OtpCodeTypes.PasswordReset,
+      generateOtpExpiration()
     );
 
     const newOtp = await this.otpRepository.saveOtp(otpCode);
@@ -232,26 +253,59 @@ export class RegisterUserUseCase {
       to: user.email,
       ...getResetPasswordEmailTemplates(newOtp.code , user.name),
     });
+     const accessToken = signResetToken(({userId : user._id , email : user.email}));
     return {
-      resetToken
+      user: user.omitPassword(),
+      accessToken
       };
   }
-
-  async resetPassword({userId , password} : ResetPasswordParams) {
+ // handler for verifing the otp  and redirecting to the reset password page
+ async verifyResetPasswordCode(userId : string , code: string) {
+  const validCode = await this.otpRepository.findOtpById(
+    code,
+    userId,
+    OtpCodeTypes.PasswordReset
+  );
+  appAssert(validCode, NOT_FOUND, "Invalid code");
+  await this.otpRepository.deleteOtpByEmail(userId);
+ }
+// handler for setting the new password
+  async resetPassword({email , password} : ResetPasswordParams) {
     const hashedPassword = await hashPassword(password);
-    const updatedUser = await this.userRepository.updateUserById(
-       userId,
+    const updatedUser = await this.userRepository.updateUserByEmail(
+      email,
       { password: hashedPassword }
     );
     appAssert(updatedUser, NOT_FOUND, "User not found");
 
-    await this.otpRepository.deleteOtp(
-     userId
+    await this.otpRepository.deleteOtpByEmail(
+      email
     );
-    await this.sessionRepository.deleteMany(userId);
+    await this.sessionRepository.deleteSessionByEmail(email);
 
     return {
       user: updatedUser.omitPassword(),
+    };
+  }
+
+  // handler for resend the otp code for the user 
+  async resendVerificaitonCode(email: string , type : OtpCodeTypes) {
+    const user = await this.userRepository.findUserByEmail(email);
+    appAssert(user, NOT_FOUND, "User not found");
+    const otpCode: Otp = new Otp(
+      new mongoose.Types.ObjectId(),
+      user._id,
+      generateOTP(),
+      type,
+      generateOtpExpiration()
+    );
+    const newOtp = await this.otpRepository.saveOtp(otpCode);
+    await sendMail({
+      to: user.email,
+      ...getVerifyEmailTemplates(newOtp.code , user.name),
+    });
+    return {
+      otpCode: newOtp.code,
     };
   }
 }
