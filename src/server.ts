@@ -10,11 +10,7 @@ import cookieParser from "cookie-parser";
 import { OK } from "./shared/constants/http";
 import errorHandler from "./interface/middleware/auth/errorHandler";
 import authRouter from "./interface/routes/auth/authRotuer";
-<<<<<<< HEAD
-import doctorRoutes from "./interface/routes/doctor/doctorRoutes";
-=======
 import doctorRoutes from "./interface/routes/doctor/doctorRouter";
->>>>>>> authentication-feat
 
 const app = express();
 
@@ -46,10 +42,6 @@ app.get("/health", (req: Request, res: Response , next) => {
 });
 app.use('/api/auth', authRouter)
 app.use('/api/doctor', doctorRoutes)
-<<<<<<< HEAD
-
-=======
->>>>>>> authentication-feat
 app.use(errorHandler)
 
 app.listen(PORT, async() => {
