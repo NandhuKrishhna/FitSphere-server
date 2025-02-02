@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> authentication-feat
 import mongoose from "mongoose";
 
 export type RegisterDoctorParams = {
@@ -14,17 +10,14 @@ export type RegisterDoctorParams = {
 
   export type DoctorDetailsParams = {
     bio?: string;
-    experience: number;
-    consultationFees: number;
+    experience: string;
+    consultationFees: string;
     contactPhoneNumber: string;
     professionalEmail: string;
     officeAddress: string;
-    clinicLocations: string[]; 
-    consultationLanguages: string[];
+    clinicLocations: string; 
+    consultationLanguages: string;
     primarySpecialty: string; 
-    secondarySpecialties: string[]; 
-    areasOfExpertise: string[];
-    specificTreatmentFocuses: string[];
     medicalLicenseNumber: string;
     profilePicture?: string; 
     gender: "Male" | "Female";

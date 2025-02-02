@@ -10,15 +10,12 @@ export interface DoctorDetailsDocument extends Document {
   contactPhoneNumber: string;
   professionalEmail: string;
   officeAddress: string;
-  clinicLocations: string[];
-  consultationFees: number;
-  consultationLanguages: string[];
+  clinicLocations: string;
+  consultationFees: string;
+  consultationLanguages: string;
   primarySpecialty: string;
-  secondarySpecialties: string[];
-  areasOfExpertise: string[];
-  specificTreatmentFocuses: string[];
   medicalLicenseNumber: string;
-  experience: number; 
+  experience: string; 
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -37,12 +34,12 @@ const DoctorDetailsSchema: Schema = new Schema<DoctorDetailsDocument>(
       trim: true,
     },
     experience: {
-      type: Number,
+      type: String,
       required: true,
       min: 0,
     },
     consultationFees: {
-      type: Number,
+      type: String,
       required: true,
       min: 0,
     },
@@ -63,29 +60,17 @@ const DoctorDetailsSchema: Schema = new Schema<DoctorDetailsDocument>(
       trim: true,
     },
     clinicLocations: {
-      type: [String],
+      type: String,
       required: true,
     },
     consultationLanguages: {
-      type: [String],
+      type: String,
       required: true,
     },
     primarySpecialty: {
       type: String,
       required: true,
       trim: true,
-    },
-    secondarySpecialties: {
-      type: [String],
-      required: false,
-    },
-    areasOfExpertise: {
-      type: [String],
-      required: true,
-    },
-    specificTreatmentFocuses: {
-      type: [String],
-      required: false,
     },
     medicalLicenseNumber: {
       type: String,

@@ -1,63 +1,60 @@
-import { Request, Response } from "express";
-import catchErrors from "../../../shared/utils/catchErrors";
 import { Inject, Service } from "typedi";
 import { DoctorUseCase } from "../../../application/user-casers/DoctorUseCase";
-import { doctorRegisterSchema } from "../../validations/doctorSchema";
-import { CREATED, UNAUTHORIZED } from "../../../shared/constants/http";
+import catchErrors from "../../../shared/utils/catchErrors";
+import { doctorRegisterSchema, verificationCodeSchema } from "../../validations/doctorSchema";
 import { setAuthCookies } from "../../../shared/utils/setAuthCookies";
+import { CREATED, OK } from "../../../shared/constants/http";
+import { Request, Response } from "express";
 import { doctorDetailsSchema } from "../../validations/doctor.details.schema";
+import mongoose from "mongoose";
+import { otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
-import appAssert from "../../../shared/utils/appAssert";
-import { verificationCodeSchema } from "../../validations/userSchema";
-import { json } from "stream/consumers";
-import { OK } from "../../../shared/constants/http";
-import { string } from "zod";
-interface RequestWithUser extends Request {
-  user: { id: string };
-}
-@Service()
-export class DoctorController {
-  // di
-  constructor(@Inject() private doctorUseCase: DoctorUseCase) {}
 
-  // doctor register handler
+@Service()
+
+export class DoctorController {
+  constructor(
+    @Inject() private doctorUseCase: DoctorUseCase,
+ ) {}
+
   registerHandler = catchErrors(async (req: Request, res: Response) => {
-    // validate the request schema
-    const request = doctorRegisterSchema.parse({
-      ...req.body,
-      userAgent: req.headers["user-agent"],
-    });
-    // send the request to the use case
+    const request = doctorRegisterSchema.parse({...req.body,userAgent: req.headers["user-agent"],});
     const { user, accessToken, refreshToken } =
-      await this.doctorUseCase.registerDoctor(request);
-    
-    return setAuthCookies({ res, accessToken, refreshToken })
-      .status(CREATED)
-      .json(user);
+    await this.doctorUseCase.registerDoctor(request);
+    (req.session as any)._id = user._id;
+    return setAuthCookies({ res, accessToken, refreshToken }).status(CREATED).json({
+      success:true,
+      message: "Registration successfull . An OTP has been sent to your email",
+      user
+    });
   });
 
   // register as doctor handler
   registerAsDoctorHandler = catchErrors(async (req: Request, res: Response) => {
-    // validate the request schema
-    const request = doctorDetailsSchema.parse({
-      ...req.body,
-      userAgent: req.headers["user-agent"],
-    })
-    const accessToken = req.cookies.accessToken as string | undefined;
-    const { payload } = verfiyToken(accessToken || "");
-
-    const { userId } = payload || {};
-    console.log(userId);
-    if(userId !== undefined){
+    const request = doctorDetailsSchema.parse({...req.body,userAgent: req.headers["user-agent"],})
+     const token = req.cookies.accessToken;
+     const {payload} = verfiyToken(token);
+     const userId = payload!.userId;
     const {doctorDetails} =   await this.doctorUseCase.registerAsDoctor({ userId, details: request });
     return res.status(CREATED).json({
+      success: true,
       doctorDetails,
-      message: "Registration successful",
-     });
-    } 
+      message: "Registration successfull . Please check your email"
+    });
+  });
+    // otp verification
+  otpVerifyHandler = catchErrors(async(req:Request, res:Response) => {
+    const userId = (req.session as any)._id;
+    console.log(userId , "Doctor otp handler destructing userId from session")
+    const {code} = otpVerificationSchema.parse(req.body);
+    await this.doctorUseCase.verifyOtp(code ,userId); 
+    return res.status(OK).json({
+      success : true,
+      message: "Email was successfully verified . Now you can register as Doctor",
+    }); 
 
-      
-  })
+})
+
 
   //verfiy Email
   verifyEmailHandler = catchErrors(async (req: Request, res: Response) => {

@@ -95,9 +95,6 @@ const otpCode: Otp = new Otp(
       details.clinicLocations,
       details.consultationLanguages,
       details.primarySpecialty,
-      details.secondarySpecialties,
-      details.areasOfExpertise,
-      details.specificTreatmentFocuses,
       details.medicalLicenseNumber,
       details.gender,
       details.professionalTitle,
@@ -126,10 +123,10 @@ const otpCode: Otp = new Otp(
   }
   }
 
-  async verifyOtp(code: string ,email: string) {
+  async verifyOtp(code: string,  userId: string) {
     const validCode = await this.otpRepository.findOtpById(
-      email,
       code,
+      userId,
       OtpCodeTypes.EmailVerficaton
     );
     appAssert(validCode, NOT_FOUND, "Invalid code");

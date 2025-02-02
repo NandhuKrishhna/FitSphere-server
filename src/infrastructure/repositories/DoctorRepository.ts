@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-import { Service } from "typedi";
-import { IDoctorRepositoryToken } from "../../application/repositories/IDoctorRepository";
-import { Doctor } from "../../domain/entities/Doctors";
-import { DoctorModel } from "../models/doctor.model";
-import { DoctorDetailsModel } from "../models/doctor.details.model";
-import { DoctorDetails } from "../../domain/entities/DoctorDetails";
-import mongoose from "mongoose";
-=======
 
 import mongoose from "mongoose";
 import { IDoctorRepositoryToken } from "../../application/repositories/IDoctorReposirtory";
@@ -14,8 +5,7 @@ import { Service } from "typedi";
 import { Doctor } from "../../domain/entities/Doctors";
 import { DoctorDetails } from "../../domain/entities/DoctorDetails";
 import { DoctorDetailsModel } from "../models/doctor.details.model";
-import { DoctorModel } from "../models/Doctor.model";
->>>>>>> authentication-feat
+import { DoctorModel } from "../models/doctor.model";
 
 
 
@@ -51,11 +41,7 @@ export class DoctorRepository {
           )
           return result;
 }
-<<<<<<< HEAD
-}
-=======
 }
 
 
 
->>>>>>> authentication-feat
