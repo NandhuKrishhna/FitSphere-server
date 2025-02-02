@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> authentication-feat
 import mongoose from "mongoose";
 
 export type RegisterDoctorParams = {

@@ -36,3 +36,20 @@ type Params = {
     res.clearCookie("accessToken").clearCookie("refreshToken", {
         path: REFRESH_PATH
     });
+
+
+  type TempParams = {
+    res: Response,
+    accessToken: string
+  }
+  export const getTempAccessTokenCookieOptions = (): CookieOptions => ({
+    ...defaults,
+    expires : fifteenMinutesFromNow()
+})
+  export const setTempAuthCookies = ({res, accessToken} : TempParams) : Response =>{
+    return res
+    .cookie("accessToken", accessToken, getTempAccessTokenCookieOptions())
+  };
+
+  export const clearTempAuthCookies = (res: Response) => 
+    res.clearCookie("accessToken");

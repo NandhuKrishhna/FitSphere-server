@@ -9,6 +9,7 @@ export interface IUserRepository {
     findUserByEmail(email: string): Promise<User | null>;
     updateUserStatus(email: string, isActive: boolean): Promise<void>;
     updateUserById(id: mongoose.Types.ObjectId, updates: Partial<User>): Promise<User | null>;
+    updateUserByEmail(email: string, updates: Partial<User>): Promise<User | null>;
 
 }
 

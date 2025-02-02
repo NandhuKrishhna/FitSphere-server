@@ -1,42 +1,31 @@
 import { Inject, Service } from "typedi";
-import { DoctorDetailsParams, RegisterDoctorParams } from "../../domain/types/doctorTypes";
 import appAssert from "../../shared/utils/appAssert";
-import { CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND } from "../../shared/constants/http";
-import { Doctor } from "../../domain/entities/Doctors";
+import { BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND } from "../../shared/constants/http";
 import mongoose from "mongoose";
-import {
-  IDoctorRepository,
-  IDoctorRepositoryToken,
-} from "../repositories/IDoctorRepository";
-import VerificationCodeTypes from "../../shared/constants/verficationCodeTypes";
-import { oneYearFromNow } from "../../shared/utils/date";
-import { VerificationCode } from "../../domain/entities/VerificationCode";
-import {
-  IVerficaitonCodeRepository,
-  IVerficaitonCodeRepositoryToken,
-} from "../repositories/IVerificaitonCodeRepository";
-import { APP_ORIGIN } from "../../shared/constants/env";
+import { generateOtpExpiration, oneYearFromNow } from "../../shared/utils/date";
+import { IVerficaitonCodeRepository, IVerficaitonCodeRepositoryToken } from "../repositories/IVerificaitonCodeRepository";
 import { sendMail } from "../../shared/constants/sendMail";
-import {
-  ISessionRepository,
-  ISessionRepositoryToken,
-} from "../repositories/ISessionRepository";
-import {
-  RefreshTokenPayload,
-  refreshTokenSignOptions,
-  signToken,
-} from "../../shared/utils/jwt";
-import { getVerifyEmailTemplates } from "../../shared/utils/EmailTemplates/VerifyEmailTemplate";
+import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISessionRepository";
+import { RefreshTokenPayload, refreshTokenSignOptions, signToken } from "../../shared/utils/jwt";
+import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
+import { DoctorDetailsParams, RegisterDoctorParams } from "../../domain/types/doctorTypes";
+import { Doctor } from "../../domain/entities/Doctors";
+import { OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verficationCodeTypes";
+import { getVerifyEmailTemplates } from "../../shared/utils/emialTemplates";
 import { DoctorDetails } from "../../domain/entities/DoctorDetails";
-import { send } from "process";
-import { getPendingApprovalEmailTemplate } from "../../shared/utils/EmailTemplates/registration.confirmation";
+import { Otp } from "../../domain/entities/Otp";
+import { generateOTP } from "../../shared/utils/otpGenerator";
+import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../repositories/IOtpReposirtory";
+import { getPendingApprovalEmailTemplate } from "../../shared/utils/doctorEmailTemplates";
+
 
 @Service()
 export class DoctorUseCase {
   constructor(
     @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
     @Inject(IVerficaitonCodeRepositoryToken) private  verificationCodeRepository: IVerficaitonCodeRepository,
-    @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository
+    @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
+    @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository
   ) {}
 
   async registerDoctor(details: RegisterDoctorParams) {
@@ -53,22 +42,20 @@ export class DoctorUseCase {
     );
     const doctor = await this.doctorRepository.createDoctor(newDoctor);
     // send verfication email
-    const verificationCode: VerificationCode = new VerificationCode(
-      doctor._id,
-      VerificationCodeTypes.EmailVerficaton,
-      oneYearFromNow()
+const otpCode: Otp = new Otp(
+      new mongoose.Types.ObjectId(),
+      newDoctor._id,
+      generateOTP(),
+      VerificationCodeTypes.EmailVerification,
+      generateOtpExpiration()
     );
-    const verficationEmailCode =
-      await this.verificationCodeRepository.createVerificationCode(
-        verificationCode
-      );
-    const url = `${APP_ORIGIN}/email/verify/${verficationEmailCode._id}`;
+    const newOtp = await this.otpRepository.saveOtp(otpCode);
+    console.log("new created Otp : ", newOtp);
     // send verification email
     await sendMail({
       to: doctor.email,
-      ...getVerifyEmailTemplates(url),
+      ...getVerifyEmailTemplates(newOtp.code, newDoctor.name),
     });
-
     //create session
     const newSession = {
       userId: new mongoose.Types.ObjectId(doctor._id),
@@ -77,32 +64,26 @@ export class DoctorUseCase {
       expiresAt: oneYearFromNow(),
     };
     const session = await this.sessionRepository.createSession(newSession);
-
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
     };
-    //sign access token and refresh token
     const userId = doctor._id;
     const accessToken = signToken({
       ...sessionInfo,
       userId: userId,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
-
     return {
       user: doctor.omitPassword(),
       accessToken,
       refreshToken,
     };
   }
-
   // register as doctor;
   async registerAsDoctor({userId,details}: {userId:mongoose.Types.ObjectId , details: DoctorDetailsParams}) {
     console.log("DoctorId from registerAsDoctor handler : ",userId);
     const existingDoctor = await this.doctorRepository.findDoctorDetails(userId);
     appAssert(!existingDoctor, CONFLICT, "Email already exists");
-
-    // add doctor details
     const doctorDetails = new DoctorDetails(
       new mongoose.Types.ObjectId(),
       userId,
@@ -125,11 +106,9 @@ export class DoctorUseCase {
     )
     //add to the database;
     const newDoctorDetails = await this.doctorRepository.createDoctorDetails(doctorDetails);
-
     const newDoctorEmail = newDoctorDetails.professionalEmail;
-    
      await sendMail({to: newDoctorEmail,
-      ...getPendingApprovalEmailTemplate ("nandhu", "nandhukrishna@gmail.com")
+      ...getPendingApprovalEmailTemplate()
      })
      return {
       doctorDetails: newDoctorDetails,}
@@ -137,16 +116,30 @@ export class DoctorUseCase {
 
     //verify email
     async verifyEmail(code: string) {
-      const valideCode = await this.verificationCodeRepository.findVerificationCode(code, VerificationCodeTypes.EmailVerficaton);
-      appAssert(valideCode, NOT_FOUND , "Invalid or expired verification code");
-     
-      //update user to verified true
-      const updatedUser = await this.doctorRepository.updateUserById(valideCode!.userId, {isVerified:true});
+    const valideCode = await this.verificationCodeRepository.findVerificationCode(code, VerificationCodeTypes.EmailVerification);
+    appAssert(valideCode, NOT_FOUND , "Invalid or expired verification code");
+    const updatedUser = await this.doctorRepository.updateUserById(valideCode!.userId, {isVerified:true});
     appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
     await this.verificationCodeRepository.deleteVerificationCode(valideCode!.userId);
-  return {
+    return {
     user: updatedUser.omitPassword(),
   }
+  }
+
+  async verifyOtp(code: string ,email: string) {
+    const validCode = await this.otpRepository.findOtpById(
+      email,
+      code,
+      OtpCodeTypes.EmailVerficaton
+    );
+    appAssert(validCode, NOT_FOUND, "Invalid code");
+    if (validCode.expiresAt < new Date()) {
+      appAssert(false, BAD_REQUEST, "OTP has expired");
+    }
+    const updatedUser = await this.doctorRepository.updateUserById(validCode.userId,{ isVerified: true });
+    appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
+    await this.otpRepository.deleteOtp(validCode._id);
+    return {user: updatedUser.omitPassword() };
   }
 
 }

@@ -9,6 +9,7 @@ export class Doctor {
     public password: string,
     public status: "blocked" | "deleted" | "active" = "active",
     public role: "user" | "doctor" = "doctor",
+    public isApproved : boolean = false,
     public isVerified: boolean = false,
     public isActive: boolean = true,
     public createdAt?: Date,
