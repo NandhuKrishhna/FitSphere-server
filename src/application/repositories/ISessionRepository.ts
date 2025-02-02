@@ -9,6 +9,7 @@ export interface ISessionRepository {
     findById(id:mongoose.Types.ObjectId): Promise<Session | null>;
     updateSession(id: mongoose.Types.ObjectId, updates: Partial<Session>): Promise<Session | null>;
     deleteMany(id: mongoose.Types.ObjectId): Promise<void>;
+    deleteSessionByEmail(email: string): Promise<void>;
     }
 
    

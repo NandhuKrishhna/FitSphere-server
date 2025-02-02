@@ -1,5 +1,5 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
-import VerificationCodeTypes from "../../shared/constants/verficationCodeTypes";
+import { VerificationCodeTypes } from "../../shared/constants/verficationCodeTypes";
 
 export interface VerficationCodeDocument extends Document {
   userId: mongoose.Types.ObjectId;

@@ -33,5 +33,9 @@ export class SessionRepository implements ISessionRepository {
     async deleteMany(id: mongoose.Types.ObjectId): Promise<void> {
       await SessionModel.deleteMany({ userId: id }).exec();
     }
+
+    async deleteSessionByEmail(email: string): Promise<void> {
+      await SessionModel.deleteMany({ email }).exec();
+    }
     
   }

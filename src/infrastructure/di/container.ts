@@ -7,7 +7,13 @@ import { IVerficaitonCodeRepositoryToken } from "../../application/repositories/
 import { VerificationCodeRepository } from "../repositories/VerficationCodeRepository";
 import { ISessionRepositoryToken } from "../../application/repositories/ISessionRepository";
 import { SessionRepository } from "../repositories/SessionRepository";
+import { IOtpReposirtoryCodeToken } from "../../application/repositories/IOtpReposirtory";
+import { OtpRepository } from "../repositories/OtpRepository";
+import { IDoctorRepositoryToken } from "../../application/repositories/IDoctorReposirtory";
+import { DoctorRepository } from "../repositories/DoctorRepository";
 
 Container.set(IUserRepositoryToken, new UserRepository());
 Container.set(IVerficaitonCodeRepositoryToken, new VerificationCodeRepository());
 Container.set(ISessionRepositoryToken, new SessionRepository());
+Container.set(IOtpReposirtoryCodeToken, new OtpRepository());
+Container.set(IDoctorRepositoryToken , new DoctorRepository());
