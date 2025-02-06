@@ -17,15 +17,19 @@ import { Otp } from "../../domain/entities/Otp";
 import { generateOTP } from "../../shared/utils/otpGenerator";
 import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../repositories/IOtpReposirtory";
 import { getPendingApprovalEmailTemplate } from "../../shared/utils/doctorEmailTemplates";
+import { Notification } from "../../domain/entities/Notification";
+import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
+import cloudinary from "../../infrastructure/config/cloudinary";
 
-
+const MESSAGE =  `A new doctor has been registered and is waiting for approval. Please review the doctor's details and take appropriate action.`
 @Service()
 export class DoctorUseCase {
   constructor(
     @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
     @Inject(IVerficaitonCodeRepositoryToken) private  verificationCodeRepository: IVerficaitonCodeRepository,
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
-    @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository
+    @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
+    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository
   ) {}
 
   async registerDoctor(details: RegisterDoctorParams) {
@@ -84,6 +88,14 @@ const otpCode: Otp = new Otp(
     console.log("DoctorId from registerAsDoctor handler : ",userId);
     const existingDoctor = await this.doctorRepository.findDoctorDetails(userId);
     appAssert(!existingDoctor, CONFLICT, "Email already exists");
+    const doctor = await this.doctorRepository.findDoctorByID(userId);
+    let doctorName;
+    if(doctor){
+      doctorName = doctor.name
+    }
+     console.log(doctor)
+    // upload image to cloudinary>>>>>
+    const uploadResponse = details.profilePicture? await cloudinary.uploader.upload(details.profilePicture): null;
     const doctorDetails = new DoctorDetails(
       new mongoose.Types.ObjectId(),
       userId,
@@ -98,17 +110,33 @@ const otpCode: Otp = new Otp(
       details.medicalLicenseNumber,
       details.gender,
       details.professionalTitle,
-      details.profilePicture,
-      details.bio
+      details.bio,
+      uploadResponse ? uploadResponse.secure_url : undefined 
     )
     //add to the database;
     const newDoctorDetails = await this.doctorRepository.createDoctorDetails(doctorDetails);
     const newDoctorEmail = newDoctorDetails.professionalEmail;
      await sendMail({to: newDoctorEmail,
       ...getPendingApprovalEmailTemplate()
-     })
+     });
+
+     // creating Notification for admin >>>>>>> later do impliment websocket
+     const notification = new Notification(
+      userId,
+      "doctor_registration",
+       `${doctorName} has registered as a doctor and is waiting for approval.`,
+      "pending",
+      { 
+        doctorName,
+        newDoctorDetails
+      }
+    );
+
+    const new_notification = await this.notificationRepository.createNotification(notification);
+
      return {
-      doctorDetails: newDoctorDetails,}
+      doctorDetails: newDoctorDetails,
+      notification: new_notification}
     }
 
     //verify email

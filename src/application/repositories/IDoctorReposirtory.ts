@@ -9,7 +9,7 @@ export interface IDoctorRepository {
     createDoctor(details: Doctor): Promise<Doctor>
     createDoctorDetails(details:DoctorDetails): Promise<DoctorDetails>
     findDoctorByID(id: mongoose.Types.ObjectId): Promise<Doctor>
-    findDoctorDetails(doctorId : mongoose.Types.ObjectId): Promise<DoctorDetails>
+    findDoctorDetails(doctorId : mongoose.Types.ObjectId): Promise<DoctorDetails | null>
     updateUserById(id: mongoose.Types.ObjectId, updates: Partial<Doctor>): Promise<Doctor | null>;
     
 }

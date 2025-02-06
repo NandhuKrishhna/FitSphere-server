@@ -160,3 +160,133 @@ export const getVerifyEmailTemplates = (otp: string, name: string) => ({
     `,
   });
   
+  export const getApprovalEmailTemplate = () => ({
+    subject: "Account Approved - Welcome to FitSphere!",
+    text: `Hi,
+
+Great news! Your registration has been approved.
+
+You can now log in to your FitSphere account and start enjoying our services.
+
+If you have any questions, feel free to reach out to our support team.
+
+Best regards,  
+The FitSphere Team`,
+    html: `
+     <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Approved</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 0;">
+                <table role="presentation" style="width: 100%; max-width: 400px; border-collapse: collapse; background-color: #E6E6FA; border-radius: 20px; overflow: hidden;">
+                    <tr>
+                        <td align="center" style="padding: 30px 20px;">
+                            <div style="background-color: #4CAF50; width: 50px; height: 50px; border-radius: 25px; margin-bottom: 20px; display: inline-flex; align-items: center; justify-content: center;">
+                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-OPH6ohG3iFN25adc4J8ff5TXQELYtc.png" alt="Success" style="width: 30px; height: 30px;">
+                            </div>
+                            <h1 style="color: #000; font-size: 24px; margin: 0 0 20px 0;">
+                                🎉 Congratulations! Your Account is Approved 🎉
+                            </h1>
+                            <div style="background-color: #90EE90; color: #000; padding: 8px 20px; border-radius: 20px; display: inline-block; margin-bottom: 20px;">
+                                <span style="font-size: 14px;">You can now log in and start using FitSphere.</span>
+                            </div>
+                            <div style="background-color: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 15px; margin: 0 10px;">
+                                <p style="color: #000; font-size: 14px; line-height: 1.6;">
+                                    Your account has been successfully verified and approved.
+                                </p>
+                                <p style="color: #000; font-size: 14px; line-height: 1.6;">
+                                    You can now log in to your dashboard and start exploring FitSphere's features.
+                                </p>
+                                <p style="color: #000; font-size: 14px; line-height: 1.6;">
+                                    If you have any questions, feel free to reach out to us at  
+                                    <a href="mailto:fitSpheresupport@gmail.com" style="color: #4169E1; text-decoration: none;">fitSpheresupport@gmail.com</a>
+                                </p>
+                                <p style="color: #000; font-size: 14px; line-height: 1.6;">
+                                    Welcome aboard! 🎉
+                                </p>
+                            </div>
+                            <div style="margin-top: 30px;">
+                                <span style="color: #4169E1; font-size: 20px; font-weight: bold;">FitSphere</span>
+                                <span style="color: #4CAF50; font-size: 20px;">●</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    `
+});
+
+
+export const getRejectionEmailTemplate = () => ({
+  subject: "Account Registration Update",
+  text: `Hi,
+
+After reviewing your application, we regret to inform you that your registration could not be approved at this time.
+
+If you believe this is a mistake or would like to reapply, please contact our support team.
+
+Best regards,  
+The FitSphere Team`,
+  html: `
+   <!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registration Update</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+      <tr>
+          <td align="center" style="padding: 40px 0;">
+              <table role="presentation" style="width: 100%; max-width: 400px; border-collapse: collapse; background-color: #FFDDDD; border-radius: 20px; overflow: hidden;">
+                  <tr>
+                      <td align="center" style="padding: 30px 20px;">
+                          <div style="background-color: #FF6347; width: 50px; height: 50px; border-radius: 25px; margin-bottom: 20px; display: inline-flex; align-items: center; justify-content: center;">
+                              <img src="https://img.icons8.com/ios-filled/50/ffffff/high-importance.png" alt="Rejected" style="width: 30px; height: 30px;">
+                          </div>
+                          <h1 style="color: #000; font-size: 24px; margin: 0 0 20px 0;">
+                              ❌ Registration Update ❌
+                          </h1>
+                          <div style="background-color: #FA8072; color: #000; padding: 8px 20px; border-radius: 20px; display: inline-block; margin-bottom: 20px;">
+                              <span style="font-size: 14px;">We regret to inform you that your registration was not approved.</span>
+                          </div>
+                          <div style="background-color: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 15px; margin: 0 10px;">
+                              <p style="color: #000; font-size: 14px; line-height: 1.6;">
+                                  After reviewing your application, we are unable to approve your registration at this time.
+                              </p>
+                              <p style="color: #000; font-size: 14px; line-height: 1.6;">
+                                  If you believe this was a mistake or need further clarification, please reach out to our support team.
+                              </p>
+                              <p style="color: #000; font-size: 14px; line-height: 1.6;">
+                                  Contact us at  
+                                  <a href="mailto:fitSpheresupport@gmail.com" style="color: #4169E1; text-decoration: none;">fitSpheresupport@gmail.com</a>
+                              </p>
+                              <p style="color: #000; font-size: 14px; line-height: 1.6;">
+                                  We appreciate your interest in <span style="color: #4169E1; font-weight: bold;">FitSphere</span> and hope to assist you in the future.
+                              </p>
+                          </div>
+                          <div style="margin-top: 30px;">
+                              <span style="color: #4169E1; font-size: 20px; font-weight: bold;">FitSphere</span>
+                              <span style="color: #FF6347; font-size: 20px;">●</span>
+                          </div>
+                      </td>
+                  </tr>
+              </table>
+          </td>
+      </tr>
+  </table>
+</body>
+</html>
+  `
+});

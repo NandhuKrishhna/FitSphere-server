@@ -15,8 +15,9 @@ export class DoctorDetails {
     public medicalLicenseNumber: string,
     public gender: "Male" | "Female",
     public professionalTitle: string,
-    public profilePicture?: string,
     public bio?: string,
+    public profilePicture?: string,
+    public certificate?: string,
     public createdAt?: Date,
     public updatedAt?: Date
   ) {

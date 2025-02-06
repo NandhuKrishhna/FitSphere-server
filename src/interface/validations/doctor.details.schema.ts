@@ -34,4 +34,5 @@ export const doctorDetailsSchema = z.object({
     .default("0"),
 
   bio: z.string().min(10, { message: "Bio must be at least 10 characters long." }),
+  profilePicture: z.string().optional(), 
 });

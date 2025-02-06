@@ -113,8 +113,9 @@ export class RegisterUserUseCase {
 
   async loginUser(userData: LoginUserParams) {
     const existingUser = await this.userRepository.findUserByEmail(userData.email);
+    console.log(existingUser ,' Existing User')
     appAssert(existingUser, UNAUTHORIZED, "Invalid email or password");
-  
+    
     if (!existingUser.isVerfied) {
       const otpCode: Otp = new Otp(
         new mongoose.Types.ObjectId(),
@@ -136,8 +137,8 @@ export class RegisterUserUseCase {
       );
       
     }
-    const isValid = await existingUser.comparePassword(existingUser.password);
-    appAssert(isValid, UNAUTHORIZED, "Invalid email or password");
+    const isValid = await existingUser.comparePassword(userData.password);
+    appAssert(isValid, UNAUTHORIZED, "Invalid Email or Password");
   
     const newSession = {
       userId: new mongoose.Types.ObjectId(existingUser._id),
@@ -271,6 +272,14 @@ export class RegisterUserUseCase {
  }
 // handler for setting the new password
   async resetPassword({email , password} : ResetPasswordParams) {
+    console.log(`Email ${email} and new Password ${password} `)
+    const existingUser = await this.userRepository.findUserByEmail(email);
+    if (!existingUser) {
+      appAssert(false, NOT_FOUND, "User not found");
+    }
+    const isOldPassword = await existingUser.comparePassword(password);
+    appAssert(!isOldPassword, BAD_REQUEST, "New password cannot be the same as the old password");
+    // if not set password
     const hashedPassword = await hashPassword(password);
     const updatedUser = await this.userRepository.updateUserByEmail(
       email,

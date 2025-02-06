@@ -114,6 +114,8 @@ export class UserController {
       message: "Email was successfully verfied",
     });
   });
+
+
   // handler for user forgot password [user enter the email for getting the reset otp]
   sendPasswordResetHandler = catchErrors(async (req: Request, res: Response) => {
     const email = emailSchema.parse(req.body.email);
@@ -124,8 +126,9 @@ export class UserController {
     success : true,
     message: "Password reset email sent successfully",
    });
-    
   });
+
+  
   // handler for verifing the otp  and redirecting to the reset password page
   verifyResetPasswordCode = catchErrors(async (req: Request, res: Response) => {
     const userId = (req.session as any)._id;

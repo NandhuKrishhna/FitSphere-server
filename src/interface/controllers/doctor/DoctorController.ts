@@ -32,6 +32,9 @@ export class DoctorController {
   // register as doctor handler
   registerAsDoctorHandler = catchErrors(async (req: Request, res: Response) => {
     const request = doctorDetailsSchema.parse({...req.body,userAgent: req.headers["user-agent"],})
+    // const {ProfilePicture} = req.body;
+    // console.log("Profile picture",ProfilePicture)
+    // console.log(request,"Register as doctor details from the backend")
      const token = req.cookies.accessToken;
      const {payload} = verfiyToken(token);
      const userId = payload!.userId;

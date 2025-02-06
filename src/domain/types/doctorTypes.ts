@@ -22,6 +22,7 @@ export type RegisterDoctorParams = {
     profilePicture?: string; 
     gender: "Male" | "Female";
     professionalTitle: string;
+    certificate?: string
   };
   
   

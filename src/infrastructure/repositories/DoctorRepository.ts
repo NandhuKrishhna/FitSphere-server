@@ -26,8 +26,8 @@ export class DoctorRepository {
     }
 
     async findDoctorByID(id: string): Promise<Doctor | null> {
-        const result  = await DoctorModel.findOne({id});
-        return result;
+        const result  = await DoctorModel.findById(id);
+        return result 
     }
     async findDoctorDetails(doctorId : string): Promise<DoctorDetails | null> {
         const result  = await DoctorDetailsModel.findOne({ doctorId });

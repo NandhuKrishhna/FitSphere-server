@@ -19,3 +19,6 @@ const getEnv = (key : string , defaltvalue?:string) :string =>{
    export const RESEND_API_KEY = getEnv('RESEND_API_KEY');
    export const EMAIL_SENDER = getEnv('EMAIL_SENDER');
    export const SESSION_SECRET = getEnv('SESSION_SECRET');
+   export const CLOUDINARY_CLOUD_NAME = getEnv('CLOUDINARY_CLOUD_NAME');
+   export const CLOUDINARY_API_KEY = getEnv('CLOUDINARY_API_KEY');
+   export const CLOUDINARY_API_SECRET = getEnv('CLOUDINARY_API_SECRET');

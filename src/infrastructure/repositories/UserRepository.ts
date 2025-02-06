@@ -13,6 +13,7 @@ export class UserRepository implements IUserRepository {
   async findUserByEmail(email: string): Promise<User | null> {
     const result  = await UserModel.findOne({ email });
     return result
+  
   }
   async updateUserStatus(email: string, isActive: boolean): Promise<void> {
     await UserModel.updateOne({ email }, { isActive });

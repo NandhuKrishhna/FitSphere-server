@@ -16,6 +16,7 @@ export interface DoctorDetailsDocument extends Document {
   primarySpecialty: string;
   medicalLicenseNumber: string;
   experience: string; 
+  certificates?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -92,6 +93,12 @@ const DoctorDetailsSchema: Schema = new Schema<DoctorDetailsDocument>(
       required: true,
       trim: true,
     },
+    certificates: {
+      type: String,
+      trim: true,
+    },
+
+    
   },
   {
     timestamps: true,

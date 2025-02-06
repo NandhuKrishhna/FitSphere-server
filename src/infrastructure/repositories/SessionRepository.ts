@@ -1,8 +1,9 @@
 import { Service } from "typedi";
 import { ISessionRepository, ISessionRepositoryToken } from "../../application/repositories/ISessionRepository";
 import { Session } from "../../domain/entities/Session";
-import SessionModel from "../models/session.model";
+
 import mongoose from "mongoose";
+import SessionModel from "../models/session.model";
 
 
 @Service({ id: ISessionRepositoryToken })
