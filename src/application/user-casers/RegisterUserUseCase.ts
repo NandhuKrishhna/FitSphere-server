@@ -76,6 +76,7 @@ export class RegisterUserUseCase {
     const accessToken = signToken({
       ...sessionInfo,
       userId: userId,
+      role : "user"
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
     return {
@@ -113,6 +114,7 @@ export class RegisterUserUseCase {
 
   async loginUser(userData: LoginUserParams) {
     const existingUser = await this.userRepository.findUserByEmail(userData.email);
+    appAssert(existingUser?.status !=="blocked", UNAUTHORIZED , "Your account is suspened . Please contact with our team")
     console.log(existingUser ,' Existing User')
     appAssert(existingUser, UNAUTHORIZED, "Invalid email or password");
     
@@ -254,7 +256,7 @@ export class RegisterUserUseCase {
       to: user.email,
       ...getResetPasswordEmailTemplates(newOtp.code , user.name),
     });
-     const accessToken = signResetToken(({userId : user._id , email : user.email}));
+     const accessToken = signResetToken(({userId : user._id , email : user.email , role : "user"}));
     return {
       user: user.omitPassword(),
       accessToken

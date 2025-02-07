@@ -26,4 +26,32 @@ export type RegisterDoctorParams = {
   };
   
   
+  interface LookUpDoctorDetails {
+    bio: string;
+    experience: string;
+    consultationFees: string;
+    contactPhoneNumber: string;
+    professionalEmail: string;
+    officeAddress: string;
+    clinicLocations: string;
+    consultationLanguages: string;
+    primarySpecialty: string;
+    medicalLicenseNumber: string;
+    profilePicture: string;
+    gender: string;
+    professionalTitle: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+  
+ export  interface LookUpDoctor {
+    _id: string;
+    name: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+    isApproved : boolean;
+    status: string;
+    doctorDetails: LookUpDoctorDetails[];
+  }
   

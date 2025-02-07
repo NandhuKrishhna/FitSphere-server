@@ -14,6 +14,9 @@ adminRouter.get("/logout", adminController.logoutHandler);
 adminRouter.get("/notification", adminController.notificationHandler);
 adminRouter.post("/approve-request", adminController.approveRequestHandler);
 adminRouter.post("/reject-request", adminController.rejectRequestHandler);
+adminRouter.get("/doctorDetails", adminController.getAllDoctorWithDetails);
+adminRouter.post("/unblock-user", adminController.unblockUserHandler);
+adminRouter.post("/block-user", adminController.blockUserHandler);
 
 
 export default adminRouter;

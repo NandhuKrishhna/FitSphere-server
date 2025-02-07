@@ -7,6 +7,7 @@ import { access } from "fs";
 import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
 import { OK } from "../../../shared/constants/http";
 import { verfiyToken } from "../../../shared/utils/jwt";
+import mongoose from "mongoose";
 
 
 @Service()
@@ -75,9 +76,9 @@ export class AdminController {
   });
   
   rejectRequestHandler = catchErrors(async (req: Request, res: Response) => {
-    const { id } = req.body;
+    const { id  ,reason} = req.body;
     console.log(`Rejecting request for doctor ID: ${id}`);
-    const updatedDoctor = await this.adminUseCase.rejectRequest(id);
+    const updatedDoctor = await this.adminUseCase.rejectRequest(id , reason);
     console.log(`Updated Doctor:`, updatedDoctor);
     return res.status(OK).json({
       success: true,
@@ -85,5 +86,35 @@ export class AdminController {
       updatedDoctor
     });
   });
+
+  getAllDoctorWithDetails = catchErrors(async (req: Request, res: Response) => {
+      const doctorsWithDetails = await this.adminUseCase.findAllDoctorsDetails();
+      console.log(doctorsWithDetails)
+     res.status(OK).json({
+      success : true,
+      message:"Doctor Details  fetch successfully ",
+      doctorsWithDetails
+     })
+  })
+
+  unblockUserHandler = catchErrors(async (req : Request , res : Response) => {
+    const {id} = req.body;
+    const objectId = new mongoose.Types.ObjectId(id);
+    await this.adminUseCase.unblockUser(objectId);
+    return res.status(OK).json({
+      success : true,
+      message : "User unblocked successfully"
+    })
+  })
+
+  blockUserHandler = catchErrors(async (req : Request , res : Response) => {
+    const {id} = req.body;
+    const objectId = new mongoose.Types.ObjectId(id);
+    await this.adminUseCase.blockUser(objectId);
+    return res.status(OK).json({
+      success : true,
+      message : "User blocked successfully"
+    })
+  })
   
 }

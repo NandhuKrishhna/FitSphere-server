@@ -56,7 +56,9 @@ export class DoctorController {
       message: "Email was successfully verified . Now you can register as Doctor",
     }); 
 
-})
+});
+
+
 
 
   //verfiy Email

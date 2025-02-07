@@ -1,6 +1,6 @@
 import { Token } from "typedi";
 
-import mongoose from "mongoose";
+import mongoose, { MongooseDistinctDocumentMiddleware } from "mongoose";
 import { Doctor } from "../../domain/entities/Doctors";
 import { DoctorDetails } from "../../domain/entities/DoctorDetails";
 
@@ -11,6 +11,8 @@ export interface IDoctorRepository {
     findDoctorByID(id: mongoose.Types.ObjectId): Promise<Doctor>
     findDoctorDetails(doctorId : mongoose.Types.ObjectId): Promise<DoctorDetails | null>
     updateUserById(id: mongoose.Types.ObjectId, updates: Partial<Doctor>): Promise<Doctor | null>;
+    deleteDoctorById(id:mongoose.Types.ObjectId) : Promise<void>
+    deleteDoctorDetails(id:mongoose.Types.ObjectId) : Promise<void>
     
 }
 

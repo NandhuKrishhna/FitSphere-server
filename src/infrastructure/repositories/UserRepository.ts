@@ -36,6 +36,9 @@ async updateUserByEmail(email: string, updates: Partial<User>): Promise<User | n
   )
   return result;
 }
-
+ async findUserById(id: mongoose.Types.ObjectId): Promise<User | null> {
+    const user = await UserModel.findById(id);
+    return user 
+ }
 
 }
