@@ -11,13 +11,14 @@ import { OK } from "./shared/constants/http";
 import errorHandler from "./interface/middleware/auth/errorHandler";
 import authRouter from "./interface/routes/auth/authRotuer";
 import doctorRoutes from "./interface/routes/doctor/doctorRouter";
+import adminRouter from "./interface/routes/Admin/admin.routes";
 
 const app = express();
 
 app.use(express.json());
 app.use(
   session({
-    secret: 'yourSecretKey', 
+    secret: SESSION_SECRET, 
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -42,6 +43,7 @@ app.get("/health", (req: Request, res: Response , next) => {
 });
 app.use('/api/auth', authRouter)
 app.use('/api/doctor', doctorRoutes)
+app.use('/api/admin', adminRouter)
 app.use(errorHandler)
 
 app.listen(PORT, async() => {

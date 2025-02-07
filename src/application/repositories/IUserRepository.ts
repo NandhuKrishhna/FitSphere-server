@@ -10,6 +10,7 @@ export interface IUserRepository {
     updateUserStatus(email: string, isActive: boolean): Promise<void>;
     updateUserById(id: mongoose.Types.ObjectId, updates: Partial<User>): Promise<User | null>;
     updateUserByEmail(email: string, updates: Partial<User>): Promise<User | null>;
+    findUserById(id: mongoose.Types.ObjectId): Promise<User | null>;
 
 }
 

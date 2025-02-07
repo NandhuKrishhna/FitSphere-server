@@ -1,0 +1,129 @@
+import { Inject, Service } from "typedi";
+import { LoginUserParams } from "../../domain/types/userTypes";
+import { IAdminRepository, IAdminRepositoryToken } from "../repositories/IAdminRepository";
+import appAssert from "../../shared/utils/appAssert";
+import { BAD_REQUEST, UNAUTHORIZED } from "../../shared/constants/http";
+import mongoose from "mongoose";
+import { oneYearFromNow } from "../../shared/utils/date";
+import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISessionRepository";
+import { AccessTokenPayload, RefreshTokenPayload, refreshTokenSignOptions, signToken } from "../../shared/utils/jwt";
+import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
+import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
+import { sendMail } from "../../shared/constants/sendMail";
+import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
+import { getRejectionEmailTemplate } from "../../shared/utils/EmailTemplates/RequestRejectEmailTemplate";
+import { getApprovalEmailTemplate } from "../../shared/utils/EmailTemplates/DoctorApprovalTemplate";
+
+
+
+@Service()
+export class AdminUseCase  {
+  constructor(
+    @Inject(IAdminRepositoryToken) private adminRepository: IAdminRepository,
+    @Inject(ISessionRepositoryToken)private sessionRepository: ISessionRepository,
+    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
+    @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
+    @Inject(IUserRepositoryToken) private userRepository: IUserRepository
+  ){}
+
+ // method for admin login 
+  async adminLogin(adminData: LoginUserParams){
+    const existingUser  = await this.adminRepository.findAdminByEmail(adminData.email);
+    appAssert(existingUser, UNAUTHORIZED, "Invalid email or user does not exist");
+    const isValid = await existingUser.comparePassword(adminData.password);
+    appAssert(isValid, UNAUTHORIZED, "Invalid email or password!");
+    const newSession = {
+          userId: new mongoose.Types.ObjectId(existingUser._id),
+          userAgent: adminData.userAgent,
+          createdAt: new Date(),
+          expiresAt: oneYearFromNow(),
+        };
+        const session = await this.sessionRepository.createSession(newSession);
+      
+        const sessionInfo: RefreshTokenPayload = {
+          sessionId: session._id ?? new mongoose.Types.ObjectId(),
+        };
+        const adminID = existingUser._id;
+            const accessToken = signToken({
+              ...sessionInfo,
+              userId: adminID,
+              role : "admin"
+            });
+            const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
+          
+            return {
+              user: existingUser.omitPassword(),
+              accessToken,
+              refreshToken,
+            };
+  }
+
+  async getAllUsers(){
+    const users = await this.adminRepository.getAllUsers();
+    return users;
+  }
+
+  async getAllDoctors(){
+    const doctors = await this.adminRepository.getAllDoctors();
+    return doctors;
+  }
+
+  async logoutAdmin(payload: AccessTokenPayload) {
+    await this.sessionRepository.findByIdAndDelete(payload.sessionId);
+  }
+  async getNotification(){
+   const notification =  await this.notificationRepository.getAllNotifications();
+   return {
+    notification
+   }
+  }
+
+  async approveRequest(id: mongoose.Types.ObjectId){
+   await this.adminRepository.approveRequest(id);
+   const user = await this.userRepository.findUserById(id);
+   appAssert(user ,BAD_REQUEST , "User not found . Please try again")
+    await sendMail({
+      to:user.name,
+      ...getApprovalEmailTemplate(user.name, user.email)
+    })
+    
+    }
+    
+
+
+  async rejectRequest(id:mongoose.Types.ObjectId , reason : string){
+   const response =  await this.adminRepository.rejectRequest(id);
+   appAssert(response, BAD_REQUEST , "Unable to Reject Request . Please try again after few minutes");
+   await this.doctorRepository.deleteDoctorById(id);
+   await this.doctorRepository.deleteDoctorDetails(id)
+   await this.notificationRepository.deleteNotification(id)
+   console.log("Reason for rejecting the request",reason)
+   await sendMail({
+    to: response.email,
+    ...getRejectionEmailTemplate(response.name , reason)
+   })
+
+  }
+
+  async findAllDoctorsDetails(){
+   const result =  await this.adminRepository.doctorDetails()
+   return result
+  }
+
+  async unblockUser(id: mongoose.Types.ObjectId){
+    const user = await this.userRepository.findUserById(id);
+    appAssert(user?.status === "blocked", UNAUTHORIZED, "User is not blocked");
+    await this.adminRepository.unblockById(id);
+   
+  }
+
+  async blockUser(id: mongoose.Types.ObjectId){
+    const user = await this.userRepository.findUserById(id);
+    appAssert(user?.status === "active" , UNAUTHORIZED ,"User is already blocked ");
+    const response =  await this.adminRepository.blockById(id);
+    appAssert(response , BAD_REQUEST, "Error in blocking user");
+   if(response){
+    await this.sessionRepository.deleteMany(id)
+   }
+  }
+}

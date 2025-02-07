@@ -13,6 +13,7 @@ export class UserRepository implements IUserRepository {
   async findUserByEmail(email: string): Promise<User | null> {
     const result  = await UserModel.findOne({ email });
     return result
+  
   }
   async updateUserStatus(email: string, isActive: boolean): Promise<void> {
     await UserModel.updateOne({ email }, { isActive });
@@ -35,6 +36,9 @@ async updateUserByEmail(email: string, updates: Partial<User>): Promise<User | n
   )
   return result;
 }
-
+ async findUserById(id: mongoose.Types.ObjectId): Promise<User | null> {
+    const user = await UserModel.findById(id);
+    return user 
+ }
 
 }

@@ -4,18 +4,18 @@ import AppError from "./AppError";
 import assert from "node:assert";
 
 type AppAssert =(
-    condiion:any,
+    condition:any,
     httpsStatusCode : HttpStatusCode,
     message : string,
     appErrorCode? : AppErrorCode
-) => asserts  condiion;
+) => asserts  condition;
 
 
 const appAssert : AppAssert = (
-    condiion ,
+    condition ,
     httpsStatusCode,
     message ,
     appErrorCode
-)=> assert(condiion , new AppError(httpsStatusCode, message, appErrorCode));
+)=> assert(condition , new AppError(httpsStatusCode, message, appErrorCode));
 
 export default appAssert;
