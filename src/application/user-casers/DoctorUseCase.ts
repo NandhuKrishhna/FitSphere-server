@@ -1,6 +1,6 @@
 import { Inject, Service } from "typedi";
 import appAssert from "../../shared/utils/appAssert";
-import { BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND } from "../../shared/constants/http";
+import { BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND, UNAUTHORIZED } from "../../shared/constants/http";
 import mongoose from "mongoose";
 import { generateOtpExpiration, oneYearFromNow } from "../../shared/utils/date";
 import { IVerficaitonCodeRepository, IVerficaitonCodeRepositoryToken } from "../repositories/IVerificaitonCodeRepository";
@@ -20,6 +20,7 @@ import { getPendingApprovalEmailTemplate } from "../../shared/utils/doctorEmailT
 import { Notification } from "../../domain/entities/Notification";
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 import cloudinary from "../../infrastructure/config/cloudinary";
+import { LoginUserParams } from "../../domain/types/userTypes";
 
 const MESSAGE =  `A new doctor has been registered and is waiting for approval. Please review the doctor's details and take appropriate action.`
 @Service()
@@ -165,6 +166,38 @@ const otpCode: Otp = new Otp(
     appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
     await this.otpRepository.deleteOtp(validCode._id);
     return {user: updatedUser.omitPassword() };
+  }
+
+  async loginDoctor(doctorData : LoginUserParams){
+    const existingDoctor = await this.doctorRepository.findDoctorByEmail(doctorData.email);
+    appAssert(existingDoctor , UNAUTHORIZED , "Invalid Email or Password")
+    appAssert(!existingDoctor.isApproved , UNAUTHORIZED ,"Your request is still under process . Please check your email for updates");
+    const isValidUser = await existingDoctor.comparePassword(doctorData.password);
+    appAssert(isValidUser , UNAUTHORIZED , "Invalid Email or Password");
+       const newSession = {
+          userId: new mongoose.Types.ObjectId(existingDoctor._id),
+          userAgent: doctorData.userAgent,
+          createdAt: new Date(),
+          expiresAt: oneYearFromNow(),
+        };
+        const session = await this.sessionRepository.createSession(newSession);
+      
+        const sessionInfo: RefreshTokenPayload = {
+          sessionId: session._id ?? new mongoose.Types.ObjectId(),
+        };
+        const userId = existingDoctor._id;
+        const accessToken = signToken({
+          ...sessionInfo,
+          userId: userId,
+          role :"doctor"
+        });
+        const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
+      
+        return {
+          user: existingDoctor.omitPassword(),
+          accessToken,
+          refreshToken,
+        };
   }
 
 }

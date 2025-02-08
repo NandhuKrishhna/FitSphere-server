@@ -7,7 +7,7 @@ import { CREATED, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
 import { doctorDetailsSchema } from "../../validations/doctor.details.schema";
 import mongoose from "mongoose";
-import { otpVerificationSchema } from "../../validations/userSchema";
+import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
 
 @Service()
@@ -57,6 +57,23 @@ export class DoctorController {
     }); 
 
 });
+
+doctorLoginHandler =catchErrors(async(req:Request , res:Response) =>{
+   const request = loginSchema.parse({
+    ...req.body,
+    userAgent : req.headers["user-agent"]
+   });
+   const {accessToken, refreshToken, user} = await this.doctorUseCase.loginDoctor(request);
+   return setAuthCookies({ res, accessToken, refreshToken , }).status(OK).json({
+    message: "Login successful",
+    user:{
+      _id: user._id,
+      name: user.name,
+      email: user.email
+    }
+  });
+   
+})
 
 
 
