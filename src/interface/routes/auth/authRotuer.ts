@@ -17,5 +17,11 @@ authRouter.post("/verify/reset-password/otp" , authMiddleware(["user"]),userCont
 authRouter.post("/reset/new-password" , authMiddleware(["user"]),userController.resetPasswordHandler);
 authRouter.get("/resend-otp", userController.resendPasswordHandler);
 authRouter.get("/check-auth", userController.checkAuthHandler);
+
+// app features 
+
+
+
+
 export default authRouter;
 

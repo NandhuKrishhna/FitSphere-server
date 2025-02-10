@@ -11,7 +11,7 @@ export interface IUserRepository {
     updateUserById(id: mongoose.Types.ObjectId, updates: Partial<User>): Promise<User | null>;
     updateUserByEmail(email: string, updates: Partial<User>): Promise<User | null>;
     findUserById(id: mongoose.Types.ObjectId): Promise<User | null>;
-
+    updateProfile(userId: mongoose.Types.ObjectId, profilePic: string): Promise<User | null>;
 }
 
 export const IUserRepositoryToken = new Token<IUserRepository>();

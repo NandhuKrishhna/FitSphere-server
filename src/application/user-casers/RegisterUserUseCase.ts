@@ -17,6 +17,10 @@ import { OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verf
 import { Otp } from "../../domain/entities/Otp";
 import { generateOTP } from "../../shared/utils/otpGenerator";
 import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../repositories/IOtpReposirtory";
+import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
+import { Doctor } from "../../domain/entities/Doctors";
+import { DisplayDoctorsParams } from "../../domain/types/doctorTypes";
+import cloudinary from "../../infrastructure/config/cloudinary";
 export const ERRORS = {
   EMAIL_VERIFICATION_REQUIRED: "Please verify your email. A verification code has been sent to your email."
 };
@@ -28,12 +32,10 @@ export type TokenPayload = {
 export class RegisterUserUseCase {
   constructor(
     @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
-    @Inject(IVerficaitonCodeRepositoryToken)
-    private verificationCodeRepository: IVerficaitonCodeRepository,
-    @Inject(ISessionRepositoryToken)
-    private sessionRepository: ISessionRepository,
-    @Inject(IOtpReposirtoryCodeToken)
-    private otpRepository: IOptverificationRepository
+    @Inject(IVerficaitonCodeRepositoryToken) private verificationCodeRepository: IVerficaitonCodeRepository,
+    @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
+    @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
+    @Inject(IDoctorRepositoryToken) private doctorRespository : IDoctorRepository
   ) {}
 
   async registerUser(userData: RegisterUserParams): Promise<any> {
@@ -157,6 +159,7 @@ export class RegisterUserUseCase {
     const accessToken = signToken({
       ...sessionInfo,
       userId: userId,
+      role: "user"
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
   
@@ -319,6 +322,26 @@ export class RegisterUserUseCase {
       otpCode: newOtp.code,
     };
   }
-}
+
+  async displayAllDoctors({page , limit , search , sort} : DisplayDoctorsParams) {
+    let sortBy: Record<string, string> = {}; 
+
+    if (sort[1]) {
+      sortBy[sort[0]] = sort[1]; 
+    } else {
+      sortBy[sort[0]] = "asc"; 
+    }
+    
+    const doctors =  await this.doctorRespository.fetchAllDoctors({page , limit , search ,sortBy});
+    return doctors;
+  }
+
+  async updateProfile(userId: mongoose.Types.ObjectId, profilePic: string) {
+    const uploadResponse =   await cloudinary.uploader.upload(profilePic)
+    const updatedUser = await this.userRepository.updateProfile(userId , uploadResponse.secure_url);
+    return updatedUser
+   }
+
+  }
 
 

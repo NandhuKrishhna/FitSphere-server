@@ -55,3 +55,32 @@ export type RegisterDoctorParams = {
     doctorDetails: LookUpDoctorDetails[];
   }
   
+  export type DoctorwithDetails = {
+    _id: string;
+    name: string;
+    ProfilePicture: string;
+    doctorDetails: {
+      experience: string;
+      consultationFees: string;
+      primarySpecialty: string;
+      gender: string;
+      professionalTitle: string;
+      consultationLanguages: string;
+    } | null; 
+  }
+
+
+    
+export type DisplayDoctorsParams={
+  page : number,
+  limit : number,
+  search : string,
+  sort:string[]
+ }  
+
+ export interface UpdateDoctorParams {
+  page : number,
+  limit : number,
+  search : string,
+  sortBy:Record<string , string>
+ }

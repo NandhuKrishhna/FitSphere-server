@@ -12,6 +12,7 @@ export class Doctor {
     public isApproved : boolean = false,
     public isVerified: boolean = false,
     public isActive: boolean = true,
+    public ProfilePicture?: string,
     public createdAt?: Date,
     public updatedAt?: Date
   ) {}

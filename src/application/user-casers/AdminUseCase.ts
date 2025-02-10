@@ -80,8 +80,10 @@ export class AdminUseCase  {
 
   async approveRequest(id: mongoose.Types.ObjectId){
    await this.adminRepository.approveRequest(id);
-   const user = await this.userRepository.findUserById(id);
-   appAssert(user ,BAD_REQUEST , "User not found . Please try again")
+   const user = await this.doctorRepository.findDoctorByID(id);
+   console.log("User after approved",user)
+     appAssert(user ,BAD_REQUEST , "User not found . Please try again")
+   await this.notificationRepository.deleteNotification(id)
     await sendMail({
       to:user.name,
       ...getApprovalEmailTemplate(user.name, user.email)

@@ -9,6 +9,7 @@ import { doctorDetailsSchema } from "../../validations/doctor.details.schema";
 import mongoose from "mongoose";
 import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
+import { SlotValidationSchema } from "../../validations/slot.schema";
 
 @Service()
 
@@ -72,12 +73,44 @@ doctorLoginHandler =catchErrors(async(req:Request , res:Response) =>{
       email: user.email
     }
   });
-   
 })
 
 
+slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
+  const token = req.cookies.accessToken;
+  const {payload} = verfiyToken(token);
+  const userId = payload!.userId;
+  const request = SlotValidationSchema.parse({...req.body});
+  const response =  await this.doctorUseCase.addSlots(userId , request);
+  return res.status(OK).json({
+    success : true,
+    message : "Slot added successfully",
+    response
+  });
+});
 
-
+displayAllSlotsHandler = catchErrors(async (req: Request, res: Response) => {
+  const token = req.cookies.accessToken;
+  const {payload} = verfiyToken(token);
+  const userId = payload!.userId;
+  const response =  await this.doctorUseCase.displayAllSlots(userId);
+  return res.status(OK).json({
+    success : true,
+    response
+  });
+});
+  
+cancelSlotHandler = catchErrors(async (req: Request, res: Response) => {
+  const token = req.cookies.accessToken;
+  const slotId = new mongoose.Types.ObjectId(req.body.slotId);
+  const {payload} = verfiyToken(token);
+  const userId = payload!.userId;
+    await this.doctorUseCase.cancelSlot(userId, slotId);
+    res.status(OK).json({
+      success : true,
+      message : "Slot cancelled successfully"
+    })
+});
   //verfiy Email
   verifyEmailHandler = catchErrors(async (req: Request, res: Response) => {
     const verificationCode = verificationCodeSchema.parse(req.params.code);
@@ -85,4 +118,5 @@ doctorLoginHandler =catchErrors(async(req:Request , res:Response) =>{
     return res.status(OK).json({ message: "Email verified successfully" });
 
   })
+
 }

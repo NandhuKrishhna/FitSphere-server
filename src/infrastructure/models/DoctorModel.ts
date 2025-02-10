@@ -12,6 +12,7 @@ export interface DoctorDocument extends Document {
   isVerified: boolean;
   isApproved : boolean;
   status: "blocked" | "deleted" | "active";
+  ProfilePicture?:string,
   createdAt?: Date;
   updatedAt?: Date;
   comparePassword(val: string): Promise<boolean>;
@@ -59,6 +60,10 @@ const DoctorSchema: Schema = new Schema<DoctorDocument>(
       enum: ["blocked", "deleted", "active"],
       default: "active",
     },
+    ProfilePicture :{
+      type: String,
+      default : ""
+    }
   },
   {
     timestamps: true,

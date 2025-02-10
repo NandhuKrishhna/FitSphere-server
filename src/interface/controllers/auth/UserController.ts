@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import catchErrors from "../../../shared/utils/catchErrors";
 import{ Inject, Service } from "typedi";
-import { CREATED, OK, UNAUTHORIZED, VARIANT_ALSO_NEGOTIATES } from "../../../shared/constants/http";
+import { BAD_REQUEST, CREATED, OK, UNAUTHORIZED, VARIANT_ALSO_NEGOTIATES } from "../../../shared/constants/http";
 import { RegisterUserUseCase } from "../../../application/user-casers/RegisterUserUseCase";
 import {
   emailSchema,
@@ -21,11 +21,16 @@ import {
 } from "../../../shared/utils/setAuthCookies";
 import { verfiyToken, verifyResetToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
+import { DoctorUseCase } from "../../../application/user-casers/DoctorUseCase";
+import { toASCII } from "punycode";
 
 
 @Service()
 export class UserController {
-  constructor(@Inject() private registerUserUseCase: RegisterUserUseCase) {}
+  constructor(
+    @Inject() private registerUserUseCase: RegisterUserUseCase,
+    
+) {}
   //  user register handler
   registerHandler = catchErrors(async (req: Request, res: Response) => {
     const request = userRegisterSchema.parse({
@@ -70,7 +75,8 @@ export class UserController {
       user:{
         _id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        accessToken
       }
     });
   });
@@ -175,4 +181,43 @@ export class UserController {
       message: "Authenticated",
     });
   });
+  
+  displayAllDoctorsHandler = catchErrors(async (req: Request, res: Response) => {
+    const page = req.query.page ? parseInt(req.query.page as string) - 1 : 0;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
+    const search = req.query.search ? (req.query.search as string).trim() : "";
+    let sort = req.query.sort ? (req.query.sort as string).split(",") : ["_id"];
+
+
+    const { doctors ,total}   = await this.registerUserUseCase.displayAllDoctors({page , limit , search , sort});
+    console.log(doctors , "from display all doctor")
+    return res.status(OK).json({
+      success : true ,
+      message : "Doctors fetched successfully",
+      doctors,
+      pagination:{
+        total,
+        currentPage : page + 1,
+        totalPages : Math.ceil(total / limit),
+        limit
+      }
+    })
+  });
+
+  updateProfileHandler = catchErrors(async (req: Request, res: Response) => {
+    const { profilePic } = req.body;
+    console.log(req.body , ">>>>>...")
+    appAssert(profilePic, BAD_REQUEST, "Profile picture is required");
+    const token = req.cookies.accessToken;
+    const {payload} = verfiyToken(token)
+    const userId = payload!.userId
+    console.log("userId from updateProfileHandler", userId);
+
+   const  updatedUser =  await this.registerUserUseCase.updateProfile(userId, profilePic);
+   res.status(OK).json({
+    message: "Profile picture updated successfully",
+    user: updatedUser
+   })
+  });
+
 }
