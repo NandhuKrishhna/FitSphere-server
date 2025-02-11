@@ -12,10 +12,12 @@ import errorHandler from "./interface/middleware/auth/errorHandler";
 import authRouter from "./interface/routes/auth/authRotuer";
 import doctorRoutes from "./interface/routes/doctor/doctorRouter";
 import adminRouter from "./interface/routes/Admin/admin.routes";
+import appRouter from "./interface/routes/App/app.router";
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser())
 app.use(
   session({
     secret: SESSION_SECRET, 
@@ -34,7 +36,6 @@ app.use(cors({
   origin:APP_ORIGIN,
   credentials: true
 }))
-app.use(cookieParser())
 
 app.get("/health", (req: Request, res: Response , next) => {
     return res.status(OK).json({
@@ -44,6 +45,7 @@ app.get("/health", (req: Request, res: Response , next) => {
 app.use('/api/auth', authRouter)
 app.use('/api/doctor', doctorRoutes)
 app.use('/api/admin', adminRouter)
+app.use('/api/app', appRouter)
 app.use(errorHandler)
 
 app.listen(PORT, async() => {

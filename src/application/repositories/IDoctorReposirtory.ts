@@ -3,6 +3,7 @@ import { Token } from "typedi";
 import mongoose, { MongooseDistinctDocumentMiddleware } from "mongoose";
 import { Doctor } from "../../domain/entities/Doctors";
 import { DoctorDetails } from "../../domain/entities/DoctorDetails";
+import { DisplayDoctorsParams, DoctorwithDetails, UpdateDoctorParams } from "../../domain/types/doctorTypes";
 
 export interface IDoctorRepository { 
     findDoctorByEmail(email: string): Promise<Doctor | null>
@@ -11,8 +12,12 @@ export interface IDoctorRepository {
     findDoctorByID(id: mongoose.Types.ObjectId): Promise<Doctor>
     findDoctorDetails(doctorId : mongoose.Types.ObjectId): Promise<DoctorDetails | null>
     updateUserById(id: mongoose.Types.ObjectId, updates: Partial<Doctor>): Promise<Doctor | null>;
-    deleteDoctorById(id:mongoose.Types.ObjectId) : Promise<void>
-    deleteDoctorDetails(id:mongoose.Types.ObjectId) : Promise<void>
+    deleteDoctorById(id:mongoose.Types.ObjectId) : Promise<void>;
+    deleteDoctorDetails(id:mongoose.Types.ObjectId) : Promise<void>;
+    fetchAllDoctors({ page, limit, search, sortBy }: UpdateDoctorParams): Promise<{
+        doctors: DoctorwithDetails[];
+        total: number;
+      }>
     
 }
 

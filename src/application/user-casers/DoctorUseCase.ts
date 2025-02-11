@@ -1,6 +1,6 @@
 import { Inject, Service } from "typedi";
 import appAssert from "../../shared/utils/appAssert";
-import { BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND } from "../../shared/constants/http";
+import { BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND, UNAUTHORIZED } from "../../shared/constants/http";
 import mongoose from "mongoose";
 import { generateOtpExpiration, oneYearFromNow } from "../../shared/utils/date";
 import { IVerficaitonCodeRepository, IVerficaitonCodeRepositoryToken } from "../repositories/IVerificaitonCodeRepository";
@@ -20,6 +20,10 @@ import { getPendingApprovalEmailTemplate } from "../../shared/utils/doctorEmailT
 import { Notification } from "../../domain/entities/Notification";
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 import cloudinary from "../../infrastructure/config/cloudinary";
+import { LoginUserParams } from "../../domain/types/userTypes";
+import { Slot } from "../../domain/entities/Slot";
+import { SlotType } from "../../interface/validations/slot.schema";
+import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
 
 const MESSAGE =  `A new doctor has been registered and is waiting for approval. Please review the doctor's details and take appropriate action.`
 @Service()
@@ -29,7 +33,8 @@ export class DoctorUseCase {
     @Inject(IVerficaitonCodeRepositoryToken) private  verificationCodeRepository: IVerficaitonCodeRepository,
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
     @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
-    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository
+    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
+    @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository
   ) {}
 
   async registerDoctor(details: RegisterDoctorParams) {
@@ -167,4 +172,69 @@ const otpCode: Otp = new Otp(
     return {user: updatedUser.omitPassword() };
   }
 
+  async loginDoctor(doctorData : LoginUserParams){
+    const existingDoctor = await this.doctorRepository.findDoctorByEmail(doctorData.email);
+    appAssert(existingDoctor , UNAUTHORIZED , "Email not exists. Please register first");
+    appAssert(existingDoctor.isApproved , UNAUTHORIZED ,"Your request is still under process . Please check your email for updates");
+    const isValidUser = await existingDoctor.comparePassword(doctorData.password);
+    appAssert(isValidUser , UNAUTHORIZED , "Invalid Email or Password");
+       const newSession = {
+          userId: new mongoose.Types.ObjectId(existingDoctor._id),
+          userAgent: doctorData.userAgent,
+          createdAt: new Date(),
+          expiresAt: oneYearFromNow(),
+        };
+        const session = await this.sessionRepository.createSession(newSession);
+      
+        const sessionInfo: RefreshTokenPayload = {
+          sessionId: session._id ?? new mongoose.Types.ObjectId(),
+        };
+        const userId = existingDoctor._id;
+        const accessToken = signToken({
+          ...sessionInfo,
+          userId: userId,
+          role :"doctor"
+        });
+        const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
+      
+        return {
+          user: existingDoctor.omitPassword(),
+          accessToken,
+          refreshToken,
+        };
+  }
+
+
+  async addSlots(doctorId: mongoose.Types.ObjectId, slots: SlotType) {
+    console.log(`Doctor Id : ${doctorId} and slots : ${JSON.stringify(slots)}`);
+    const existingSlots =   await this.slotRepository.findSlotDetails(doctorId , slots.startTime, slots.endTime, slots.date);
+    appAssert(!existingSlots, CONFLICT, "Slot already exists");
+    const {startTime , endTime} = slots;
+    appAssert(startTime< endTime , BAD_REQUEST , "End time must be after start time");
+    const newSlot  = new Slot(
+      new mongoose.Types.ObjectId(),
+      new mongoose.Types.ObjectId(doctorId),
+      slots.startTime,
+      slots.endTime,
+      slots.date,
+      slots.consultationType,
+      slots?.status,
+      slots.patientId,
+    );
+    const newSlotDetails = await this.slotRepository.createSlot(newSlot);
+    return newSlotDetails;
+      
+}
+
+async displayAllSlots(doctorId: mongoose.Types.ObjectId) {
+  const slots = await this.slotRepository.findAllSlots(doctorId);
+  return slots;
+
+}
+
+async cancelSlot(doctorId : mongoose.Types.ObjectId , slotId : mongoose.Types.ObjectId ){
+   const existingSlot =  await this.slotRepository.findSlotById(slotId);
+   appAssert(existingSlot?.status !== "booked" , UNAUTHORIZED , "Patient has already booked this slot.")
+    await this.slotRepository.deleteSlot(doctorId,slotId)
+}
 }

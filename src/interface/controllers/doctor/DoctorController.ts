@@ -7,8 +7,9 @@ import { CREATED, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
 import { doctorDetailsSchema } from "../../validations/doctor.details.schema";
 import mongoose from "mongoose";
-import { otpVerificationSchema } from "../../validations/userSchema";
+import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
+import { SlotValidationSchema } from "../../validations/slot.schema";
 
 @Service()
 
@@ -58,9 +59,58 @@ export class DoctorController {
 
 });
 
+doctorLoginHandler =catchErrors(async(req:Request , res:Response) =>{
+   const request = loginSchema.parse({
+    ...req.body,
+    userAgent : req.headers["user-agent"]
+   });
+   const {accessToken, refreshToken, user} = await this.doctorUseCase.loginDoctor(request);
+   return setAuthCookies({ res, accessToken, refreshToken , }).status(OK).json({
+    message: "Login successful",
+    user:{
+      _id: user._id,
+      name: user.name,
+      email: user.email
+    }
+  });
+})
 
 
+slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
+  const token = req.cookies.accessToken;
+  const {payload} = verfiyToken(token);
+  const userId = payload!.userId;
+  const request = SlotValidationSchema.parse({...req.body});
+  const response =  await this.doctorUseCase.addSlots(userId , request);
+  return res.status(OK).json({
+    success : true,
+    message : "Slot added successfully",
+    response
+  });
+});
 
+displayAllSlotsHandler = catchErrors(async (req: Request, res: Response) => {
+  const token = req.cookies.accessToken;
+  const {payload} = verfiyToken(token);
+  const userId = payload!.userId;
+  const response =  await this.doctorUseCase.displayAllSlots(userId);
+  return res.status(OK).json({
+    success : true,
+    response
+  });
+});
+  
+cancelSlotHandler = catchErrors(async (req: Request, res: Response) => {
+  const token = req.cookies.accessToken;
+  const slotId = new mongoose.Types.ObjectId(req.body.slotId);
+  const {payload} = verfiyToken(token);
+  const userId = payload!.userId;
+    await this.doctorUseCase.cancelSlot(userId, slotId);
+    res.status(OK).json({
+      success : true,
+      message : "Slot cancelled successfully"
+    })
+});
   //verfiy Email
   verifyEmailHandler = catchErrors(async (req: Request, res: Response) => {
     const verificationCode = verificationCodeSchema.parse(req.params.code);
@@ -68,4 +118,5 @@ export class DoctorController {
     return res.status(OK).json({ message: "Email verified successfully" });
 
   })
+
 }

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import catchErrors from "../../../shared/utils/catchErrors";
 import{ Inject, Service } from "typedi";
-import { CREATED, OK, UNAUTHORIZED, VARIANT_ALSO_NEGOTIATES } from "../../../shared/constants/http";
+import { BAD_REQUEST, CREATED, OK, UNAUTHORIZED, VARIANT_ALSO_NEGOTIATES } from "../../../shared/constants/http";
 import { RegisterUserUseCase } from "../../../application/user-casers/RegisterUserUseCase";
 import {
   emailSchema,
@@ -23,9 +23,13 @@ import { verfiyToken, verifyResetToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
 
 
+
 @Service()
 export class UserController {
-  constructor(@Inject() private registerUserUseCase: RegisterUserUseCase) {}
+  constructor(
+    @Inject() private registerUserUseCase: RegisterUserUseCase,
+    
+) {}
   //  user register handler
   registerHandler = catchErrors(async (req: Request, res: Response) => {
     const request = userRegisterSchema.parse({
@@ -70,7 +74,9 @@ export class UserController {
       user:{
         _id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role : user.role,
+        accessToken,
       }
     });
   });
@@ -88,9 +94,10 @@ export class UserController {
 
   refreshHandler = catchErrors(async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken as string | undefined;
-    appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token");
-    const { accessToken, newRefreshToken } =
-      await this.registerUserUseCase.setRefreshToken(refreshToken);
+    console.log(req.cookies)
+    console.log(refreshToken,"From refresh handler");
+    appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token, please log in again");
+    const { accessToken, newRefreshToken } = await this.registerUserUseCase.setRefreshToken(refreshToken);
     if (newRefreshToken) {
       res.cookie(
         "refreshToken",
@@ -175,4 +182,6 @@ export class UserController {
       message: "Authenticated",
     });
   });
+
+
 }
