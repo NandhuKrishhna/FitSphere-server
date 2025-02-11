@@ -6,8 +6,8 @@ import authMiddleware from "../../middleware/auth/authMiddleware";
 const appRouter = Router();
 
 const userController = Container.get(UserController)
-appRouter.get("/doctors/all", userController.displayAllDoctorsHandler)
+appRouter.get("/doctors/all",authMiddleware(["user"]), userController.displayAllDoctorsHandler)
 appRouter.post("/update-profile", authMiddleware(["user"]), userController.updateProfileHandler)
 
 
-export default appRouter
+export default appRouter;

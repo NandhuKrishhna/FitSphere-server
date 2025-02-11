@@ -207,6 +207,7 @@ export class RegisterUserUseCase {
     const accessToken = signToken({
       userId: session.userId,
       sessionId: session._id!,
+      role : "user"
     });
     return {
       accessToken,

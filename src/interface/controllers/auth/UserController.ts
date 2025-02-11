@@ -21,8 +21,7 @@ import {
 } from "../../../shared/utils/setAuthCookies";
 import { verfiyToken, verifyResetToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
-import { DoctorUseCase } from "../../../application/user-casers/DoctorUseCase";
-import { toASCII } from "punycode";
+
 
 
 @Service()
@@ -76,7 +75,7 @@ export class UserController {
         _id: user._id,
         name: user.name,
         email: user.email,
-        accessToken
+        accessToken,
       }
     });
   });
@@ -94,9 +93,10 @@ export class UserController {
 
   refreshHandler = catchErrors(async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken as string | undefined;
-    appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token");
-    const { accessToken, newRefreshToken } =
-      await this.registerUserUseCase.setRefreshToken(refreshToken);
+    console.log(req.cookies)
+    console.log(refreshToken,"From refresh handler");
+    appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token, please log in again");
+    const { accessToken, newRefreshToken } = await this.registerUserUseCase.setRefreshToken(refreshToken);
     if (newRefreshToken) {
       res.cookie(
         "refreshToken",
@@ -187,10 +187,10 @@ export class UserController {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
     const search = req.query.search ? (req.query.search as string).trim() : "";
     let sort = req.query.sort ? (req.query.sort as string).split(",") : ["_id"];
-
+    console.log(req.cookies.refreshToken,"From display all doctor handler");
 
     const { doctors ,total}   = await this.registerUserUseCase.displayAllDoctors({page , limit , search , sort});
-    console.log(doctors , "from display all doctor")
+    // console.log(doctors , "from display all doctor")
     return res.status(OK).json({
       success : true ,
       message : "Doctors fetched successfully",
