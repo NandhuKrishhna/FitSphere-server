@@ -5,7 +5,7 @@ import { AdminModel } from "../models/adminModel";
 import { UserModel } from "../models/UserModel";
 import { User } from "../../domain/entities/User";
 import { Doctor } from "../../domain/entities/Doctors";
-import { DoctorModel } from "../models/doctor.model";
+import { DoctorModel } from "../models/DoctorModel";
 import mongoose from "mongoose";
 import { LookUpDoctor } from "../../domain/types/doctorTypes";
 

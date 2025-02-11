@@ -4,7 +4,7 @@ import { Service } from "typedi";
 import { Doctor } from "../../domain/entities/Doctors";
 import { DoctorDetails } from "../../domain/entities/DoctorDetails";
 import { DoctorDetailsModel } from "../models/doctor.details.model";
-import { DoctorModel } from "../models/doctor.model";
+import { DoctorModel } from "../models/DoctorModel";
 
 @Service(IDoctorRepositoryToken)
 export class DoctorRepository implements IDoctorRepository {
