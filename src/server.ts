@@ -12,7 +12,7 @@ import errorHandler from "./interface/middleware/auth/errorHandler";
 import authRouter from "./interface/routes/auth/authRotuer";
 import doctorRoutes from "./interface/routes/doctor/doctorRouter";
 import adminRouter from "./interface/routes/Admin/admin.routes";
-import appRouter from "./interface/routes/App/app.router";
+import appRouter from "./interface/routes/Apps/app.router";
 
 const app = express();
 
