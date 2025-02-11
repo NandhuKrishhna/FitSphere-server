@@ -17,12 +17,10 @@ const authMiddleware = (requiredRoles: UserRole[]) => {
     const accessToken = req.cookies.accessToken as string | undefined;
     const refreshToken = req.cookies.refreshToken as string | undefined;
 
-    // If access token is missing, but a refresh token exists, allow the frontend to refresh
     if (!accessToken && refreshToken) {
       return res.status(401).json({ message: "Access token expired, please refresh" });
     }
-
-    // Check if access token exists
+    
     appAssert(
       accessToken,
       UNAUTHORIZED,
@@ -34,12 +32,9 @@ const authMiddleware = (requiredRoles: UserRole[]) => {
     if (!payload) {
       return res.status(401).json({ message: "Unauthorized: Invalid token" });
     }
-    // If token is expired but refreshToken is still present, return an error asking to refresh
     if (error === "jwt expired" && refreshToken) {
       return res.status(401).json({ message: "Access token expired, please refresh" });
     }
-
-    // If token is invalid or expired and refreshToken is also missing/invalid, force logout
     if (!payload && (!refreshToken || error === "jwt expired")) {
       return res.status(403).json({ message: "Session expired, please log in again" });
     }
@@ -52,7 +47,6 @@ const authMiddleware = (requiredRoles: UserRole[]) => {
       FORBIDDEN, "You do not have permission to access this resource."
     );
 
-    // Attach user info to request
     (req as AuthenticatedRequest).userId = payload.userId;
     (req as AuthenticatedRequest).sessionId = payload.sessionId;
     (req as AuthenticatedRequest).role = payload.role;

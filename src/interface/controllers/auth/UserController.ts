@@ -75,6 +75,7 @@ export class UserController {
         _id: user._id,
         name: user.name,
         email: user.email,
+        role : user.role,
         accessToken,
       }
     });
@@ -181,43 +182,6 @@ export class UserController {
       message: "Authenticated",
     });
   });
-  
-  displayAllDoctorsHandler = catchErrors(async (req: Request, res: Response) => {
-    const page = req.query.page ? parseInt(req.query.page as string) - 1 : 0;
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
-    const search = req.query.search ? (req.query.search as string).trim() : "";
-    let sort = req.query.sort ? (req.query.sort as string).split(",") : ["_id"];
-    console.log(req.cookies.refreshToken,"From display all doctor handler");
 
-    const { doctors ,total}   = await this.registerUserUseCase.displayAllDoctors({page , limit , search , sort});
-    // console.log(doctors , "from display all doctor")
-    return res.status(OK).json({
-      success : true ,
-      message : "Doctors fetched successfully",
-      doctors,
-      pagination:{
-        total,
-        currentPage : page + 1,
-        totalPages : Math.ceil(total / limit),
-        limit
-      }
-    })
-  });
-
-  updateProfileHandler = catchErrors(async (req: Request, res: Response) => {
-    const { profilePic } = req.body;
-    console.log(req.body , ">>>>>...")
-    appAssert(profilePic, BAD_REQUEST, "Profile picture is required");
-    const token = req.cookies.accessToken;
-    const {payload} = verfiyToken(token)
-    const userId = payload!.userId
-    console.log("userId from updateProfileHandler", userId);
-
-   const  updatedUser =  await this.registerUserUseCase.updateProfile(userId, profilePic);
-   res.status(OK).json({
-    message: "Profile picture updated successfully",
-    user: updatedUser
-   })
-  });
 
 }

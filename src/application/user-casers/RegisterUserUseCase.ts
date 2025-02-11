@@ -324,24 +324,6 @@ export class RegisterUserUseCase {
     };
   }
 
-  async displayAllDoctors({page , limit , search , sort} : DisplayDoctorsParams) {
-    let sortBy: Record<string, string> = {}; 
-
-    if (sort[1]) {
-      sortBy[sort[0]] = sort[1]; 
-    } else {
-      sortBy[sort[0]] = "asc"; 
-    }
-    
-    const doctors =  await this.doctorRespository.fetchAllDoctors({page , limit , search ,sortBy});
-    return doctors;
-  }
-
-  async updateProfile(userId: mongoose.Types.ObjectId, profilePic: string) {
-    const uploadResponse =   await cloudinary.uploader.upload(profilePic)
-    const updatedUser = await this.userRepository.updateProfile(userId , uploadResponse.secure_url);
-    return updatedUser
-   }
 
   }
 
