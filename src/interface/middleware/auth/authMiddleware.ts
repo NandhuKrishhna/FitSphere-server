@@ -39,7 +39,7 @@ const authMiddleware = (requiredRoles: UserRole[]) => {
       return res.status(403).json({ message: "Session expired, please log in again" });
     }
 
-    console.log("Authenticated User Payload:", payload);
+    // console.log("Authenticated User Payload:", payload);
 
     // Check user roles
     appAssert(

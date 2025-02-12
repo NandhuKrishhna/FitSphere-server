@@ -12,6 +12,7 @@ export interface UserDocument extends Document {
   role: "user" | "doctor";
   isVerfied: boolean;
   status: "blocked" | "deleted" | "active";
+  profilePicture : null,
   createdAt?: Date;
   updatedAt?: Date;
   comparePassword(val: string): Promise<boolean>;
@@ -59,6 +60,11 @@ const UserSchema: Schema = new Schema<UserDocument>(
       enum: ["blocked", "deleted", "active"],
       default: "active",
     },
+    profilePicture:{
+      type : String,
+      required: false,
+      default : null
+    }
   },
   {
     timestamps: true,

@@ -117,7 +117,7 @@ export class RegisterUserUseCase {
   async loginUser(userData: LoginUserParams) {
     const existingUser = await this.userRepository.findUserByEmail(userData.email);
     appAssert(existingUser?.status !=="blocked", UNAUTHORIZED , "Your account is suspened . Please contact with our team")
-    console.log(existingUser ,' Existing User')
+    // console.log(existingUser ,' Existing User')
     appAssert(existingUser, UNAUTHORIZED, "Invalid email or password");
     
     if (!existingUser.isVerfied) {

@@ -3,7 +3,7 @@ import { Token } from "typedi";
 import mongoose, { MongooseDistinctDocumentMiddleware } from "mongoose";
 import { Doctor } from "../../domain/entities/Doctors";
 import { DoctorDetails } from "../../domain/entities/DoctorDetails";
-import { DisplayDoctorsParams, DoctorwithDetails, UpdateDoctorParams } from "../../domain/types/doctorTypes";
+import { DisplayDoctorsParams, DoctorProfile, DoctorwithDetails, UpdateDoctorParams } from "../../domain/types/doctorTypes";
 
 export interface IDoctorRepository { 
     findDoctorByEmail(email: string): Promise<Doctor | null>
@@ -18,6 +18,7 @@ export interface IDoctorRepository {
         doctors: DoctorwithDetails[];
         total: number;
       }>
+    fetchDoctorandDetailsById(id:mongoose.Types.ObjectId) : Promise<DoctorProfile | null>
     
 }
 

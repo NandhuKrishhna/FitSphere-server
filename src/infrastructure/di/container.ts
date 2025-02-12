@@ -17,6 +17,8 @@ import { INotificationRepositoryToken } from "../../application/repositories/INo
 import { NotificationRepository } from "../repositories/NotifcationRepository";
 import { ISlotRepositoryToken } from "../../application/repositories/ISlotRepository";
 import { SlotRepository } from "../repositories/SlotRepository";
+import { IAppointmentRepositoryToken } from "../../application/repositories/IAppointmentRepository";
+import { AppointmentRepository } from "../repositories/AppointmentRepository";
 
 Container.set(IUserRepositoryToken, new UserRepository());
 Container.set(IVerficaitonCodeRepositoryToken, new VerificationCodeRepository());
@@ -26,3 +28,4 @@ Container.set(IDoctorRepositoryToken , new DoctorRepository());
 Container.set(IAdminRepositoryToken , new AdminRepository());
 Container.set(INotificationRepositoryToken , new NotificationRepository());
 Container.set(ISlotRepositoryToken , new SlotRepository());
+Container.set(IAppointmentRepositoryToken , new AppointmentRepository());

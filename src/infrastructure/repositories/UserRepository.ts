@@ -42,7 +42,9 @@ async updateUserByEmail(email: string, updates: Partial<User>): Promise<User | n
  }
 
  async updateProfile(userId: mongoose.Types.ObjectId, profilePic: string): Promise<User | null> {
-  const result = await UserModel.findOneAndUpdate({ _id: userId }, { profilePic }, { new: true });
+  // console.log(profilePic,"Profile picture from repository");
+  const result = await UserModel.findOneAndUpdate({ _id: userId }, { profilePicture: profilePic }, { new: true , fields : "_id name email profilePicture role" });
+  // console.log(result?.profilePicture,"Profile picture from repository");
   return result;
 }
 

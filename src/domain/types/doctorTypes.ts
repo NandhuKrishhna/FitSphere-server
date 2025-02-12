@@ -84,3 +84,29 @@ export type DisplayDoctorsParams={
   search : string,
   sortBy:Record<string , string>
  }
+
+
+ export interface DoctorProfile {
+  _id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  role: string;
+  status: string;
+  ProfilePicture: string;
+  details?: {
+    bio: string;
+    experience: string;
+    consultationFees: string;
+    contactPhoneNumber: string;
+    professionalEmail: string;
+    officeAddress: string;
+    clinicLocations: string;
+    consultationLanguages: string;
+    primarySpecialty: string;
+    medicalLicenseNumber: string;
+    profilePicture: string;
+    gender: string;
+    professionalTitle: string;
+  };
+}

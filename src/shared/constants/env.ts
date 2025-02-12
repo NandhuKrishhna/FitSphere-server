@@ -22,3 +22,6 @@ const getEnv = (key : string , defaltvalue?:string) :string =>{
    export const CLOUDINARY_CLOUD_NAME = getEnv('CLOUDINARY_CLOUD_NAME');
    export const CLOUDINARY_API_KEY = getEnv('CLOUDINARY_API_KEY');
    export const CLOUDINARY_API_SECRET = getEnv('CLOUDINARY_API_SECRET');
+   export const RAZORPAY_KEY_ID = getEnv('RAZORPAY_KEY_ID');
+   export const RAZORPAY_KEY_SECRET = getEnv('RAZORPAY_KEY_SECRET');
+   export const CURRENCY = getEnv('CURRENCY');

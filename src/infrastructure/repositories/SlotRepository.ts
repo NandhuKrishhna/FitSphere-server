@@ -21,8 +21,8 @@ async createSlot(slot: Slot): Promise<Slot> {
     return await SlotModel.create(slot);
 }
 
-async findAllSlots(doctorId: mongoose.Types.ObjectId): Promise<Slot[]> {
-    const slots = await SlotModel.find({ doctorId });
+async findAllSlots(doctorId: mongoose.Types.ObjectId): Promise<Slot[] | null> {
+    const slots = await SlotModel.find({ doctorId : doctorId });
     return slots;
 }
 
