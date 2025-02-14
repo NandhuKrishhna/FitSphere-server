@@ -9,7 +9,7 @@ export type AccessTokenPayload = { userId: mongoose.Types.ObjectId; sessionId: m
 type SignOptionsAndSecret = SignOptions & { secret: string };
 const defaults: SignOptions = { audience: ["user"] };
 
-export const accessTokenOptions: SignOptionsAndSecret = { expiresIn: "30m", secret: JWT_SECRET };
+export const accessTokenOptions: SignOptionsAndSecret = { expiresIn: "15m", secret: JWT_SECRET };
 export const refreshTokenSignOptions: SignOptionsAndSecret = { expiresIn: "30d", secret: JWT_REFRESH_SECRET };
 export const resetTokenOptions : SignOptionsAndSecret = { expiresIn: "10m", secret: JWT_SECRET };
 
@@ -23,6 +23,7 @@ export const verfiyToken = <TPayload extends object = AccessTokenPayload>(token:
   const { secret = JWT_SECRET, ...verifyOpts } = options || {};
   try {
     const payload = jwt.verify(token, secret, { ...defaults, ...verifyOpts }) as TPayload;
+    // console.log("payload", payload);
     return { payload };
   } catch (error: any) {
     return { error: error.message };

@@ -111,6 +111,7 @@ export class UserController {
       .cookie("accessToken", accessToken, getAccessTokenCookieOptions())
       .json({
         message: "Access token refreshed",
+        accessToken,
       });
   });
 

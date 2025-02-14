@@ -3,7 +3,15 @@ import { ISlotRepository, ISlotRepositoryToken } from "../../application/reposit
 import mongoose from "mongoose";
 import { SlotModel } from "../models/slot.models";
 import { SlotDocument } from "../../domain/types/Slot";
-
+function startOfTodayIST(): Date {
+    const now = new Date();
+    // Convert to IST and reset to start of day
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istTime = now.getTime() + istOffset;
+    const startOfDayIST = new Date(istTime);
+    startOfDayIST.setUTCHours(0, 0, 0, 0);
+    return new Date(startOfDayIST.getTime() - istOffset);
+}
 @Service(ISlotRepositoryToken)
 export class SlotRepository  implements ISlotRepository{
     async findSlotDetails(id: mongoose.Types.ObjectId, startTime: Date, endTime: Date,date :Date): Promise<SlotDocument | null> {
@@ -21,10 +29,20 @@ async createSlot(slot: SlotDocument): Promise<SlotDocument> {
     return await SlotModel.create(slot);
 }
 
-async findAllSlots(doctorId: mongoose.Types.ObjectId): Promise<SlotDocument[] | null> {
-    const slots = await SlotModel.find({ doctorId : doctorId });
+async findAllActiveSlots(doctorId: mongoose.Types.ObjectId): Promise<SlotDocument[] | null> {
+    const currentTime = new Date();
+    const currentDateUTC = new Date();
+const currentDateIST = new Date(currentDateUTC.getTime() + 5.5 * 60 * 60 * 1000);
+console.log(currentDateIST)
+    console.log(currentTime)
+    const slots = await SlotModel.find({
+        doctorId: doctorId,
+        date: { $gte: startOfTodayIST() },
+        endTime: { $gt: currentDateIST } 
+    });
     return slots;
 }
+
 
 async findSlotById(slotId: mongoose.Types.ObjectId ): Promise<SlotDocument | null> {
   return await SlotModel.findOne({_id:slotId})

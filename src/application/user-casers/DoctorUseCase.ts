@@ -231,7 +231,7 @@ const otpCode: Otp = new Otp(
 }
 
 async displayAllSlots(doctorId: mongoose.Types.ObjectId) {
-  const slots = await this.slotRepository.findAllSlots(doctorId);
+  const slots = await this.slotRepository.findAllActiveSlots(doctorId);
   return slots;
 
 }

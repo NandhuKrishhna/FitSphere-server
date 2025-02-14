@@ -204,7 +204,8 @@ console.log("User created successfully: ", user);
       UNAUTHORIZED,
       "Session expired"
     );
-
+    const user = await this.userRepository.findUserById(session.userId);
+    console.log("User from set refresh token",user)
     const sessionNeedsRefresh =
       session.expiresAt.getTime() - Date.now() <= ONE_DAY_MS;
     if (sessionNeedsRefresh) {
@@ -225,7 +226,7 @@ console.log("User created successfully: ", user);
     const accessToken = signToken({
       userId: session.userId,
       sessionId: session._id!,
-      role : "user"
+      role : user?.role
     });
     return {
       accessToken,

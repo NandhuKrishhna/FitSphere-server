@@ -77,7 +77,7 @@ export class AppUseCase {
   }
 
   async getSlots(doctorId: mongoose.Types.ObjectId) {
-    const slots = await this.slotRespository.findAllSlots(doctorId);
+    const slots = await this.slotRespository.findAllActiveSlots(doctorId);
     appAssert(slots, NOT_FOUND, "No slots found. Please try another slot.");
     return slots;
   }

@@ -25,6 +25,6 @@ const SlotSchema = new Schema<SlotDocument>({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });
-
+SlotSchema.index({ endTime: 1 }, { expireAfterSeconds: 0 });
 
 export const SlotModel : Model<SlotDocument> = mongoose.model<SlotDocument>("Slot", SlotSchema);

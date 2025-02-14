@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import { SlotValidationSchema } from "../../validations/slot.schema";
+import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 
 @Service()
 
@@ -67,7 +68,7 @@ doctorLoginHandler =catchErrors(async(req:Request , res:Response) =>{
    const {accessToken, refreshToken, user} = await this.doctorUseCase.loginDoctor(request);
    return setAuthCookies({ res, accessToken, refreshToken , }).status(OK).json({
     message: "Login successful",
-    user:{
+    dcctor:{
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -91,15 +92,14 @@ logoutHandler = async (req: Request, res: Response) => {
    };
 
 slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
-  const token = req.cookies.accessToken;
-  const {payload} = verfiyToken(token);
-  const userId = payload!.userId;
-  const request = SlotValidationSchema.parse({...req.body});
-  const response =  await this.doctorUseCase.addSlots(userId , request);
+  const { userId } = req as AuthenticatedRequest;
+  const request = req.body;
+  console.log(request)
+  // const response =  await this.doctorUseCase.addSlots(userId , request);
   return res.status(OK).json({
     success : true,
     message : "Slot added successfully",
-    response
+    // response
   });
 });
 

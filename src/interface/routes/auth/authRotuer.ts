@@ -13,8 +13,8 @@ authRouter.post("/verify-email" , userController.otpVerifyHandler);
 // authRouter.get("/verify/email/:code" , userController.verifyEmailHandler);
 {/* Forgot password routes*/}
 authRouter.post("/forgot-password" ,userController.sendPasswordResetHandler);
-authRouter.post("/verify/reset-password/otp" , authMiddleware(["user"]),userController.verifyResetPasswordCode);
-authRouter.post("/reset/new-password" , authMiddleware(["user"]),userController.resetPasswordHandler);
+authRouter.post("/verify/reset-password/otp" ,userController.verifyResetPasswordCode);
+authRouter.post("/reset/new-password",userController.resetPasswordHandler);
 authRouter.get("/resend-otp", userController.resendPasswordHandler);
 authRouter.get("/check-auth", userController.checkAuthHandler);
 

@@ -7,7 +7,7 @@ import { SlotDocument } from "../../domain/types/Slot";
 export interface ISlotRepository {
     findSlotDetails(id: mongoose.Types.ObjectId, startTime: Date, endTime: Date,data :Date): Promise<SlotDocument | null>
     createSlot(slot: SlotDocument): Promise<SlotDocument>;
-    findAllSlots(doctorId: mongoose.Types.ObjectId): Promise<SlotDocument[] | null>
+    findAllActiveSlots(doctorId: mongoose.Types.ObjectId): Promise<SlotDocument[] | null>
     findSlotById(slotId:mongoose.Types.ObjectId ): Promise<SlotDocument | null >;
     deleteSlot(doctorId : mongoose.Types.ObjectId , slotId: mongoose.Types.ObjectId  ): Promise<void>
     updateSlot(id: mongoose.Types.ObjectId, updates: Partial<SlotDocument>): Promise<SlotDocument | null>

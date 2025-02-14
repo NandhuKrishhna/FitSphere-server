@@ -13,6 +13,7 @@ import authRouter from "./interface/routes/auth/authRotuer";
 import doctorRoutes from "./interface/routes/doctor/doctorRouter";
 import adminRouter from "./interface/routes/Admin/admin.routes";
 import appRouter from "./interface/routes/Apps/app.router";
+import authenticate from "./interface/middleware/auth/authMiddleware";
 
 const app = express();
 
@@ -45,7 +46,7 @@ app.get("/health", (req: Request, res: Response , next) => {
 app.use('/api/auth', authRouter)
 app.use('/api/doctor', doctorRoutes)
 app.use('/api/admin', adminRouter)
-app.use('/api/app', appRouter)
+app.use('/api/app', authenticate, appRouter)
 app.use(errorHandler)
 
 app.listen(PORT, async() => {
