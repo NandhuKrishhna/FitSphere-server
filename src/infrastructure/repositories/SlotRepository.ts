@@ -1,12 +1,12 @@
 import { Service } from "typedi";
 import { ISlotRepository, ISlotRepositoryToken } from "../../application/repositories/ISlotRepository";
 import mongoose from "mongoose";
-import { Slot } from "../../domain/entities/Slot";
 import { SlotModel } from "../models/slot.models";
+import { SlotDocument } from "../../domain/types/Slot";
 
 @Service(ISlotRepositoryToken)
 export class SlotRepository  implements ISlotRepository{
-    async findSlotDetails(id: mongoose.Types.ObjectId, startTime: Date, endTime: Date,date :Date): Promise<Slot | null> {
+    async findSlotDetails(id: mongoose.Types.ObjectId, startTime: Date, endTime: Date,date :Date): Promise<SlotDocument | null> {
         const slotDetails = await SlotModel.findOne({
             doctorId: id,
             date,
@@ -17,19 +17,37 @@ export class SlotRepository  implements ISlotRepository{
 
 }
 
-async createSlot(slot: Slot): Promise<Slot> {
+async createSlot(slot: SlotDocument): Promise<SlotDocument> {
     return await SlotModel.create(slot);
 }
 
-async findAllSlots(doctorId: mongoose.Types.ObjectId): Promise<Slot[] | null> {
+async findAllSlots(doctorId: mongoose.Types.ObjectId): Promise<SlotDocument[] | null> {
     const slots = await SlotModel.find({ doctorId : doctorId });
     return slots;
 }
 
-async findSlotById(slotId: mongoose.Types.ObjectId ): Promise<Slot | null> {
+async findSlotById(slotId: mongoose.Types.ObjectId ): Promise<SlotDocument | null> {
   return await SlotModel.findOne({_id:slotId})
 }
  async deleteSlot(doctorId: mongoose.Types.ObjectId , slotId: mongoose.Types.ObjectId ): Promise<void> {
     await SlotModel.deleteOne({doctorId:doctorId, _id:slotId})
+}
+
+async updateSlot(id: mongoose.Types.ObjectId, updates: Partial<SlotDocument>): Promise<SlotDocument | null> {
+    return await SlotModel.findOneAndUpdate({ _id: id }, updates, { new: true });
+}
+
+async updateSlotById(slotId: mongoose.Types.ObjectId, patientId: mongoose.Types.ObjectId): Promise<SlotDocument | null> {
+    const updatedSlot = await SlotModel.findOneAndUpdate(
+        {_id:slotId},
+        {
+            $set:{
+                patientId:patientId,
+                updatedAt: new Date()
+            }
+        }
+    )
+
+    return updatedSlot
 }
 }

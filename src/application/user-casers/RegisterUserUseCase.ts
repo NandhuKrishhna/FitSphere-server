@@ -21,6 +21,8 @@ import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoct
 import { Doctor } from "../../domain/entities/Doctors";
 import { DisplayDoctorsParams } from "../../domain/types/doctorTypes";
 import cloudinary from "../../infrastructure/config/cloudinary";
+import { Wallet } from "../../domain/entities/Wallet";
+import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
 export const ERRORS = {
   EMAIL_VERIFICATION_REQUIRED: "Please verify your email. A verification code has been sent to your email."
 };
@@ -35,7 +37,8 @@ export class RegisterUserUseCase {
     @Inject(IVerficaitonCodeRepositoryToken) private verificationCodeRepository: IVerficaitonCodeRepository,
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
     @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
-    @Inject(IDoctorRepositoryToken) private doctorRespository : IDoctorRepository
+    @Inject(IDoctorRepositoryToken) private doctorRespository : IDoctorRepository,
+    @Inject(IWalletRepositoryToken) private walletRespository : IWalletRepository
   ) {}
 
   async registerUser(userData: RegisterUserParams): Promise<any> {
@@ -51,6 +54,12 @@ export class RegisterUserUseCase {
       userData.password
     );
     const user = await this.userRepository.createUser(newUser);
+if (!user) {
+  console.error("User creation failed");
+  throw new Error("User creation failed");
+}
+console.log("User created successfully: ", user);
+
     const otpCode: Otp = new Otp(
       new mongoose.Types.ObjectId(),
       user._id,
@@ -71,6 +80,15 @@ export class RegisterUserUseCase {
       expiresAt: oneYearFromNow(),
     };
     const session = await this.sessionRepository.createSession(newSession);
+
+    // creating a wallet for the user
+    const newWallet = new Wallet(
+      new mongoose.Types.ObjectId(),
+      user._id,
+      0,
+      "INR",
+    );
+    await this.walletRespository.createWallet(newWallet);
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
     };

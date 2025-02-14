@@ -5,10 +5,7 @@ import appAssert from "../../../shared/utils/appAssert";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import { Inject, Service } from "typedi";
 import { AppUseCase } from "../../../application/user-casers/AppUseCase";
-import razorpay from "razorpay";
-import mongoose, { Mongoose } from "mongoose";
-import { clearAuthCookies } from "../../../shared/utils/setAuthCookies";
-import { validateHeaderName } from "http";
+import mongoose from "mongoose";
 
 
 
@@ -87,14 +84,63 @@ export class AppController {
       bookAppointment = catchErrors(async (req: Request, res: Response) => {
        console.log("From book appointment handler",req.body);
        const {slotId,amount,doctorId , patientId,} = req.body;
-       const appointmentDetails = await this.appUseCase.userAppointment({slotId,amount,doctorId,patientId});
+       const {newAppointmentDetails,order} = await this.appUseCase.userAppointment({slotId,amount,doctorId,patientId});
        res.status(OK).json({
         success : true,
         message :"Appointment booked successfully",
-        appointmentDetails
+        newAppointmentDetails, order
 
       })
- 
+     
 })
+
+
+    verifyPaymentHandler = catchErrors(async (req: Request, res: Response) => {
+      
+       const razorpay_order_id = req.body.razorpay_order_id
+       appAssert(razorpay_order_id , BAD_REQUEST , "Missing")
+       await this.appUseCase.verifyPayment(razorpay_order_id,);
+       res.status(OK).json({
+        success : true,
+        message :"Payment verified successfully",
+        // newAppointmntDetails
+      })
+    });
+
+
+    getAppointmentHandlers = catchErrors(async (req: Request, res: Response) => {
+      console.log("Request from getAppointmentHandler",req.body.patientId)
+      const userId =new mongoose.Types.ObjectId(req.body.patientId);
+      console.log("userid from getAppointmentHandler",userId)
+      console.log(typeof userId);
+    
+      const response = await this.appUseCase.displaySlotWithDoctorDetails(userId);
+      res.status(OK).json({
+        success : true,
+        message :"Slot details fetched successfully",
+        response
+      })
+    });
+
+    cancelAppointmentHandler = catchErrors(async (req: Request, res: Response) => {
+      const appointmentId = new mongoose.Types.ObjectId(req.body.appointmentId);
+      console.log("From cancel appointment handler",appointmentId)
+      const response = await this.appUseCase.cancelAppointment(appointmentId);
+      res.status(OK).json({
+        success : true,
+        message :"Appointment cancelled successfully",
+        response
+      })
+    })
+
+    getWalletHandler = catchErrors(async (req: Request, res: Response) => {
+      const userId = new mongoose.Types.ObjectId(req.body.userId);
+      const response = await this.appUseCase.getWalletDetails(userId);
+      res.status(OK).json({
+        success : true,
+        message :"Wallet details fetched successfully",
+        response
+      })
+    })
 
 }

@@ -15,33 +15,20 @@ export interface AuthenticatedRequest extends Request {
 const authMiddleware = (requiredRoles: UserRole[]) => {
   return catchErrors(async (req: Request, res: Response, next: NextFunction) => {
     const accessToken = req.cookies.accessToken as string | undefined;
-    const refreshToken = req.cookies.refreshToken as string | undefined;
-
-    if (!accessToken && refreshToken) {
-      return res.status(401).json({ message: "Access token expired, please refresh" });
-    }
-    
     appAssert(
       accessToken,
       UNAUTHORIZED,
       "Not authorized",
       AppErrorCode.InvalidAccessToken
     );
-
+  
     const { error, payload } = verfiyToken(accessToken);
-    if (!payload) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token" });
-    }
-    if (error === "jwt expired" && refreshToken) {
-      return res.status(401).json({ message: "Access token expired, please refresh" });
-    }
-    if (!payload && (!refreshToken || error === "jwt expired")) {
-      return res.status(403).json({ message: "Session expired, please log in again" });
-    }
-
-    // console.log("Authenticated User Payload:", payload);
-
-    // Check user roles
+    appAssert(
+      payload,
+      UNAUTHORIZED,
+      error === "jwt expired" ? "Token expired" : "Invalid token",
+      AppErrorCode.InvalidAccessToken
+    );
     appAssert(
       requiredRoles.length === 0 || requiredRoles.includes(payload.role),
       FORBIDDEN, "You do not have permission to access this resource."

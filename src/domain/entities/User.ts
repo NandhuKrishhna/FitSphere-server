@@ -24,3 +24,22 @@ export class User {
       return bcrypt.compare(val, this.password);
     }
 };
+
+
+
+
+export type UserType = {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  email: string;
+  password: string;
+  isActive: boolean;
+  isPremium: boolean;
+  role: "user" | "doctor";
+  isVerified?: boolean;
+  status: "blocked" | "deleted" | "active";
+  profilePicture?: null | string; 
+  createdAt?: Date;
+  updatedAt?: Date;
+  omitPassword(): Pick<UserType, "_id" | "name" | "email" | "isActive" | "isPremium" | "role" | "isVerified" | "status" | "createdAt" | "updatedAt">
+};

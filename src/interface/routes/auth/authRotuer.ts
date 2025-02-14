@@ -9,7 +9,7 @@ authRouter.post("/login" , userController.loginHandler);
 authRouter.get("/refresh" , userController.refreshHandler);
 authRouter.get("/logout" , userController.logoutHandler);
 // verify email{otp} after user signup 
-authRouter.post("/verify-email" , authMiddleware(["user"]), userController.otpVerifyHandler);
+authRouter.post("/verify-email" , userController.otpVerifyHandler);
 // authRouter.get("/verify/email/:code" , userController.verifyEmailHandler);
 {/* Forgot password routes*/}
 authRouter.post("/forgot-password" ,userController.sendPasswordResetHandler);

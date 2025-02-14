@@ -17,3 +17,19 @@ export class Appointments {
         public updatedAt?: Date
     ) {}
 }
+
+export type Appointment = {
+    _id: mongoose.Types.ObjectId;
+    doctorId: mongoose.Types.ObjectId;
+    patientId: mongoose.Types.ObjectId;
+    slotId: mongoose.Types.ObjectId;
+    consultationType?: "video" | "audio" | "chat";
+    date: Date;
+    paymentStatus?: "pending" | "completed" | "failed"; 
+    amount: number;
+    paymentId?: string;
+    orderId?: string;
+    status?: "scheduled" | "completed" | "cancelled"; 
+    createdAt?: Date;
+    updatedAt?: Date;
+};

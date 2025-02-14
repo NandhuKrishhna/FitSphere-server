@@ -1,14 +1,17 @@
 import mongoose from "mongoose";
-import { Slot } from "../../domain/entities/Slot";
+
 import { Token } from "typedi";
+import { SlotDocument } from "../../domain/types/Slot";
 
 
 export interface ISlotRepository {
-    findSlotDetails(id: mongoose.Types.ObjectId, startTime: Date, endTime: Date,data :Date): Promise<Slot | null>
-    createSlot(slot: Slot): Promise<Slot>;
-    findAllSlots(doctorId: mongoose.Types.ObjectId): Promise<Slot[] | null>
-    findSlotById(slotId:mongoose.Types.ObjectId ): Promise<Slot | null >;
+    findSlotDetails(id: mongoose.Types.ObjectId, startTime: Date, endTime: Date,data :Date): Promise<SlotDocument | null>
+    createSlot(slot: SlotDocument): Promise<SlotDocument>;
+    findAllSlots(doctorId: mongoose.Types.ObjectId): Promise<SlotDocument[] | null>
+    findSlotById(slotId:mongoose.Types.ObjectId ): Promise<SlotDocument | null >;
     deleteSlot(doctorId : mongoose.Types.ObjectId , slotId: mongoose.Types.ObjectId  ): Promise<void>
+    updateSlot(id: mongoose.Types.ObjectId, updates: Partial<SlotDocument>): Promise<SlotDocument | null>
+    updateSlotById(slotId: mongoose.Types.ObjectId, patientId: mongoose.Types.ObjectId): Promise<SlotDocument | null>
 }
 export const ISlotRepositoryToken = new Token<ISlotRepository>();
 

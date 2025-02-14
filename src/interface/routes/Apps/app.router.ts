@@ -12,6 +12,10 @@ appRouter.post("/update-profile", authMiddleware(["user"]), appController.update
 appRouter.post("/doctor/profile", authMiddleware(["user"]), appController.doctorDetailsHandler)
 appRouter.post("/doctor/slots", authMiddleware(["user"]), appController.getSlotsHandler)
 appRouter.post("/book/slots", authMiddleware(["user"]), appController.bookAppointment)
+appRouter.post("/verify/payment", authMiddleware(["user"]), appController.verifyPaymentHandler)
+appRouter.post("/get-appointments", authMiddleware(["user"]), appController.getAppointmentHandlers)
+appRouter.post("/cancel/appointments", authMiddleware(["user"]), appController.cancelAppointmentHandler)
+appRouter.post("/wallet", authMiddleware(["user"]), appController.getWalletHandler)
 
 
 export default appRouter;

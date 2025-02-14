@@ -2,7 +2,7 @@ import { Inject, Service } from "typedi";
 import { DoctorUseCase } from "../../../application/user-casers/DoctorUseCase";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { doctorRegisterSchema, verificationCodeSchema } from "../../validations/doctorSchema";
-import { setAuthCookies } from "../../../shared/utils/setAuthCookies";
+import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
 import { CREATED, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
 import { doctorDetailsSchema } from "../../validations/doctor.details.schema";
@@ -70,11 +70,25 @@ doctorLoginHandler =catchErrors(async(req:Request , res:Response) =>{
     user:{
       _id: user._id,
       name: user.name,
-      email: user.email
+      email: user.email,
+      role : user.role,
+      profilePicture : user.ProfilePicture,
+      accessToken,
+
     }
   });
 })
 
+logoutHandler = async (req: Request, res: Response) => {
+ const accessToken = req.cookies.accessToken as string | undefined;
+     const { payload } = verfiyToken(accessToken || "");
+     if (payload) {
+       await this.doctorUseCase.logoutUser(payload);
+     }
+     return clearAuthCookies(res).status(OK).json({
+       message: "Logout successful",
+     });
+   };
 
 slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
   const token = req.cookies.accessToken;
@@ -118,5 +132,15 @@ cancelSlotHandler = catchErrors(async (req: Request, res: Response) => {
     return res.status(OK).json({ message: "Email verified successfully" });
 
   })
+
+  getAllAppointmentsHandler = catchErrors(async (req: Request, res: Response) => {
+    const userId = new mongoose.Types.ObjectId(req.body.userId);
+    console.log(userId, "from get all appointments handler");
+    const response =  await this.doctorUseCase.getAllAppointment(userId);
+    return res.status(OK).json({
+      success : true,
+      response
+    });
+  });
 
 }

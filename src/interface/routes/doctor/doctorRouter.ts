@@ -12,10 +12,12 @@ doctorRoutes.post("/signup", doctorController.registerHandler);
 doctorRoutes.post("/registration", upload.single("profilePicture") ,doctorController.registerAsDoctorHandler);
 doctorRoutes.post("/verify/otp", doctorController.otpVerifyHandler);
 doctorRoutes.post("/doctor-login", doctorController.doctorLoginHandler);
+doctorRoutes.get("/logout", doctorController.logoutHandler);
+
 doctorRoutes.post("/slot-management", doctorController.slotManagementHandler);
 doctorRoutes.get("/get-slots", doctorController.displayAllSlotsHandler);
 doctorRoutes.post("/cancel-slot", doctorController.cancelSlotHandler);
-
+doctorRoutes.post("/get/all-appointments", doctorController.getAllAppointmentsHandler);
 
 {/*impliment this later for resetting password on clickig some link*/}
 doctorRoutes.get("/verify-email/:code", doctorController.verifyEmailHandler);

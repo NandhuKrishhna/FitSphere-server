@@ -1,12 +1,12 @@
 import { Service } from "typedi";
 import { IUserRepository, IUserRepositoryToken } from "../../application/repositories/IUserRepository";
 import { UserModel } from "../models/UserModel";
-import { User } from "../../domain/entities/User";
+import { User, UserType } from "../../domain/entities/User";
 import mongoose, { mongo } from "mongoose";
 
-@Service({ id: IUserRepositoryToken })
+@Service( IUserRepositoryToken)
 export class UserRepository implements IUserRepository {
-  async createUser(user: User): Promise<User> {
+  async createUser(user: UserType): Promise<UserType> {
    const result = await UserModel.create(user);
    return result
   }

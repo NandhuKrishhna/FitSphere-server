@@ -6,7 +6,7 @@ import { generateOtpExpiration, oneYearFromNow } from "../../shared/utils/date";
 import { IVerficaitonCodeRepository, IVerficaitonCodeRepositoryToken } from "../repositories/IVerificaitonCodeRepository";
 import { sendMail } from "../../shared/constants/sendMail";
 import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISessionRepository";
-import { RefreshTokenPayload, refreshTokenSignOptions, signToken } from "../../shared/utils/jwt";
+import { AccessTokenPayload, RefreshTokenPayload, refreshTokenSignOptions, signToken } from "../../shared/utils/jwt";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 import { DoctorDetailsParams, RegisterDoctorParams } from "../../domain/types/doctorTypes";
 import { Doctor } from "../../domain/entities/Doctors";
@@ -24,6 +24,7 @@ import { LoginUserParams } from "../../domain/types/userTypes";
 import { Slot } from "../../domain/entities/Slot";
 import { SlotType } from "../../interface/validations/slot.schema";
 import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
+import { IAppointmentRepository, IAppointmentRepositoryToken } from "../repositories/IAppointmentRepository";
 
 const MESSAGE =  `A new doctor has been registered and is waiting for approval. Please review the doctor's details and take appropriate action.`
 @Service()
@@ -34,7 +35,8 @@ export class DoctorUseCase {
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
     @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
     @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
-    @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository
+    @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository,
+    @Inject(IAppointmentRepositoryToken) private appointmentRepository: IAppointmentRepository
   ) {}
 
   async registerDoctor(details: RegisterDoctorParams) {
@@ -204,7 +206,9 @@ const otpCode: Otp = new Otp(
         };
   }
 
-
+  async logoutUser(payload:AccessTokenPayload){
+  await this.sessionRepository.findByIdAndDelete(payload.sessionId);
+ }
   async addSlots(doctorId: mongoose.Types.ObjectId, slots: SlotType) {
     console.log(`Doctor Id : ${doctorId} and slots : ${JSON.stringify(slots)}`);
     const existingSlots =   await this.slotRepository.findSlotDetails(doctorId , slots.startTime, slots.endTime, slots.date);
@@ -237,4 +241,10 @@ async cancelSlot(doctorId : mongoose.Types.ObjectId , slotId : mongoose.Types.Ob
    appAssert(existingSlot?.status !== "booked" , UNAUTHORIZED , "Patient has already booked this slot.")
     await this.slotRepository.deleteSlot(doctorId,slotId)
 }
+
+async getAllAppointment(doctorId: mongoose.Types.ObjectId) {
+  const appointments = await this.appointmentRepository.findAllAppointmentsByDocID(doctorId);
+  return appointments;
+}
+
 }
