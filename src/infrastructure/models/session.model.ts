@@ -1,12 +1,14 @@
 import mongoose, { model, Schema } from "mongoose";
 import { thirtyDaysFromNow } from "../../shared/utils/date";
+import { UserRole } from "../../shared/utils/jwt";
 
 export interface SessionDocument extends Document {
-  userId: mongoose.Types.ObjectId;
-  userAgent?: string;
-  createdAt: Date;
-  expiresAt: Date;
   _id? : mongoose.Types.ObjectId
+  userId: mongoose.Types.ObjectId;
+  role :UserRole;
+  expiresAt: Date;
+  createdAt: Date;
+  userAgent?: string;
 }
 
 const sessionSchema = new Schema<SessionDocument>({
@@ -14,6 +16,11 @@ const sessionSchema = new Schema<SessionDocument>({
     ref: "User",
     type: Schema.Types.ObjectId,
     index: true,
+    required: true,
+  },
+  role: {
+    type: String, 
+    enum: ["admin", "doctor", "user"], 
     required: true,
   },
   userAgent: { type: String },

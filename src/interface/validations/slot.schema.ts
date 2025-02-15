@@ -33,9 +33,6 @@ export type SlotType = {
     startTime: Date,
     endTime: Date,
     date: Date,
-    status : "available" | "booked" | "cancelled",
     consultationType : "video" | "audio" | "chat",
-    patientId?: mongoose.Types.ObjectId,
-    createdAt?: Date,
-    updatedAt?: Date
+
 }

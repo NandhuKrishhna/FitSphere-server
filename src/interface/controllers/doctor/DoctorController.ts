@@ -9,8 +9,9 @@ import { doctorDetailsSchema } from "../../validations/doctor.details.schema";
 import mongoose from "mongoose";
 import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
-import { SlotValidationSchema } from "../../validations/slot.schema";
+import { SlotType, SlotValidationSchema } from "../../validations/slot.schema";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+import { convertToIST } from "../../../shared/utils/date";
 
 @Service()
 
@@ -65,15 +66,15 @@ doctorLoginHandler =catchErrors(async(req:Request , res:Response) =>{
     ...req.body,
     userAgent : req.headers["user-agent"]
    });
-   const {accessToken, refreshToken, user} = await this.doctorUseCase.loginDoctor(request);
+   const {accessToken, refreshToken, doctor} = await this.doctorUseCase.loginDoctor(request);
    return setAuthCookies({ res, accessToken, refreshToken , }).status(OK).json({
     message: "Login successful",
-    dcctor:{
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role : user.role,
-      profilePicture : user.ProfilePicture,
+    doctor:{
+      _id: doctor._id,
+      name: doctor.name,
+      email: doctor.email,
+      role : doctor.role,
+      profilePicture : doctor.ProfilePicture,
       accessToken,
 
     }
@@ -91,22 +92,36 @@ logoutHandler = async (req: Request, res: Response) => {
      });
    };
 
-slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
-  const { userId } = req as AuthenticatedRequest;
-  const request = req.body;
-  console.log(request)
-  // const response =  await this.doctorUseCase.addSlots(userId , request);
+   slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
+    const { userId } = req as AuthenticatedRequest;
+    const { startTime, endTime, date, consultationType } = req.body;
+  
+    // Convert times to IST
+    const startIST = new Date(new Date(startTime).toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const endIST = new Date(new Date(endTime).toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const dateIST = new Date(new Date(date).toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  
+    const startISTInd = new Date(new Date(startIST).getTime() + 5.5 * 60 * 60 * 1000);
+  const endISTInd = new Date(new Date(endIST).getTime() + 5.5 * 60 * 60 * 1000);
+  const dateISTInd = new Date(new Date(dateIST).getTime() + 5.5 * 60 * 60 * 1000);
+
+  const payload :SlotType ={
+    startTime :startISTInd,
+    endTime :endISTInd,
+    date : dateISTInd,
+    consultationType
+  }
+  
+  const response = await this.doctorUseCase.addSlots(userId ,payload)
   return res.status(OK).json({
     success : true,
     message : "Slot added successfully",
-    // response
+    response
   });
 });
 
 displayAllSlotsHandler = catchErrors(async (req: Request, res: Response) => {
-  const token = req.cookies.accessToken;
-  const {payload} = verfiyToken(token);
-  const userId = payload!.userId;
+  const {userId}  =  req as AuthenticatedRequest
   const response =  await this.doctorUseCase.displayAllSlots(userId);
   return res.status(OK).json({
     success : true,
@@ -115,10 +130,9 @@ displayAllSlotsHandler = catchErrors(async (req: Request, res: Response) => {
 });
   
 cancelSlotHandler = catchErrors(async (req: Request, res: Response) => {
-  const token = req.cookies.accessToken;
+  console.log("Req body : ",req.body)
   const slotId = new mongoose.Types.ObjectId(req.body.slotId);
-  const {payload} = verfiyToken(token);
-  const userId = payload!.userId;
+  const {userId} = req as AuthenticatedRequest
     await this.doctorUseCase.cancelSlot(userId, slotId);
     res.status(OK).json({
       success : true,
@@ -134,13 +148,18 @@ cancelSlotHandler = catchErrors(async (req: Request, res: Response) => {
   })
 
   getAllAppointmentsHandler = catchErrors(async (req: Request, res: Response) => {
-    const userId = new mongoose.Types.ObjectId(req.body.userId);
-    console.log(userId, "from get all appointments handler");
-    const response =  await this.doctorUseCase.getAllAppointment(userId);
+    const doctorId = new mongoose.Types.ObjectId(req.body.userId);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = 8;
+    const filters = {
+        status: req.query.status as string,
+        paymentStatus: req.query.paymentStatus as string,
+        consultationType: req.query.consultationType as string, 
+    };
+    const response = await this.doctorUseCase.getAllAppointment(doctorId, filters, page, limit);
     return res.status(OK).json({
-      success : true,
-      response
+        success: true,
+        response,
     });
-  });
-
+});
 }

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { Appointment, Appointments } from "../../domain/entities/Appointments";
 import { Token } from "typedi";
+import { AppointmentProps } from "../../domain/types/Slot";
 
 
 
@@ -11,7 +12,7 @@ export interface IAppointmentRepository {
     updatePaymentStatus(id:mongoose.Types.ObjectId) : Promise<Appointment | null>
     findDetailsByPatientId(userId : mongoose.Types.ObjectId) : Promise<any>
     cancelAppointment(id : mongoose.Types.ObjectId) : Promise<Appointment | null>
-    findAllAppointmentsByDocID(doctorId : mongoose.Types.ObjectId) : Promise<any>
+    findAllAppointmentsByDocID(props: AppointmentProps): Promise<{ data: any[]; total: number }>;
 };
 
 

@@ -2,6 +2,7 @@ import { Router } from "express"
 import { UserController } from "../../controllers/auth/UserController"
 import { Container } from "typedi"; 
 import authMiddleware from "../../middleware/auth/authMiddleware";
+import authorizeRoles from "../../middleware/auth/roleBaseAuthentication";
 const authRouter = Router()
 const userController = Container.get(UserController);
 authRouter.post("/signup" , userController.registerHandler); 

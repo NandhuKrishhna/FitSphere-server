@@ -25,6 +25,8 @@ import { Slot } from "../../domain/entities/Slot";
 import { SlotType } from "../../interface/validations/slot.schema";
 import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
 import { IAppointmentRepository, IAppointmentRepositoryToken } from "../repositories/IAppointmentRepository";
+import { Session } from "../../domain/entities/Session";
+import UserRoleTypes from "../../shared/constants/UserRole";
 
 const MESSAGE =  `A new doctor has been registered and is waiting for approval. Please review the doctor's details and take appropriate action.`
 @Service()
@@ -68,20 +70,24 @@ const otpCode: Otp = new Otp(
       ...getVerifyEmailTemplates(newOtp.code, newDoctor.name),
     });
     //create session
-    const newSession = {
-      userId: new mongoose.Types.ObjectId(doctor._id),
-      userAgent: details.userAgent,
-      createdAt: new Date(),
-      expiresAt: oneYearFromNow(),
-    };
+    const newSession = new Session (
+          new mongoose.Types.ObjectId(),
+          new mongoose.Types.ObjectId(doctor._id),
+          UserRoleTypes.DOCTOR,
+          oneYearFromNow(),
+          new Date(),
+          details.userAgent,
+       );
     const session = await this.sessionRepository.createSession(newSession);
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
+      role : UserRoleTypes.DOCTOR
     };
     const userId = doctor._id;
     const accessToken = signToken({
       ...sessionInfo,
       userId: userId,
+      role : UserRoleTypes.DOCTOR
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
     return {
@@ -180,27 +186,30 @@ const otpCode: Otp = new Otp(
     appAssert(existingDoctor.isApproved , UNAUTHORIZED ,"Your request is still under process . Please check your email for updates");
     const isValidUser = await existingDoctor.comparePassword(doctorData.password);
     appAssert(isValidUser , UNAUTHORIZED , "Invalid Email or Password");
-       const newSession = {
-          userId: new mongoose.Types.ObjectId(existingDoctor._id),
-          userAgent: doctorData.userAgent,
-          createdAt: new Date(),
-          expiresAt: oneYearFromNow(),
-        };
+    const newSession = new Session (
+      new mongoose.Types.ObjectId(),
+      new mongoose.Types.ObjectId(existingDoctor._id),
+      UserRoleTypes.DOCTOR,
+      oneYearFromNow(),
+      new Date(),
+      doctorData.userAgent,
+   );
         const session = await this.sessionRepository.createSession(newSession);
       
         const sessionInfo: RefreshTokenPayload = {
           sessionId: session._id ?? new mongoose.Types.ObjectId(),
+          role: UserRoleTypes.DOCTOR
         };
         const userId = existingDoctor._id;
         const accessToken = signToken({
           ...sessionInfo,
           userId: userId,
-          role :"doctor"
+          role : UserRoleTypes.DOCTOR
         });
         const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
       
         return {
-          user: existingDoctor.omitPassword(),
+          doctor: existingDoctor.omitPassword(),
           accessToken,
           refreshToken,
         };
@@ -209,26 +218,32 @@ const otpCode: Otp = new Otp(
   async logoutUser(payload:AccessTokenPayload){
   await this.sessionRepository.findByIdAndDelete(payload.sessionId);
  }
-  async addSlots(doctorId: mongoose.Types.ObjectId, slots: SlotType) {
-    console.log(`Doctor Id : ${doctorId} and slots : ${JSON.stringify(slots)}`);
-    const existingSlots =   await this.slotRepository.findSlotDetails(doctorId , slots.startTime, slots.endTime, slots.date);
-    appAssert(!existingSlots, CONFLICT, "Slot already exists");
-    const {startTime , endTime} = slots;
-    appAssert(startTime< endTime , BAD_REQUEST , "End time must be after start time");
-    const newSlot  = new Slot(
-      new mongoose.Types.ObjectId(),
-      new mongoose.Types.ObjectId(doctorId),
-      slots.startTime,
-      slots.endTime,
-      slots.date,
-      slots.consultationType,
-      slots?.status,
-      slots.patientId,
-    );
-    const newSlotDetails = await this.slotRepository.createSlot(newSlot);
-    return newSlotDetails;
-      
+ async addSlots(doctorId: mongoose.Types.ObjectId, payload: SlotType) {
+  console.log(`Doctor Id: ${doctorId} and slots: ${JSON.stringify(payload)}`);
+  const existingSlots = await this.slotRepository.findSlotDetails(
+    doctorId,
+    payload.startTime,
+    payload.endTime,
+    payload.date
+  );
+  appAssert(!existingSlots, CONFLICT, "Slot already exists");
+  const { startTime, endTime } = payload;
+  appAssert(startTime < endTime, BAD_REQUEST, "End time must be after start time");
+
+  const newSlot = new Slot(
+    new mongoose.Types.ObjectId(),
+    new mongoose.Types.ObjectId(doctorId),
+    payload.startTime,
+    payload.endTime,
+    payload.date,
+    payload.consultationType,
+
+  );
+
+  const newSlotDetails = await this.slotRepository.createSlot(newSlot);
+  return newSlotDetails;
 }
+
 
 async displayAllSlots(doctorId: mongoose.Types.ObjectId) {
   const slots = await this.slotRepository.findAllActiveSlots(doctorId);
@@ -242,9 +257,15 @@ async cancelSlot(doctorId : mongoose.Types.ObjectId , slotId : mongoose.Types.Ob
     await this.slotRepository.deleteSlot(doctorId,slotId)
 }
 
-async getAllAppointment(doctorId: mongoose.Types.ObjectId) {
-  const appointments = await this.appointmentRepository.findAllAppointmentsByDocID(doctorId);
-  return appointments;
+async getAllAppointment(
+  doctorId: mongoose.Types.ObjectId,
+  filters: { status?: string; paymentStatus?: string; consultationType?: string },
+  page: number,
+  limit: number
+) {
+  const { data, total } = await this.appointmentRepository.findAllAppointmentsByDocID({doctorId, filters, page, limit});
+  const totalPages = Math.ceil(total / limit);
+  return { appointments: data, total, page, totalPages };
 }
 
 }

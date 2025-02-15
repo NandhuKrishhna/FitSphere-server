@@ -3,7 +3,7 @@ import { SignOptions, VerifyOptions } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
 import { JWT_REFRESH_SECRET, JWT_SECRET } from "../constants/env";
 export type UserRole = "user" | "doctor" | "admin";
-export type RefreshTokenPayload = { sessionId: mongoose.Types.ObjectId };
+export type RefreshTokenPayload = { sessionId: mongoose.Types.ObjectId ,role : UserRole};
 export type AccessTokenPayload = { userId: mongoose.Types.ObjectId; sessionId: mongoose.Types.ObjectId , role: UserRole };
 
 type SignOptionsAndSecret = SignOptions & { secret: string };

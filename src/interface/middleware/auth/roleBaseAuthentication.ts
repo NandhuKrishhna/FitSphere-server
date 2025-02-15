@@ -8,6 +8,7 @@ import AppErrorCode from "../../../shared/constants/appErrorCode";
 const authorizeRoles = (requiredRoles: string[]): RequestHandler =>
     catchErrors(async (req: Request, res: Response, next: NextFunction) => {
       const { role } = req as AuthenticatedRequest;
+      console.log("Role From AuthorizeRole Middleware : " , role)
     console.log(role,"From authorizeRoles")
       appAssert(
         role,

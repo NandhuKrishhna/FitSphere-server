@@ -8,6 +8,8 @@ import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthC
 import { OK } from "../../../shared/constants/http";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import mongoose from "mongoose";
+import { emit } from "process";
+import { profile } from "console";
 
 
 @Service()
@@ -24,8 +26,15 @@ export class AdminController {
    return res.status(OK).json({
      success : true,
      message : " Admin Login successfull",
-     admin : user,
-     accessToken
+     admin : {
+       _id:user._id,
+       name : user.name,
+       email : user.email,
+       profilePicture : user.profilePicture,
+       role:user.role,
+       accessToken:user.accessToken
+     }
+
    })
   })
 

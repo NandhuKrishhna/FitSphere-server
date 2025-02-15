@@ -11,7 +11,7 @@ import { OK } from "./shared/constants/http";
 import errorHandler from "./interface/middleware/auth/errorHandler";
 import authRouter from "./interface/routes/auth/authRotuer";
 import doctorRoutes from "./interface/routes/doctor/doctorRouter";
-import adminRouter from "./interface/routes/Admin/admin.routes";
+import adminRouter from "./interface/routes/Admin/admin.route";
 import appRouter from "./interface/routes/Apps/app.router";
 import authenticate from "./interface/middleware/auth/authMiddleware";
 

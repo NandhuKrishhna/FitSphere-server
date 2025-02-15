@@ -32,13 +32,11 @@ async createSlot(slot: SlotDocument): Promise<SlotDocument> {
 async findAllActiveSlots(doctorId: mongoose.Types.ObjectId): Promise<SlotDocument[] | null> {
     const currentTime = new Date();
     const currentDateUTC = new Date();
-const currentDateIST = new Date(currentDateUTC.getTime() + 5.5 * 60 * 60 * 1000);
-console.log(currentDateIST)
+    const currentDateIST = new Date(currentDateUTC.getTime() + 5.5 * 60 * 60 * 1000);
+    console.log(currentDateIST)
     console.log(currentTime)
     const slots = await SlotModel.find({
         doctorId: doctorId,
-        date: { $gte: startOfTodayIST() },
-        endTime: { $gt: currentDateIST } 
     });
     return slots;
 }

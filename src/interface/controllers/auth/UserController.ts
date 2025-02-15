@@ -21,6 +21,7 @@ import {
 } from "../../../shared/utils/setAuthCookies";
 import { verfiyToken, verifyResetToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
+import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 
 
 
@@ -44,8 +45,13 @@ export class UserController {
       .json({
         success : true,
         message : "Registration successful , Please verify your email",
-        user ,
-        accessToken
+        user:{
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role : user.role,
+          accessToken,
+        }
         });
   });
   // verfiy Otp;
@@ -95,7 +101,6 @@ export class UserController {
 
   refreshHandler = catchErrors(async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken as string | undefined;
-    console.log(req.cookies)
     console.log(refreshToken,"From refresh handler");
     appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token, please log in again");
     const { accessToken, newRefreshToken } = await this.registerUserUseCase.setRefreshToken(refreshToken);

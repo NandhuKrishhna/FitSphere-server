@@ -13,6 +13,7 @@ import { sendMail } from "../../shared/constants/sendMail";
 import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
 import { getRejectionEmailTemplate } from "../../shared/utils/EmailTemplates/RequestRejectEmailTemplate";
 import { getApprovalEmailTemplate } from "../../shared/utils/EmailTemplates/DoctorApprovalTemplate";
+import { Session } from "../../domain/entities/Session";
 
 
 
@@ -32,22 +33,25 @@ export class AdminUseCase  {
     appAssert(existingUser, UNAUTHORIZED, "Invalid email or user does not exist");
     const isValid = await existingUser.comparePassword(adminData.password);
     appAssert(isValid, UNAUTHORIZED, "Invalid email or password!");
-    const newSession = {
-          userId: new mongoose.Types.ObjectId(existingUser._id),
-          userAgent: adminData.userAgent,
-          createdAt: new Date(),
-          expiresAt: oneYearFromNow(),
-        };
+    const newSession = new Session(
+           new mongoose.Types.ObjectId(),
+           new mongoose.Types.ObjectId(existingUser._id),
+           "admin",
+           oneYearFromNow(),
+           new Date(),
+           adminData.userAgent,
+    )
         const session = await this.sessionRepository.createSession(newSession);
       
         const sessionInfo: RefreshTokenPayload = {
           sessionId: session._id ?? new mongoose.Types.ObjectId(),
+          role : session.role
         };
         const adminID = existingUser._id;
             const accessToken = signToken({
               ...sessionInfo,
               userId: adminID,
-              role : "admin"
+              role : session.role
             });
             const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
           

@@ -8,7 +8,7 @@ import { fiveMinutesAgo, generateOtpExpiration, ONE_DAY_MS, oneYearFromNow, thir
 import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISessionRepository";
 import appAssert from "../../shared/utils/appAssert";
 import { BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND, TOO_MANY_REQUESTS, UNAUTHORIZED } from "../../shared/constants/http";
-import { AccessTokenPayload, RefreshTokenPayload, signResetToken, signToken, verfiyToken } from "../../shared/utils/jwt";
+import { AccessTokenPayload, RefreshTokenPayload, signResetToken, signToken, UserRole, verfiyToken } from "../../shared/utils/jwt";
 import { refreshTokenSignOptions } from "../../shared/utils/jwt";
 import { sendMail } from "../../shared/constants/sendMail";
 import { getResetPasswordEmailTemplates, getVerifyEmailTemplates } from "../../shared/utils/emialTemplates";
@@ -23,6 +23,7 @@ import { DisplayDoctorsParams } from "../../domain/types/doctorTypes";
 import cloudinary from "../../infrastructure/config/cloudinary";
 import { Wallet } from "../../domain/entities/Wallet";
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
+import {Session} from "../../domain/entities/Session"
 export const ERRORS = {
   EMAIL_VERIFICATION_REQUIRED: "Please verify your email. A verification code has been sent to your email."
 };
@@ -73,12 +74,15 @@ console.log("User created successfully: ", user);
       to: user.email,
       ...getVerifyEmailTemplates(newOtp.code, user.name),
     });
-    const newSession = {
-      userId: new mongoose.Types.ObjectId(newUser._id),
-      userAgent: userData.userAgent,
-      createdAt: new Date(),
-      expiresAt: oneYearFromNow(),
-    };
+
+    const newSession = new Session (
+        new mongoose.Types.ObjectId(),
+        new mongoose.Types.ObjectId(newUser._id),
+        "user",
+       new Date(),
+       oneYearFromNow(),
+        userData.userAgent,
+     );
     const session = await this.sessionRepository.createSession(newSession);
 
     // creating a wallet for the user
@@ -91,6 +95,7 @@ console.log("User created successfully: ", user);
     await this.walletRespository.createWallet(newWallet);
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
+      role : "user"
     };
     const userId = newUser._id;
     const accessToken = signToken({
@@ -162,16 +167,19 @@ console.log("User created successfully: ", user);
     const isValid = await existingUser.comparePassword(userData.password);
     appAssert(isValid, UNAUTHORIZED, "Invalid Email or Password");
   
-    const newSession = {
-      userId: new mongoose.Types.ObjectId(existingUser._id),
-      userAgent: userData.userAgent,
-      createdAt: new Date(),
-      expiresAt: oneYearFromNow(),
-    };
+    const newSession = new Session (
+      new mongoose.Types.ObjectId(),
+      new mongoose.Types.ObjectId(existingUser._id),
+      "user",
+      oneYearFromNow(),
+      new Date(),
+      userData.userAgent,
+   );
     const session = await this.sessionRepository.createSession(newSession);
   
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
+      role :"user"
     };
     const userId = existingUser._id;
     const accessToken = signToken({
@@ -193,19 +201,18 @@ console.log("User created successfully: ", user);
     await this.sessionRepository.findByIdAndDelete(payload.sessionId);
   }
 
-  async setRefreshToken(refreshToken: string) {
+  async setRefreshToken(refreshToken: string ) {
     const { payload } = verfiyToken<RefreshTokenPayload>(refreshToken, {
       secret: refreshTokenSignOptions.secret,
     });
     appAssert(payload, UNAUTHORIZED, "Invalid refresh token");
     const session = await this.sessionRepository.findById(payload.sessionId);
+    appAssert(session?.role === payload.role, UNAUTHORIZED , "UnAuthorized! Please Login Again")
     appAssert(
       session && session.expiresAt.getTime() > Date.now(),
       UNAUTHORIZED,
       "Session expired"
     );
-    const user = await this.userRepository.findUserById(session.userId);
-    console.log("User from set refresh token",user)
     const sessionNeedsRefresh =
       session.expiresAt.getTime() - Date.now() <= ONE_DAY_MS;
     if (sessionNeedsRefresh) {
@@ -218,15 +225,15 @@ console.log("User created successfully: ", user);
       ? signToken(
           {
             sessionId: session._id!,
+            role : payload.role
           },
           refreshTokenSignOptions
         )
       : refreshToken;
-
     const accessToken = signToken({
       userId: session.userId,
       sessionId: session._id!,
-      role : user?.role
+      role : session.role
     });
     return {
       accessToken,
