@@ -21,6 +21,10 @@ import { IAppointmentRepositoryToken } from "../../application/repositories/IApp
 import { AppointmentRepository } from "../repositories/AppointmentRepository";
 import { IWalletRepositoryToken } from "../../application/repositories/IWalletRepository";
 import { WalletRepository } from "../repositories/WalletRepository";
+import { IChatRepositoryToken } from "../../application/repositories/IChatRepository";
+import { ChatRepository } from "../repositories/ChatRepository";
+import { IConversationRepositoryToken } from "../../application/repositories/IConversationRepository";
+import { ConversationRepository } from "../repositories/ConversationRepository";
 
 Container.set(IUserRepositoryToken, new UserRepository());
 Container.set(IVerficaitonCodeRepositoryToken, new VerificationCodeRepository());
@@ -31,4 +35,6 @@ Container.set(IAdminRepositoryToken , new AdminRepository());
 Container.set(INotificationRepositoryToken , new NotificationRepository());
 Container.set(ISlotRepositoryToken , new SlotRepository());
 Container.set(IAppointmentRepositoryToken , new AppointmentRepository());
-Container.set(IWalletRepositoryToken, new WalletRepository())
+Container.set(IWalletRepositoryToken, new WalletRepository());
+Container.set(IChatRepositoryToken , new ChatRepository);
+Container.set(IConversationRepositoryToken , new ConversationRepository);

@@ -14,7 +14,7 @@ export interface AuthenticatedRequest extends Request {
 }
 const authenticate: RequestHandler = catchErrors(async(req : Request, res : Response, next: NextFunction) => {
   const accessToken = req.cookies.accessToken as string | undefined;
-  console.log("AccessToken from autheticaiton middlware",accessToken)
+  // console.log("AccessToken from autheticaiton middlware",accessToken)
   appAssert(
     accessToken,
     UNAUTHORIZED,

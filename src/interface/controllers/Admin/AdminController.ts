@@ -3,13 +3,10 @@ import catchErrors from "../../../shared/utils/catchErrors";
 import { loginSchema } from "../../validations/userSchema";
 import { Inject, Service } from "typedi";
 import { AdminUseCase } from "../../../application/user-casers/AdminUseCase";
-import { access } from "fs";
 import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
 import { OK } from "../../../shared/constants/http";
 import { verfiyToken } from "../../../shared/utils/jwt";
-import mongoose from "mongoose";
-import { emit } from "process";
-import { profile } from "console";
+import { stringToObjectId } from "../../../shared/utils/bcrypt";
 
 
 @Service()
@@ -108,7 +105,7 @@ export class AdminController {
 
   unblockUserHandler = catchErrors(async (req : Request , res : Response) => {
     const {id} = req.body;
-    const objectId = new mongoose.Types.ObjectId(id);
+    const objectId = stringToObjectId(id);
     await this.adminUseCase.unblockUser(objectId);
     return res.status(OK).json({
       success : true,
@@ -118,7 +115,7 @@ export class AdminController {
 
   blockUserHandler = catchErrors(async (req : Request , res : Response) => {
     const {id} = req.body;
-    const objectId = new mongoose.Types.ObjectId(id);
+    const objectId = stringToObjectId(id);
     await this.adminUseCase.blockUser(objectId);
     return res.status(OK).json({
       success : true,

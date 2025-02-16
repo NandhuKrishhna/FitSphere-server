@@ -11,10 +11,10 @@ const doctorRoutes = Router();
 const doctorController = Container.get(DoctorController);
 //register as doctor
 doctorRoutes.post("/signup", doctorController.registerHandler);
-doctorRoutes.post("/registration", upload.single("profilePicture") ,doctorController.registerAsDoctorHandler);
+doctorRoutes.post("/registration",authenticate,authorizeRoles(["doctor"]) , upload.single("profilePicture") ,doctorController.registerAsDoctorHandler);
 doctorRoutes.post("/verify/otp", doctorController.otpVerifyHandler);
 doctorRoutes.post("/doctor-login", doctorController.doctorLoginHandler);
-doctorRoutes.get("/logout", doctorController.logoutHandler);
+doctorRoutes.get("/logout", authenticate, authorizeRoles(["doctor"]), doctorController.logoutHandler);
 
 doctorRoutes.post("/slot-management",authenticate, authorizeRoles(["doctor"]) , doctorController.slotManagementHandler);
 doctorRoutes.get("/get-slots", authenticate, authorizeRoles(["doctor"]), doctorController.displayAllSlotsHandler);

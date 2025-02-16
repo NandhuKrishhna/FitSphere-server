@@ -4,7 +4,7 @@ import "dotenv/config";
 import cors from "cors";
 import session from 'express-session'
 import connectToDatabase from "./infrastructure/database/MongoDBClient";
-import express, { NextFunction, Request, Response } from "express";
+import express ,  {  Request, Response } from "express";
 import { APP_ORIGIN, NODE_ENV, PORT, SESSION_SECRET } from "./shared/constants/env";
 import cookieParser from "cookie-parser";
 import { OK } from "./shared/constants/http";
@@ -14,8 +14,11 @@ import doctorRoutes from "./interface/routes/doctor/doctorRouter";
 import adminRouter from "./interface/routes/Admin/admin.route";
 import appRouter from "./interface/routes/Apps/app.router";
 import authenticate from "./interface/middleware/auth/authMiddleware";
+import { app, server } from "./infrastructure/config/socket.io";
+import authorizeRoles from "./interface/middleware/auth/roleBaseAuthentication";
+import UserRoleTypes from "./shared/constants/UserRole";
 
-const app = express();
+
 
 app.use(express.json());
 app.use(cookieParser())
@@ -46,10 +49,10 @@ app.get("/health", (req: Request, res: Response , next) => {
 app.use('/api/auth', authRouter)
 app.use('/api/doctor', doctorRoutes)
 app.use('/api/admin', adminRouter)
-app.use('/api/app', authenticate, appRouter)
+app.use('/api/app', authenticate, authorizeRoles([UserRoleTypes.USER]), appRouter)
 app.use(errorHandler)
 
-app.listen(PORT, async() => {
+server.listen(PORT, async() => {
   console.log(`Server is running  port the on http://localhost:${PORT} in ${NODE_ENV} environment`);
   await connectToDatabase();
 });

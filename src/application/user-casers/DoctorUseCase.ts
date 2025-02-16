@@ -28,7 +28,7 @@ import { IAppointmentRepository, IAppointmentRepositoryToken } from "../reposito
 import { Session } from "../../domain/entities/Session";
 import UserRoleTypes from "../../shared/constants/UserRole";
 
-const MESSAGE =  `A new doctor has been registered and is waiting for approval. Please review the doctor's details and take appropriate action.`
+// const MESSAGE =  `A new doctor has been registered and is waiting for approval. Please review the doctor's details and take appropriate action.`
 @Service()
 export class DoctorUseCase {
   constructor(
@@ -79,6 +79,7 @@ const otpCode: Otp = new Otp(
           details.userAgent,
        );
     const session = await this.sessionRepository.createSession(newSession);
+    
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
       role : UserRoleTypes.DOCTOR

@@ -5,7 +5,7 @@ import appAssert from "../../../shared/utils/appAssert";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import { Inject, Service } from "typedi";
 import { AppUseCase } from "../../../application/user-casers/AppUseCase";
-import mongoose from "mongoose";
+import { stringToObjectId } from "../../../shared/utils/bcrypt";
 
 
 
@@ -56,7 +56,7 @@ export class AppController {
 
       // display doctor details in the user side 
       doctorDetailsHandler = catchErrors(async (req: Request, res: Response) => {
-        const doctorId = new mongoose.Types.ObjectId(req.body.doctorId)
+        const doctorId = stringToObjectId(req.body.doctorId)
         console.log(doctorId," from doctor details handler");
           appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
          const doctorDetails =  await this.appUseCase.displayDoctorDetails(doctorId);
@@ -69,7 +69,7 @@ export class AppController {
 
       getSlotsHandler = catchErrors(async (req: Request, res: Response) => {
         console.log("From get slots handler",req.body)
-        const doctorId = new mongoose.Types.ObjectId(req.body.doctorId)
+        const doctorId =  stringToObjectId(req.body.doctorId)
         console.log(doctorId, " from get slots handler");
         appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
         const slots = await this.appUseCase.getSlots(doctorId);
@@ -110,7 +110,7 @@ export class AppController {
 
     getAppointmentHandlers = catchErrors(async (req: Request, res: Response) => {
       console.log("Request from getAppointmentHandler",req.body.patientId)
-      const userId =new mongoose.Types.ObjectId(req.body.patientId);
+      const userId = stringToObjectId(req.body.patientId);
       console.log("userid from getAppointmentHandler",userId)
       console.log(typeof userId);
     
@@ -123,7 +123,7 @@ export class AppController {
     });
 
     cancelAppointmentHandler = catchErrors(async (req: Request, res: Response) => {
-      const appointmentId = new mongoose.Types.ObjectId(req.body.appointmentId);
+      const appointmentId = stringToObjectId(req.body.appointmentId);
       console.log("From cancel appointment handler",appointmentId)
       const response = await this.appUseCase.cancelAppointment(appointmentId);
       res.status(OK).json({
@@ -134,7 +134,7 @@ export class AppController {
     })
 
     getWalletHandler = catchErrors(async (req: Request, res: Response) => {
-      const userId = new mongoose.Types.ObjectId(req.body.userId);
+      const userId = stringToObjectId(req.body.userId);
       const response = await this.appUseCase.getWalletDetails(userId);
       res.status(OK).json({
         success : true,
