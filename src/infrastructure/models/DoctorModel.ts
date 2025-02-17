@@ -1,4 +1,4 @@
-import mongoose, { Document, Model,  Schema } from "mongoose";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 import { comparePassword, hashPassword } from "../../shared/utils/bcrypt";
 
@@ -10,18 +10,20 @@ export interface DoctorDocument extends Document {
   isActive: boolean;
   role: "user" | "doctor";
   isVerified: boolean;
-  isApproved : boolean;
+  isApproved: boolean;
   status: "blocked" | "deleted" | "active";
-  ProfilePicture?:string,
+  profilePicture?: string;
   createdAt?: Date;
   updatedAt?: Date;
   comparePassword(val: string): Promise<boolean>;
-  omitPassword(): Pick<DoctorDocument, "_id" | "name" | "email" | "isActive" | "role" | "isVerified" | "isApproved" | "status" | "createdAt" | "updatedAt">;
+  omitPassword(): Pick<
+    DoctorDocument,
+    "_id" | "name" | "email" | "isActive" | "role" | "isVerified" | "isApproved" | "status" | "createdAt" | "updatedAt"
+  >;
 }
 
 const DoctorSchema: Schema = new Schema<DoctorDocument>(
-  { 
-  
+  {
     name: {
       type: String,
       required: true,
@@ -51,26 +53,26 @@ const DoctorSchema: Schema = new Schema<DoctorDocument>(
       type: Boolean,
       default: false,
     },
-    isApproved:{
+    isApproved: {
       type: Boolean,
-      default:false
+      default: false,
     },
     status: {
       type: String,
       enum: ["blocked", "deleted", "active"],
       default: "active",
     },
-    ProfilePicture :{
+    profilePicture: {
       type: String,
-      default : ""
-    }
+      default: "",
+    },
   },
   {
     timestamps: true,
   }
 );
 DoctorSchema.pre("save", async function (next) {
-  if(!this.isModified("password")) return next();
+  if (!this.isModified("password")) return next();
   this.password = await hashPassword(this.password as string);
 });
 
@@ -82,6 +84,6 @@ DoctorSchema.methods.omitPassword = function () {
   const user = this.toObject();
   delete user.password;
   return user;
-}
+};
 
-export const DoctorModel : Model<DoctorDocument> = mongoose.model<DoctorDocument>("Doctor", DoctorSchema);
+export const DoctorModel: Model<DoctorDocument> = mongoose.model<DoctorDocument>("Doctor", DoctorSchema);

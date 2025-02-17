@@ -1,21 +1,18 @@
 import { Inject, Service } from "typedi";
 import { DoctorUseCase } from "../../../application/user-casers/DoctorUseCase";
 import catchErrors from "../../../shared/utils/catchErrors";
-import {doctorRegisterSchema,verificationCodeSchema,} from "../../validations/doctorSchema";
-import {clearAuthCookies, setAuthCookies} from "../../../shared/utils/setAuthCookies";
+import { doctorRegisterSchema, verificationCodeSchema } from "../../validations/doctorSchema";
+import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
 import { CREATED, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
 import { doctorDetailsSchema } from "../../validations/doctor.details.schema";
 import mongoose from "mongoose";
-import {loginSchema,otpVerificationSchema} from "../../validations/userSchema";
+import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import { SlotType, SlotValidationSchema } from "../../validations/slot.schema";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { convertToIST, convertToISTWithOffset } from "../../../shared/utils/date";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
-
-
-
 
 @Service()
 export class DoctorController {
@@ -26,17 +23,13 @@ export class DoctorController {
       ...req.body,
       userAgent: req.headers["user-agent"],
     });
-    const { user, accessToken, refreshToken } =
-      await this.doctorUseCase.registerDoctor(request);
+    const { user, accessToken, refreshToken } = await this.doctorUseCase.registerDoctor(request);
     (req.session as any)._id = user._id;
-    return setAuthCookies({ res, accessToken, refreshToken })
-      .status(CREATED)
-      .json({
-        success: true,
-        message:
-          "Registration successfull . An OTP has been sent to your email",
-        user,
-      });
+    return setAuthCookies({ res, accessToken, refreshToken }).status(CREATED).json({
+      success: true,
+      message: "Registration successfull . An OTP has been sent to your email",
+      user,
+    });
   });
 
   // register as doctor handler
@@ -48,7 +41,7 @@ export class DoctorController {
     // const {ProfilePicture} = req.body;
     // console.log("Profile picture",ProfilePicture)
     // console.log(request,"Register as doctor details from the backend")
-    const {userId}  = req as AuthenticatedRequest
+    const { userId } = req as AuthenticatedRequest;
     const { doctorDetails } = await this.doctorUseCase.registerAsDoctor({
       userId,
       details: request,
@@ -60,8 +53,6 @@ export class DoctorController {
     });
   });
 
-
-
   // otp verification
   otpVerifyHandler = catchErrors(async (req: Request, res: Response) => {
     const userId = (req.session as any)._id;
@@ -70,20 +61,16 @@ export class DoctorController {
     await this.doctorUseCase.verifyOtp(code, userId);
     return res.status(OK).json({
       success: true,
-      message:
-        "Email was successfully verified . Now you can register as Doctor",
+      message: "Email was successfully verified . Now you can register as Doctor",
     });
   });
-
-
 
   doctorLoginHandler = catchErrors(async (req: Request, res: Response) => {
     const request = loginSchema.parse({
       ...req.body,
       userAgent: req.headers["user-agent"],
     });
-    const { accessToken, refreshToken, doctor } =
-      await this.doctorUseCase.loginDoctor(request);
+    const { accessToken, refreshToken, doctor } = await this.doctorUseCase.loginDoctor(request);
     return setAuthCookies({ res, accessToken, refreshToken })
       .status(OK)
       .json({
@@ -93,13 +80,11 @@ export class DoctorController {
           name: doctor.name,
           email: doctor.email,
           role: doctor.role,
-          profilePicture: doctor.ProfilePicture,
+          profilePicture: doctor.profilePicture,
           accessToken,
         },
       });
   });
-
-
 
   logoutHandler = async (req: Request, res: Response) => {
     const accessToken = req.cookies.accessToken as string | undefined;
@@ -111,7 +96,6 @@ export class DoctorController {
       message: "Logout successful",
     });
   };
-
 
   slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
@@ -125,7 +109,6 @@ export class DoctorController {
     const startISTInd = convertToISTWithOffset(startIST, 5.5);
     const endISTInd = convertToISTWithOffset(endIST, 5.5);
     const dateISTInd = convertToISTWithOffset(dateIST, 5.5);
-
 
     const payload: SlotType = {
       startTime: startISTInd,
@@ -169,26 +152,19 @@ export class DoctorController {
     return res.status(OK).json({ message: "Email verified successfully" });
   });
 
-  getAllAppointmentsHandler = catchErrors(
-    async (req: Request, res: Response) => {
-      const doctorId = stringToObjectId(req.body.userId)
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = 8;
-      const filters = {
-        status: req.query.status as string,
-        paymentStatus: req.query.paymentStatus as string,
-        consultationType: req.query.consultationType as string,
-      };
-      const response = await this.doctorUseCase.getAllAppointment(
-        doctorId,
-        filters,
-        page,
-        limit
-      );
-      return res.status(OK).json({
-        success: true,
-        response,
-      });
-    }
-  );
+  getAllAppointmentsHandler = catchErrors(async (req: Request, res: Response) => {
+    const doctorId = stringToObjectId(req.body.userId);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = 8;
+    const filters = {
+      status: req.query.status as string,
+      paymentStatus: req.query.paymentStatus as string,
+      consultationType: req.query.consultationType as string,
+    };
+    const response = await this.doctorUseCase.getAllAppointment(doctorId, filters, page, limit);
+    return res.status(OK).json({
+      success: true,
+      response,
+    });
+  });
 }
