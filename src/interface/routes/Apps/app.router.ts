@@ -18,7 +18,7 @@ appRouter.post("/cancel/appointments", appController.cancelAppointmentHandler);
 appRouter.post("/wallet", appController.getWalletHandler);
 // chat
 appRouter.post("/send-message", chatController.sendMessageHandler);
-appRouter.get("/get-message", chatController.getMessagesHandler);
-appRouter.get("/get-last-message", chatController.getAllUsersHandler);
+appRouter.post("/conversation", chatController.getMessagesHandler);
+appRouter.get("/get-users", chatController.getAllUsersHandler);
 
 export default appRouter;

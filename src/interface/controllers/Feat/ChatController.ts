@@ -12,8 +12,9 @@ export class ChatController {
 
   //send message
   sendMessageHandler = catchErrors(async (req: Request, res: Response) => {
-    const senderId = stringToObjectId(req.body.senderId);
+    const { userId: senderId } = req as AuthenticatedRequest;
     const receiverId = stringToObjectId(req.body.receiverId);
+    console.log("ReceiverId from sendMessage Handler", receiverId);
     const message = req.body.message;
     const newMessage = await this.chatUseCase.sendMessage({
       senderId,
@@ -30,16 +31,16 @@ export class ChatController {
 
   //get messages
   getMessagesHandler = catchErrors(async (req: Request, res: Response) => {
-    const senderId = stringToObjectId(req.body.senderId);
+    const { userId: senderId } = req as AuthenticatedRequest;
     const receiverId = stringToObjectId(req.body.receiverId);
-    const message = await this.chatUseCase.getMessages({
+    const messages = await this.chatUseCase.getMessages({
       senderId,
       receiverId,
     });
     res.status(OK).json({
       success: true,
-      messages: "Message Fetch Successfully",
-      message,
+      message: "Message Fetch Successfully",
+      messages,
     });
   });
 

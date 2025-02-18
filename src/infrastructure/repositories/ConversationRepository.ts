@@ -65,7 +65,7 @@ export class ConversationRepository implements IConversationRepository {
         },
       },
     ]);
-    console.log("Query Result:", result);
+    // console.log("Query Result:", result);
     return result;
   }
 }

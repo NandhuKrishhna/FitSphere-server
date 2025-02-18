@@ -5,6 +5,7 @@ import appAssert from "../../shared/utils/appAssert";
 import { BAD_REQUEST, NOT_FOUND } from "../../shared/constants/http";
 import { IConversationRepository, IConversationRepositoryToken } from "../repositories/IConversationRepository";
 import mongoose from "mongoose";
+import { getReceiverSocketId, io } from "../../infrastructure/config/socket.io";
 
 @Service()
 export class ChatUseCase {
@@ -26,7 +27,10 @@ export class ChatUseCase {
       receiverId,
       message,
     });
-
+    const receiverSocketid = getReceiverSocketId(receiverId);
+    if (receiverSocketid) {
+      io.to(receiverSocketid).emit("newMessage", newMessage);
+    }
     await this.conversationRepository.updateLastMessage(conversation._id, message);
 
     return newMessage;
