@@ -54,8 +54,18 @@ export class DoctorRepository implements IDoctorRepository {
   async deleteDoctorDetails(id: mongoose.Types.ObjectId): Promise<void> {
     await DoctorDetailsModel.deleteOne({ doctorId: id });
   }
+
   // fetching all doctors
-  async fetchAllDoctors({ page, limit, search, sortBy }: UpdateDoctorParams): Promise<{
+  async fetchAllDoctors({
+    page,
+    limit,
+    search,
+    sortBy,
+    gender,
+    specialty,
+    language,
+    experience,
+  }: UpdateDoctorParams): Promise<{
     doctors: DoctorwithDetails[];
     total: number;
   }> {
@@ -68,25 +78,27 @@ export class DoctorRepository implements IDoctorRepository {
         },
       };
 
+      // Add search conditions
       if (search) {
-        matchStage.$match = {
-          ...matchStage.$match,
-          $or: [
-            { name: { $regex: search, $options: "i" } },
-            {
-              "doctorDetails.primarySpecialty": {
-                $regex: search,
-                $options: "i",
-              },
-            },
-            {
-              "doctorDetails.consultationLanguages": {
-                $regex: search,
-                $options: "i",
-              },
-            },
-          ],
-        };
+        matchStage.$match.$or = [
+          { name: { $regex: search, $options: "i" } },
+          { "doctorDetails.primarySpecialty": { $regex: search, $options: "i" } },
+          { "doctorDetails.consultationLanguages": { $regex: search, $options: "i" } },
+        ];
+      }
+
+      // Add filter conditions
+      if (gender && gender.length > 0) {
+        matchStage.$match["doctorDetails.gender"] = { $in: gender };
+      }
+      if (specialty && specialty.length > 0) {
+        matchStage.$match["doctorDetails.primarySpecialty"] = { $in: specialty };
+      }
+      if (language && language.length > 0) {
+        matchStage.$match["doctorDetails.consultationLanguages"] = { $in: language };
+      }
+      if (experience && experience > 0) {
+        matchStage.$match["doctorDetails.experience"] = { $gte: experience };
       }
 
       const pipeline: PipelineStage[] = [
@@ -98,12 +110,7 @@ export class DoctorRepository implements IDoctorRepository {
             as: "doctorDetails",
           },
         },
-        {
-          $unwind: {
-            path: "$doctorDetails",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
+        { $unwind: { path: "$doctorDetails", preserveNullAndEmptyArrays: true } },
         matchStage,
         {
           $project: {
@@ -120,6 +127,7 @@ export class DoctorRepository implements IDoctorRepository {
         },
       ];
 
+      // Add sorting
       if (Object.keys(sortBy).length > 0) {
         const sortStage: PipelineStage.Sort = {
           $sort: Object.entries(sortBy).reduce((acc, [key, value]) => {
@@ -130,21 +138,20 @@ export class DoctorRepository implements IDoctorRepository {
         pipeline.push(sortStage);
       }
 
+      // Calculate total
       const totalPipeline = [...pipeline];
       const countStage: PipelineStage.Count = { $count: "total" };
       const countResult = await DoctorModel.aggregate([...totalPipeline, countStage]);
       const total = countResult[0]?.total || 0;
 
+      // Add pagination
       const skipStage: PipelineStage.Skip = { $skip: page * limit };
       const limitStage: PipelineStage.Limit = { $limit: limit };
       pipeline.push(skipStage, limitStage);
 
       const doctors = await DoctorModel.aggregate(pipeline);
 
-      return {
-        doctors,
-        total,
-      };
+      return { doctors, total };
     } catch (error) {
       console.error("Error in fetchAllDoctors:", error);
       throw error;

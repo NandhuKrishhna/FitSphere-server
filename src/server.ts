@@ -1,11 +1,10 @@
 import "reflect-metadata";
-import './infrastructure/di/container'
+import "./infrastructure/di/container";
 import "dotenv/config";
 import cors from "cors";
-import session from 'express-session'
 import connectToDatabase from "./infrastructure/database/MongoDBClient";
-import express ,  {  Request, Response } from "express";
-import { APP_ORIGIN, NODE_ENV, PORT, SESSION_SECRET } from "./shared/constants/env";
+import express, { Request, Response } from "express";
+import { APP_ORIGIN, NODE_ENV, PORT } from "./shared/constants/env";
 import cookieParser from "cookie-parser";
 import { OK } from "./shared/constants/http";
 import errorHandler from "./interface/middleware/auth/errorHandler";
@@ -18,41 +17,32 @@ import { app, server } from "./infrastructure/config/socket.io";
 import authorizeRoles from "./interface/middleware/auth/roleBaseAuthentication";
 import UserRoleTypes from "./shared/constants/UserRole";
 
-
-
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
+
+console.log("Allowed Origin:", APP_ORIGIN);
 app.use(
-  session({
-    secret: SESSION_SECRET, 
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: NODE_ENV === 'production',  
-      sameSite: 'lax', 
-      maxAge: 1000 * 60 * 15, 
-    }
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.use(cors({
-  origin:APP_ORIGIN,
-  credentials: true
-}))
-
-app.get("/health", (req: Request, res: Response , next) => {
-    return res.status(OK).json({
-      status:'healthy'
-    })
+app.options("*", cors());
+app.get("/health", (req: Request, res: Response, next) => {
+  return res.status(OK).json({
+    status: "healthy",
+  });
 });
-app.use('/api/auth', authRouter)
-app.use('/api/doctor', doctorRoutes)
-app.use('/api/admin', adminRouter)
-app.use('/api/app', authenticate, authorizeRoles([UserRoleTypes.USER]), appRouter)
-app.use(errorHandler)
+app.use("/api/auth", authRouter);
+app.use("/api/doctor", doctorRoutes);
+app.use("/api/admin", adminRouter);
+app.use("/api/app", authenticate, authorizeRoles([UserRoleTypes.USER]), appRouter);
+app.use(errorHandler);
 
-server.listen(PORT, async() => {
+server.listen(PORT, async () => {
   console.log(`Server is running  port the on http://localhost:${PORT} in ${NODE_ENV} environment`);
   await connectToDatabase();
 });

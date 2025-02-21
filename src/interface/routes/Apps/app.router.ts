@@ -20,5 +20,6 @@ appRouter.post("/wallet", appController.getWalletHandler);
 appRouter.post("/send-message", chatController.sendMessageHandler);
 appRouter.post("/conversation", chatController.getMessagesHandler);
 appRouter.get("/get-users", chatController.getAllUsersHandler);
+// appRouter.post("/start-conversation", chatController.addUsersInSideBarHandler);
 
 export default appRouter;

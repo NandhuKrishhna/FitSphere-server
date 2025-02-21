@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export interface IConversation extends Document {
   _id: mongoose.Types.ObjectId;
   participants: mongoose.Types.ObjectId[];
-  lastMessage: string;
+  lastMessage?: string;
   createdAt: Date;
   updatedAt: Date;
 }

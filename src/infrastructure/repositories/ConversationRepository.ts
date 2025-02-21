@@ -46,7 +46,7 @@ export class ConversationRepository implements IConversationRepository {
           from: role === UserRoleTypes.USER ? "doctors" : "users",
           localField: "participants",
           foreignField: "_id",
-          as: role === UserRoleTypes.USER ? "doctorDetails" : "userDetails",
+          as: "doctorDetails",
         },
       },
       {
@@ -66,6 +66,35 @@ export class ConversationRepository implements IConversationRepository {
       },
     ]);
     // console.log("Query Result:", result);
+    return result;
+  }
+
+  //addign user for the sidebar;
+  async addUserForSidebar(participants: Types.ObjectId[]): Promise<IConversation> {
+    const existingConversation = await ConversationModel.findOne({ participants });
+
+    if (existingConversation) {
+      return existingConversation;
+    }
+    const newConversation = await ConversationModel.create({ participants });
+    return newConversation;
+  }
+
+  async findAllMessages(senderId: Types.ObjectId): Promise<any> {
+    const result = await ConversationModel.aggregate([
+      {
+        $match: {
+          participants: { $in: [senderId] },
+        },
+      },
+      {
+        $project: {
+          doctorDetails: { $ifNull: ["$doctorDetails", {}] },
+          lastMessage: 1,
+          _id: 1,
+        },
+      },
+    ]);
     return result;
   }
 }

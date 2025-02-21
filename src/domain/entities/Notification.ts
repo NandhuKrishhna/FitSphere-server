@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
+import { NotificationType } from "../../shared/constants/verficationCodeTypes";
 
-export type NotificationType = "doctor_registration" | "general";
-export type NotificationStatus = "pending" | "approved" | "rejected";
+export type NotificationStatus = "pending" | "approved" | "rejected" | "read";
 
 export class Notification {
   constructor(

@@ -6,10 +6,9 @@ import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthC
 import { CREATED, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
 import { doctorDetailsSchema } from "../../validations/doctor.details.schema";
-import mongoose from "mongoose";
 import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
-import { SlotType, SlotValidationSchema } from "../../validations/slot.schema";
+import { SlotType } from "../../validations/slot.schema";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { convertToIST, convertToISTWithOffset } from "../../../shared/utils/date";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
@@ -24,7 +23,6 @@ export class DoctorController {
       userAgent: req.headers["user-agent"],
     });
     const { user, accessToken, refreshToken } = await this.doctorUseCase.registerDoctor(request);
-    (req.session as any)._id = user._id;
     return setAuthCookies({ res, accessToken, refreshToken }).status(CREATED).json({
       success: true,
       message: "Registration successfull . An OTP has been sent to your email",
@@ -38,9 +36,6 @@ export class DoctorController {
       ...req.body,
       userAgent: req.headers["user-agent"],
     });
-    // const {ProfilePicture} = req.body;
-    // console.log("Profile picture",ProfilePicture)
-    // console.log(request,"Register as doctor details from the backend")
     const { userId } = req as AuthenticatedRequest;
     const { doctorDetails } = await this.doctorUseCase.registerAsDoctor({
       userId,
@@ -55,8 +50,7 @@ export class DoctorController {
 
   // otp verification
   otpVerifyHandler = catchErrors(async (req: Request, res: Response) => {
-    const userId = (req.session as any)._id;
-    console.log(userId, "Doctor otp handler destructing userId from session");
+    const userId = stringToObjectId(req.body.userId);
     const { code } = otpVerificationSchema.parse(req.body);
     await this.doctorUseCase.verifyOtp(code, userId);
     return res.status(OK).json({
@@ -75,14 +69,7 @@ export class DoctorController {
       .status(OK)
       .json({
         message: "Login successful",
-        doctor: {
-          _id: doctor._id,
-          name: doctor.name,
-          email: doctor.email,
-          role: doctor.role,
-          profilePicture: doctor.profilePicture,
-          accessToken,
-        },
+        response: { ...doctor, accessToken },
       });
   });
 
@@ -100,23 +87,12 @@ export class DoctorController {
   slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const { startTime, endTime, date, consultationType } = req.body;
-
-    // Convert times to IST
-    const startIST = convertToIST(startTime);
-    const endIST = convertToIST(endTime);
-    const dateIST = convertToIST(date);
-
-    const startISTInd = convertToISTWithOffset(startIST, 5.5);
-    const endISTInd = convertToISTWithOffset(endIST, 5.5);
-    const dateISTInd = convertToISTWithOffset(dateIST, 5.5);
-
     const payload: SlotType = {
-      startTime: startISTInd,
-      endTime: endISTInd,
-      date: dateISTInd,
+      startTime: convertToISTWithOffset(startTime, 5.5),
+      endTime: convertToISTWithOffset(endTime, 5.5),
+      date: convertToISTWithOffset(date, 5.5),
       consultationType,
     };
-
     const response = await this.doctorUseCase.addSlots(userId, payload);
     return res.status(OK).json({
       success: true,
@@ -133,7 +109,6 @@ export class DoctorController {
       response,
     });
   });
-
   cancelSlotHandler = catchErrors(async (req: Request, res: Response) => {
     console.log("Req body : ", req.body);
     const slotId = stringToObjectId(req.body.slotId);
@@ -153,6 +128,7 @@ export class DoctorController {
   });
 
   getAllAppointmentsHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body);
     const doctorId = stringToObjectId(req.body.userId);
     const page = parseInt(req.query.page as string) || 1;
     const limit = 8;
@@ -165,6 +141,18 @@ export class DoctorController {
     return res.status(OK).json({
       success: true,
       response,
+    });
+  });
+
+  getUsersInSideBarHandler = catchErrors(async (req: Request, res: Response) => {
+    const { userId } = req as AuthenticatedRequest;
+    const { role } = req as AuthenticatedRequest;
+    const users = await this.doctorUseCase.getAllUsers(userId, role);
+    console.log(users);
+    res.status(OK).json({
+      success: true,
+      message: "Users fetched successfully",
+      users,
     });
   });
 }

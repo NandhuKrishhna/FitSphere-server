@@ -7,6 +7,9 @@ export interface IConversationRepository {
   getConversationByParticipants(participants: Types.ObjectId[]): Promise<IConversation | null>;
   updateLastMessage(conversationId: Types.ObjectId, message: string): Promise<IConversation | null>;
   getUsers(userId: Types.ObjectId, role: string): Promise<any>;
+  addUserForSidebar(participants: Types.ObjectId[]): Promise<IConversation>;
+  //doctor find messages
+  findAllMessages(senderId: Types.ObjectId): Promise<any>;
 }
 
 export const IConversationRepositoryToken = new Token<IConversationRepository>();

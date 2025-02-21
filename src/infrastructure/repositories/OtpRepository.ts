@@ -1,8 +1,5 @@
 import mongoose, { Types } from "mongoose";
-import {
-  IOptverificationRepository,
-  IOtpReposirtoryCodeToken,
-} from "../../application/repositories/IOtpReposirtory";
+import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../../application/repositories/IOtpReposirtory";
 import { Otp } from "../../domain/entities/Otp";
 import OtpVerficationModel from "../models/otp.models";
 import { Service } from "typedi";
@@ -13,33 +10,29 @@ export class OtpRepository implements IOptverificationRepository {
     const result = await OtpVerficationModel.create(otp);
     return result as Otp;
   }
-  async findOtpById(code: string , userId: string, type: string): Promise<Otp | null> {
+  async findOtpById(code: string, userId: Types.ObjectId, type: string): Promise<Otp | null> {
     console.log("Querying OTP with:", { code, userId, type });
-  
+
     const otpEntry = await OtpVerficationModel.findOne({
       code: code,
       userId: userId,
       type: type,
-      expiresAt: { $gt: new Date() }, 
+      expiresAt: { $gt: new Date() },
     });
-  
+
     console.log("Found OTP entry:", otpEntry);
-    return otpEntry as Otp
+    return otpEntry as Otp;
   }
-  
- // delete after verification
+
+  // delete after verification
   async deleteOtp(id: mongoose.Types.ObjectId): Promise<void> {
     await OtpVerficationModel.deleteOne({ _id: id });
   }
-  async deleteOtpByEmail(email: string): Promise<void> {
-    await OtpVerficationModel.deleteMany({ email });
+  async deleteOtpByUserId(userId: mongoose.Types.ObjectId): Promise<void> {
+    await OtpVerficationModel.deleteMany({ userId });
   }
   // count documents in collection
-  async countVerificationCodes(
-    id: mongoose.Types.ObjectId,
-    type: string,
-    time: Date
-  ): Promise<number> {
+  async countVerificationCodes(id: mongoose.Types.ObjectId, type: string, time: Date): Promise<number> {
     const result = await OtpVerficationModel.countDocuments({
       userId: id,
       type: type,
@@ -47,9 +40,4 @@ export class OtpRepository implements IOptverificationRepository {
     });
     return result;
   }
-
-
-
-
-
 }

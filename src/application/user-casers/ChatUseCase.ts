@@ -38,10 +38,15 @@ export class ChatUseCase {
 
   public async getMessages({ senderId, receiverId }: ParticipantsType): Promise<any> {
     const participants = [senderId, receiverId].sort((a, b) => a.toString().localeCompare(b.toString()));
-    const conversation = await this.conversationRepository.getConversationByParticipants(participants);
-    appAssert(conversation, NOT_FOUND, "No Convesation Found. Send Message");
+    let conversation = await this.conversationRepository.getConversationByParticipants(participants);
+    if (!conversation) {
+      conversation = await this.conversationRepository.addUserForSidebar(participants);
+    }
     const messages = await this.chatRepository.getMessagesByConversationId(conversation._id);
-    return messages;
+    return {
+      messages,
+      conversationId: conversation._id,
+    };
   }
 
   public async getAllUsers(userId: mongoose.Types.ObjectId, role: string): Promise<any> {

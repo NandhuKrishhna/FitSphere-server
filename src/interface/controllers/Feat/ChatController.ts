@@ -33,14 +33,15 @@ export class ChatController {
   getMessagesHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId: senderId } = req as AuthenticatedRequest;
     const receiverId = stringToObjectId(req.body.receiverId);
-    const messages = await this.chatUseCase.getMessages({
+    const { messages, conversationId } = await this.chatUseCase.getMessages({
       senderId,
       receiverId,
     });
     res.status(OK).json({
       success: true,
       message: "Message Fetch Successfully",
-      messages,
+      messages: messages ? messages : "No messages found",
+      conversationId,
     });
   });
 
