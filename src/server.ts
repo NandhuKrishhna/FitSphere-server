@@ -16,6 +16,7 @@ import authenticate from "./interface/middleware/auth/authMiddleware";
 import { app, server } from "./infrastructure/config/socket.io";
 import authorizeRoles from "./interface/middleware/auth/roleBaseAuthentication";
 import UserRoleTypes from "./shared/constants/UserRole";
+import caloriesRouter from "./interface/routes/Apps/calories.router";
 
 app.use(express.json());
 app.use(cookieParser());
@@ -40,6 +41,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/admin", adminRouter);
 app.use("/api/app", authenticate, authorizeRoles([UserRoleTypes.USER]), appRouter);
+app.use("/api/app", authenticate, authorizeRoles([UserRoleTypes.USER]), caloriesRouter);
+
 app.use(errorHandler);
 
 server.listen(PORT, async () => {

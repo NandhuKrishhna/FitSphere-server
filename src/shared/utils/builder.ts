@@ -17,9 +17,9 @@ export function IcreateSession(
   userId: mongoose.Types.ObjectId,
   role: UserRoleTypes,
   userAgent: string | undefined,
-  expirationDate: Date
+  expiresAt: Date
 ) {
-  return new Session(new mongoose.Types.ObjectId(), userId, role, new Date(), expirationDate, userAgent);
+  return new Session(new mongoose.Types.ObjectId(), userId, role, expiresAt, new Date(), userAgent);
 }
 
 //wallet
