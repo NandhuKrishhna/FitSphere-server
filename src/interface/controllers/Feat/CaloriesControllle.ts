@@ -28,18 +28,4 @@ export class CaloriesController {
       resposse,
     });
   });
-
-  //Prompt for seraching recipes;
-  generateRecipeHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
-    const prompt = req.body.prompt;
-    appAssert(prompt, BAD_REQUEST, "Enter a prompt");
-    const response = await this.caloriesUseCase.generateRecipe(prompt);
-    console.log(response);
-    res.status(OK).json({
-      success: true,
-      message: "Recipe Generated Successfully",
-      response,
-    });
-  });
 }

@@ -3,6 +3,7 @@ import appAssert from "../../shared/utils/appAssert";
 import { BAD_REQUEST } from "../../shared/constants/http";
 import { Service } from "typedi";
 import { getRecipeByIngredientsUrl, getRecipeInformationUrl } from "../../shared/utils/SponnerApi";
+import { DeepSeek_Api_key } from "../../shared/constants/env";
 
 @Service()
 export class CaloriesUseCase {
@@ -24,6 +25,4 @@ export class CaloriesUseCase {
     const respones = await axios.get(sponnerApiUrl);
     return respones.data;
   }
-
-  async generateRecipe(prompt: string) {}
 }
