@@ -86,19 +86,42 @@ export class DoctorController {
 
   slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
-    const { startTime, endTime, date, consultationType } = req.body;
-    const payload: SlotType = {
-      startTime: convertToISTWithOffset(startTime, 5.5),
-      endTime: convertToISTWithOffset(endTime, 5.5),
-      date: convertToISTWithOffset(date, 5.5),
-      consultationType,
-    };
-    const response = await this.doctorUseCase.addSlots(userId, payload);
-    return res.status(OK).json({
-      success: true,
-      message: "Slot added successfully",
-      response,
-    });
+    const { slots } = req.body;
+    if (Array.isArray(slots) && slots.length > 0) {
+      const createdSlots = [];
+
+      for (const slotData of slots) {
+        const payload: SlotType = {
+          startTime: convertToISTWithOffset(slotData.startTime, 5.5),
+          endTime: convertToISTWithOffset(slotData.endTime, 5.5),
+          date: convertToISTWithOffset(slotData.date, 5.5),
+          consultationType: slotData.consultationType,
+        };
+
+        const slot = await this.doctorUseCase.addSlots(userId, payload);
+        createdSlots.push(slot);
+      }
+
+      return res.status(OK).json({
+        success: true,
+        message: `Successfully created ${createdSlots.length} slots`,
+        response: createdSlots,
+      });
+    } else {
+      const { startTime, endTime, date, consultationType } = req.body;
+      const payload: SlotType = {
+        startTime: convertToISTWithOffset(startTime, 5.5),
+        endTime: convertToISTWithOffset(endTime, 5.5),
+        date: convertToISTWithOffset(date, 5.5),
+        consultationType,
+      };
+      const response = await this.doctorUseCase.addSlots(userId, payload);
+      return res.status(OK).json({
+        success: true,
+        message: "Slot added successfully",
+        response,
+      });
+    }
   });
 
   displayAllSlotsHandler = catchErrors(async (req: Request, res: Response) => {
