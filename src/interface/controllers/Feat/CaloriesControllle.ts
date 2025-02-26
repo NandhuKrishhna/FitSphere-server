@@ -28,4 +28,6 @@ export class CaloriesController {
       resposse,
     });
   });
+
+  addHealthDetailsHandler = catchErrors(async (req: Request, res: Response) => {});
 }

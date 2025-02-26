@@ -1,4 +1,4 @@
-import mongoose, { Document, Model,  Schema } from "mongoose";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 import { comparePassword, hashPassword } from "../../shared/utils/bcrypt";
 
@@ -12,16 +12,18 @@ export interface UserDocument extends Document {
   role: "user" | "doctor";
   isVerfied: boolean;
   status: "blocked" | "deleted" | "active";
-  profilePicture : null,
+  profilePicture: string;
   createdAt?: Date;
   updatedAt?: Date;
   comparePassword(val: string): Promise<boolean>;
-  omitPassword(): Pick<UserDocument, "_id" | "name" | "email" | "isActive" | "isPremium" | "role" | "isVerfied" | "status" | "createdAt" | "updatedAt">;
+  omitPassword(): Pick<
+    UserDocument,
+    "_id" | "name" | "email" | "isActive" | "isPremium" | "role" | "isVerfied" | "status" | "createdAt" | "updatedAt"
+  >;
 }
 
 const UserSchema: Schema = new Schema<UserDocument>(
-  { 
-  
+  {
     name: {
       type: String,
       required: true,
@@ -60,18 +62,18 @@ const UserSchema: Schema = new Schema<UserDocument>(
       enum: ["blocked", "deleted", "active"],
       default: "active",
     },
-    profilePicture:{
-      type : String,
+    profilePicture: {
+      type: String,
       required: false,
-      default : null
-    }
+      default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+    },
   },
   {
     timestamps: true,
   }
 );
 UserSchema.pre("save", async function (next) {
-  if(!this.isModified("password")) return next();
+  if (!this.isModified("password")) return next();
   this.password = await hashPassword(this.password as string);
 });
 
@@ -83,6 +85,6 @@ UserSchema.methods.omitPassword = function () {
   const user = this.toObject();
   delete user.password;
   return user;
-}
+};
 
-export const UserModel : Model<UserDocument> = mongoose.model<UserDocument>("User", UserSchema);
+export const UserModel: Model<UserDocument> = mongoose.model<UserDocument>("User", UserSchema);

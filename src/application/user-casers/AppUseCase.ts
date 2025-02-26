@@ -13,6 +13,7 @@ import { BookAppointmentParams } from "../../domain/types/appTypes";
 import { IAppointmentRepository, IAppointmentRepositoryToken } from "../repositories/IAppointmentRepository";
 import { Appointments } from "../../domain/entities/Appointments";
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
+import { describe } from "node:test";
 
 @Service()
 export class AppUseCase {
@@ -98,7 +99,7 @@ export class AppUseCase {
       receipt: slotId.toString(),
       payment_capture: true,
     });
-
+    console.log("Razorpay:", razorpayOrder);
     const newAppointment = new Appointments(
       new mongoose.Types.ObjectId(),
       doctorId,
@@ -126,12 +127,21 @@ export class AppUseCase {
 
   async verifyPayment(razorpay_order_id: string) {
     const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+    console.log(orderInfo);
     appAssert(orderInfo, BAD_REQUEST, "Unable to fetch order details. Please try few minutes later.");
     if (orderInfo.status === "paid") {
+      const payments = await razorpayInstance.orders.fetchPayments(razorpay_order_id);
+      console.log("Payment Details : ", payments);
+      const additionalDetails = {
+        orderId: payments.items[0]?.order_id,
+        paymentMethod: payments.items[0]?.method,
+        paymentThrough: "Razorpay",
+        description: payments.items[0]?.description || "",
+        bank: payments.items[0]?.bank,
+      };
+      console.log(additionalDetails);
       const receiptId = new mongoose.Types.ObjectId(orderInfo.receipt);
-      console.log(typeof receiptId);
-      console.log(receiptId);
-      const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId);
+      const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId, additionalDetails);
       appAssert(appointment, BAD_REQUEST, "Unable to fetch order details. Please try few minutes later.");
       await this.slotRespository.updateSlotById(appointment?.slotId, appointment?.patientId);
     }

@@ -1,5 +1,6 @@
 import { Service } from "typedi";
 import {
+  AdditonDetails,
   IAppointmentRepository,
   IAppointmentRepositoryToken,
 } from "../../application/repositories/IAppointmentRepository";
@@ -31,11 +32,19 @@ export class AppointmentRepository implements IAppointmentRepository {
   }
 
   async updatePaymentStatus(
-    id: mongoose.Types.ObjectId
+    id: mongoose.Types.ObjectId,
+    additionalDetails: AdditonDetails
   ): Promise<Appointments | null> {
     const response = await AppointmentModel.findOneAndUpdate(
       { slotId: id },
-      { paymentStatus: "completed" },
+      {
+        paymentStatus: "completed",
+        orderId: additionalDetails.orderId,
+        paymentMethod: additionalDetails.paymentMethod,
+        paymentThrough: additionalDetails.paymentThrough,
+        description: additionalDetails.description,
+        bank: additionalDetails.bank,
+      },
       { new: true }
     );
     return response;
@@ -84,6 +93,10 @@ export class AppointmentRepository implements IAppointmentRepository {
           status: { $first: "$status" },
           slots: { $first: "$slots" },
           doctor: { $first: "$doctor" },
+          orderId: { $first: "$orderId" },
+          paymentMethod: { $first: "$paymentMethod" },
+          paymentThrough: { $first: "$paymentThrough" },
+          amount: { $first: "$amount" },
         },
       },
       {
@@ -92,10 +105,14 @@ export class AppointmentRepository implements IAppointmentRepository {
           consultationType: 1,
           date: 1,
           status: 1,
+          orderId: 1,
+          paymentMethod: 1,
+          paymentThrough: 1,
+          amount: 1,
           "slots.startTime": 1,
           "slots.endTime": 1,
           "doctor.name": 1,
-          "doctor.ProfilePicture": 1,
+          "doctor.profilePicture": 1,
         },
       },
     ]);
@@ -103,9 +120,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     return response;
   }
 
-  async cancelAppointment(
-    id: mongoose.Types.ObjectId
-  ): Promise<Appointments | null> {
+  async cancelAppointment(id: mongoose.Types.ObjectId): Promise<Appointments | null> {
     const response = await AppointmentModel.findOneAndUpdate(
       { _id: id },
       { $set: { status: "cancelled" } },
@@ -121,7 +136,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     limit,
   }: AppointmentProps): Promise<{ data: any[]; total: number }> {
     const skip = (page - 1) * limit;
-  
+
     const pipeline: PipelineStage[] = [
       {
         $match: {
@@ -131,7 +146,7 @@ export class AppointmentRepository implements IAppointmentRepository {
           ...(filters.consultationType && { consultationType: filters.consultationType }),
         },
       },
-      { $sort: { createdAt: -1 as 1 | -1 } }, 
+      { $sort: { createdAt: -1 as 1 | -1 } },
       {
         $facet: {
           metadata: [{ $count: "total" }],
@@ -170,7 +185,7 @@ export class AppointmentRepository implements IAppointmentRepository {
         },
       },
     ];
-  
+
     const result = await AppointmentModel.aggregate(pipeline);
     return {
       data: result[0].data,
