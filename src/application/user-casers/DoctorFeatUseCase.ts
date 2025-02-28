@@ -32,6 +32,7 @@ export class DoctorFeatUseCase {
     const newSlot = IcreateSlot(doctorId, startTime, endTime, payload.date, type);
 
     const newSlotDetails = await this.slotRepository.createSlot(newSlot);
+    console.log("New Slots : ", newSlotDetails);
     return newSlotDetails;
   }
 

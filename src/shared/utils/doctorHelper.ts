@@ -3,6 +3,7 @@ import { DoctorDetails } from "../../domain/entities/DoctorDetails";
 import { NotificationType } from "../constants/verficationCodeTypes";
 import { Notification, NotificationStatus } from "../../domain/entities/Notification";
 import { Slot } from "../../domain/entities/Slot";
+import { SlotDocument } from "../../domain/types/Slot";
 
 export function IcreateDoctorDetails(
   userId: mongoose.Types.ObjectId,
@@ -59,6 +60,14 @@ export function IcreateSlot(
   endTime: Date,
   date: Date,
   consultationType: ConsultationType
-): Slot {
-  return new Slot(new mongoose.Types.ObjectId(), doctorId, startTime, endTime, date, consultationType);
+): SlotDocument {
+  return {
+    _id: new mongoose.Types.ObjectId(),
+    doctorId,
+    startTime,
+    endTime,
+    date,
+    consultationType,
+    status: "available",
+  };
 }

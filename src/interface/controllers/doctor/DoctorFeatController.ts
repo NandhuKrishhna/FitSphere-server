@@ -16,6 +16,7 @@ export class DoctorFeatController {
   slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const { slots } = req.body;
+    console.log(req.body);
     if (Array.isArray(slots) && slots.length > 0) {
       const createdSlots = [];
 
@@ -44,6 +45,7 @@ export class DoctorFeatController {
         date: convertToISTWithOffset(date, 5.5),
         consultationType,
       };
+      console.log("After converting to Indian Time  : ", payload);
       const response = await this.doctorFeatUseCase.addSlots(userId, payload);
       return res.status(OK).json({
         success: true,
