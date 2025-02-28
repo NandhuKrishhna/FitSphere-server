@@ -1,7 +1,7 @@
 import { Service } from "typedi";
 import { IAdminRepository, IAdminRepositoryToken } from "../../application/repositories/IAdminRepository";
 import { Admin } from "../../domain/entities/Admin";
-import { AdminModel } from "../models/adminModel";
+import { AdminDocument, AdminModel } from "../models/adminModel";
 import { UserModel } from "../models/UserModel";
 import { User } from "../../domain/entities/User";
 import { Doctor } from "../../domain/entities/Doctors";
@@ -11,7 +11,7 @@ import { LookUpDoctor } from "../../domain/types/doctorTypes";
 
 @Service(IAdminRepositoryToken)
 export class AdminRepository implements IAdminRepository {
-  async findAdminByEmail(email: string): Promise<Admin | null> {
+  async findAdminByEmail(email: string): Promise<AdminDocument | null> {
     const admin = await AdminModel.findOne({ email });
     return admin;
   }

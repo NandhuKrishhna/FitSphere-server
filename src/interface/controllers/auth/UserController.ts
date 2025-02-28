@@ -103,9 +103,11 @@ export class UserController {
 
   // handler for user forgot password [user enter the email for getting the reset otp]
   sendPasswordResetHandler = catchErrors(async (req: Request, res: Response) => {
+    const role = req.body.role;
+    console.log("Role :", role);
     console.log(req.body);
-    const email = emailSchema.parse(req.body.email);
-    const { user } = await this.registerUserUseCase.sendPasswordResetEmail(email);
+    const email = emailSchema.parse(req.body?.data?.email);
+    const { user } = await this.registerUserUseCase.sendPasswordResetEmail(email, role);
     return res.status(OK).json({
       success: true,
       message: "Password reset email sent successfully",
@@ -127,10 +129,12 @@ export class UserController {
   // this handler set a new password for the user
   resetPasswordHandler = catchErrors(async (req: Request, res: Response) => {
     console.log(req.body);
+    const role = req.body.role;
+    console.log("UserRole : ", role);
     const userId = stringToObjectId(req.body.userId);
     const request = resetPasswordSchema.parse(req.body);
     console.log("Incoming request: ", request);
-    await this.registerUserUseCase.resetPassword({ userId, ...request });
+    await this.registerUserUseCase.resetPassword({ userId, role, ...request });
 
     return clearTempAuthCookies(res).status(OK).json({
       message: "Password reset successful",
@@ -139,8 +143,10 @@ export class UserController {
   // handler for resend the otp for setting new  password to the user
   resendPasswordHandler = catchErrors(async (req: Request, res: Response) => {
     console.log(req.body);
+    const role = req.body.role;
+    console.log(role);
     const email = emailSchema.parse(req.body.email);
-    const { user } = await this.registerUserUseCase.resendVerificaitonCode(email);
+    const { user } = await this.registerUserUseCase.resendVerificaitonCode(email, role);
     return res.status(OK).json({
       message: `Verification code sent to ${user.email}`,
     });

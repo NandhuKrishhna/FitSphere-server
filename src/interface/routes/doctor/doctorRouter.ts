@@ -4,37 +4,23 @@ import { DoctorController } from "../../controllers/doctor/DoctorController";
 import { upload } from "../../../infrastructure/config/multer";
 import authenticate from "../../middleware/auth/authMiddleware";
 import authorizeRoles from "../../middleware/auth/roleBaseAuthentication";
-import { ChatController } from "../../controllers/Feat/ChatController";
+import UserRoleTypes from "../../../shared/constants/UserRole";
+import { UserController } from "../../controllers/auth/UserController";
 
 const doctorRoutes = Router();
 
 const doctorController = Container.get(DoctorController);
-const chatController = Container.get(ChatController);
-//register as doctor
+const authController = Container.get(UserController);
+
 doctorRoutes.post("/signup", doctorController.registerHandler);
-doctorRoutes.post(
-  "/registration",
-  authenticate,
-  authorizeRoles(["doctor"]),
-  upload.single("profilePicture"),
-  doctorController.registerAsDoctorHandler
-);
+doctorRoutes.post("/registration", upload.single("certificate"), doctorController.registerAsDoctorHandler);
 doctorRoutes.post("/verify/otp", doctorController.otpVerifyHandler);
 doctorRoutes.post("/login", doctorController.doctorLoginHandler);
-doctorRoutes.get("/logout", authenticate, authorizeRoles(["doctor"]), doctorController.logoutHandler);
-
-doctorRoutes.post("/slot-management", authenticate, authorizeRoles(["doctor"]), doctorController.slotManagementHandler);
-doctorRoutes.get("/get-slots", authenticate, authorizeRoles(["doctor"]), doctorController.displayAllSlotsHandler);
-doctorRoutes.post("/cancel-slot", authenticate, authorizeRoles(["doctor"]), doctorController.cancelSlotHandler);
-doctorRoutes.post(
-  "/get/all-appointments",
-  authenticate,
-  authorizeRoles(["doctor"]),
-  doctorController.getAllAppointmentsHandler
-);
-doctorRoutes.get("/get-all-chats", authenticate, authorizeRoles(["doctor"]), doctorController.getUsersInSideBarHandler);
-doctorRoutes.post("/get-all-messages", authenticate, authorizeRoles(["doctor"]), chatController.getMessagesHandler);
-doctorRoutes.post("/send-message", authenticate, authorizeRoles(["doctor"]), chatController.sendMessageHandler);
+doctorRoutes.get("/logout", authenticate, authorizeRoles([UserRoleTypes.DOCTOR]), doctorController.logoutHandler);
+doctorRoutes.post("/forgot-password", authController.sendPasswordResetHandler);
+doctorRoutes.post("/verify/reset-password/otp", authController.verifyResetPasswordCode);
+doctorRoutes.post("/reset-password", authController.resetPasswordHandler);
+doctorRoutes.post("/resend-otp", authController.resendPasswordHandler);
 //TODO impliment later
 doctorRoutes.get("/verify-email/:code", doctorController.verifyEmailHandler);
 

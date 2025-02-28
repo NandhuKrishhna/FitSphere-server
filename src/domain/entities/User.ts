@@ -11,7 +11,7 @@ export class User {
     public role: "user" | "doctor" = "user",
     public isVerfied: boolean = false,
     public status: "blocked" | "deleted" | "active" = "active",
-    public profilePicture?: null,
+    public profilePicture?: string,
     public createdAt?: Date,
     public updatedAt?: Date
   ) {}

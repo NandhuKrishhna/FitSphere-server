@@ -15,6 +15,7 @@ export class AdminController {
   loginHandler = catchErrors(async (req: Request, res: Response) => {
     const doctor = loginSchema.parse({ ...req.body, userAgent: req.headers["user-agent"] });
     const { user, accessToken, refreshToken } = await this.adminUseCase.adminLogin(doctor);
+    console.log(user);
     setAuthCookies({ res, accessToken, refreshToken });
     return res.status(OK).json({
       success: true,

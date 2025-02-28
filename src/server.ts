@@ -4,7 +4,7 @@ import "dotenv/config";
 import cors from "cors";
 import connectToDatabase from "./infrastructure/database/MongoDBClient";
 import express, { Request, Response } from "express";
-import { APP_ORIGIN, NODE_ENV, PORT } from "./shared/constants/env";
+import { NODE_ENV, PORT } from "./shared/constants/env";
 import cookieParser from "cookie-parser";
 import { OK } from "./shared/constants/http";
 import errorHandler from "./interface/middleware/auth/errorHandler";
@@ -17,11 +17,12 @@ import { app, server } from "./infrastructure/config/socket.io";
 import authorizeRoles from "./interface/middleware/auth/roleBaseAuthentication";
 import UserRoleTypes from "./shared/constants/UserRole";
 import caloriesRouter from "./interface/routes/Apps/calories.router";
+import doctorFeatRouter from "./interface/routes/doctor/doctorFeatRoutes";
 
 app.use(express.json());
 app.use(cookieParser());
 
-console.log("Allowed Origin:", APP_ORIGIN);
+// console.log("Allowed Origin:", APP_ORIGIN);
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -42,7 +43,7 @@ app.use("/api/doctor", doctorRoutes);
 app.use("/api/admin", adminRouter);
 app.use("/api/app", authenticate, authorizeRoles([UserRoleTypes.USER]), appRouter);
 app.use("/api/app", authenticate, authorizeRoles([UserRoleTypes.USER]), caloriesRouter);
-
+app.use("/api/doctor", authenticate, authorizeRoles([UserRoleTypes.DOCTOR]), doctorFeatRouter);
 app.use(errorHandler);
 
 server.listen(PORT, async () => {

@@ -2,11 +2,10 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface DoctorDetailsDocument extends Document {
   _id: mongoose.Types.ObjectId;
-  doctorId: mongoose.Types.ObjectId; 
-  bio?: string; 
+  doctorId: mongoose.Types.ObjectId;
+  bio?: string;
   professionalTitle: string;
-  gender: "Male" | "Female"; 
-  profilePicture?: string; 
+  gender: "Male" | "Female";
   contactPhoneNumber: string;
   professionalEmail: string;
   officeAddress: string;
@@ -15,12 +14,11 @@ export interface DoctorDetailsDocument extends Document {
   consultationLanguages: string;
   primarySpecialty: string;
   medicalLicenseNumber: string;
-  experience: string; 
-  certificates?: string;
+  experience: string;
+  certificate?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
-
 
 const DoctorDetailsSchema: Schema = new Schema<DoctorDetailsDocument>(
   {
@@ -79,10 +77,6 @@ const DoctorDetailsSchema: Schema = new Schema<DoctorDetailsDocument>(
       trim: true,
       unique: true,
     },
-    profilePicture: {
-      type: String,
-      required: false,
-    },
     gender: {
       type: String,
       required: true,
@@ -93,18 +87,15 @@ const DoctorDetailsSchema: Schema = new Schema<DoctorDetailsDocument>(
       required: true,
       trim: true,
     },
-    certificates: {
+    certificate: {
       type: String,
       trim: true,
     },
-
-    
   },
   {
     timestamps: true,
   }
 );
-
 
 export const DoctorDetailsModel: Model<DoctorDetailsDocument> = mongoose.model<DoctorDetailsDocument>(
   "DoctorDetails",

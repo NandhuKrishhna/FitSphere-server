@@ -18,7 +18,7 @@ export function IcreateDoctorDetails(
   gender: "Male" | "Female",
   professionalTitle: string,
   bio?: string,
-  profilePicture?: string
+  certificate?: string
 ) {
   return new DoctorDetails(
     new mongoose.Types.ObjectId(),
@@ -35,7 +35,7 @@ export function IcreateDoctorDetails(
     gender,
     professionalTitle,
     bio,
-    profilePicture
+    certificate
   );
 }
 

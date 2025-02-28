@@ -17,24 +17,12 @@ import { NotificationType, OtpCodeTypes, VerificationCodeTypes } from "../../sha
 import { getVerifyEmailTemplates } from "../../shared/utils/emialTemplates";
 import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../repositories/IOtpReposirtory";
 import { getPendingApprovalEmailTemplate } from "../../shared/utils/doctorEmailTemplates";
-import { Notification } from "../../domain/entities/Notification";
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 import cloudinary from "../../infrastructure/config/cloudinary";
 import { LoginUserParams } from "../../domain/types/userTypes";
-import { Slot } from "../../domain/entities/Slot";
-import { SlotType } from "../../interface/validations/slot.schema";
-import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
-import { IAppointmentRepository, IAppointmentRepositoryToken } from "../repositories/IAppointmentRepository";
-import { Session } from "../../domain/entities/Session";
 import UserRoleTypes from "../../shared/constants/UserRole";
-import { IConversationRepository, IConversationRepositoryToken } from "../repositories/IConversationRepository";
 import { IcreateOtp, IcreateSession } from "../../shared/utils/builder";
-import {
-  ConsultationType,
-  IcreateDoctorDetails,
-  IcreateNotification,
-  IcreateSlot,
-} from "../../shared/utils/doctorHelper";
+import { IcreateDoctorDetails, IcreateNotification } from "../../shared/utils/doctorHelper";
 
 @Service()
 export class DoctorUseCase {
@@ -43,10 +31,7 @@ export class DoctorUseCase {
     @Inject(IVerficaitonCodeRepositoryToken) private verificationCodeRepository: IVerficaitonCodeRepository,
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
     @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
-    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
-    @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository,
-    @Inject(IAppointmentRepositoryToken) private appointmentRepository: IAppointmentRepository,
-    @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository
+    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository
   ) {}
 
   async registerDoctor(details: RegisterDoctorParams) {
@@ -64,30 +49,14 @@ export class DoctorUseCase {
       to: doctor.email,
       ...getVerifyEmailTemplates(newOtp.code, newDoctor.name),
     });
-    //create session
-    const newSession = IcreateSession(doctor._id, UserRoleTypes.DOCTOR, details.userAgent, oneYearFromNow());
-    const session = await this.sessionRepository.createSession(newSession);
-
-    const sessionInfo: RefreshTokenPayload = {
-      sessionId: session._id ?? new mongoose.Types.ObjectId(),
-      role: UserRoleTypes.DOCTOR,
-    };
-    const userId = doctor._id;
-    const accessToken = signToken({
-      ...sessionInfo,
-      userId: userId,
-      role: UserRoleTypes.DOCTOR,
-    });
-    const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
     return {
       user: doctor.omitPassword(),
-      accessToken,
-      refreshToken,
     };
   }
   // register as doctor;
   async registerAsDoctor({ userId, details }: { userId: mongoose.Types.ObjectId; details: DoctorDetailsParams }) {
     console.log("DoctorId from registerAsDoctor handler : ", userId);
+    console.log("DoctorDetails from registerAsDoctor handler : ", details);
     const existingDoctor = await this.doctorRepository.findDoctorDetails(userId);
     appAssert(!existingDoctor, CONFLICT, "Email already exists");
     const doctor = await this.doctorRepository.findDoctorByID(userId);
@@ -97,7 +66,12 @@ export class DoctorUseCase {
     }
     console.log(doctor);
     // upload image to cloudinary>>>>>
-    const uploadResponse = details.profilePicture ? await cloudinary.uploader.upload(details.profilePicture) : null;
+    const uploadResponse = details.certificate
+      ? await cloudinary.uploader.upload(details.certificate, {
+          resource_type: "auto",
+        })
+      : null;
+    console.log(uploadResponse);
     const doctorDetails = IcreateDoctorDetails(
       userId,
       details.experience,
@@ -192,54 +166,5 @@ export class DoctorUseCase {
 
   async logoutUser(payload: AccessTokenPayload) {
     await this.sessionRepository.findByIdAndDelete(payload.sessionId);
-  }
-  async addSlots(doctorId: mongoose.Types.ObjectId, payload: SlotType) {
-    console.log(`Doctor Id: ${doctorId} and slots: ${JSON.stringify(payload)}`);
-    const existingSlots = await this.slotRepository.findSlotDetails(
-      doctorId,
-      payload.startTime,
-      payload.endTime,
-      payload.date
-    );
-    appAssert(!existingSlots, CONFLICT, "Slot already exists");
-    const { startTime, endTime } = payload;
-    appAssert(startTime < endTime, BAD_REQUEST, "End time must be after start time");
-    let type = payload.consultationType === "video" ? ConsultationType.Video : ConsultationType.Audio;
-    const newSlot = IcreateSlot(doctorId, startTime, endTime, payload.date, type);
-
-    const newSlotDetails = await this.slotRepository.createSlot(newSlot);
-    return newSlotDetails;
-  }
-
-  async displayAllSlots(doctorId: mongoose.Types.ObjectId) {
-    const slots = await this.slotRepository.findAllActiveSlots(doctorId);
-    return slots;
-  }
-
-  async cancelSlot(doctorId: mongoose.Types.ObjectId, slotId: mongoose.Types.ObjectId) {
-    const existingSlot = await this.slotRepository.findSlotById(slotId);
-    appAssert(existingSlot?.status !== "booked", UNAUTHORIZED, "Patient has already booked this slot.");
-    await this.slotRepository.deleteSlot(doctorId, slotId);
-  }
-
-  async getAllAppointment(
-    doctorId: mongoose.Types.ObjectId,
-    filters: { status?: string; paymentStatus?: string; consultationType?: string },
-    page: number,
-    limit: number
-  ) {
-    const { data, total } = await this.appointmentRepository.findAllAppointmentsByDocID({
-      doctorId,
-      filters,
-      page,
-      limit,
-    });
-    const totalPages = Math.ceil(total / limit);
-    return { appointments: data, total, page, totalPages };
-  }
-
-  async getAllUsers(userId: mongoose.Types.ObjectId, role: string): Promise<any> {
-    const users = await this.conversationRepository.getUsers(userId, role);
-    return users;
   }
 }

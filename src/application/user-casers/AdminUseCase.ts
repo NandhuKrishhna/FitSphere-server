@@ -30,6 +30,7 @@ export class AdminUseCase {
   // method for admin login
   async adminLogin(adminData: LoginUserParams) {
     const existingUser = await this.adminRepository.findAdminByEmail(adminData.email);
+    console.log("Admin Info", existingUser);
     appAssert(existingUser, UNAUTHORIZED, "Invalid email or user does not exist");
     const isValid = await existingUser.comparePassword(adminData.password);
     appAssert(isValid, UNAUTHORIZED, "Invalid email or password!");
@@ -47,6 +48,13 @@ export class AdminUseCase {
       role: session.role,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
+    console.log("Returning User Data:", {
+      _id: existingUser._id,
+      name: existingUser.name,
+      email: existingUser.email,
+      profilePicture: existingUser.profilePicture,
+      role: existingUser.role,
+    });
 
     return {
       user: {

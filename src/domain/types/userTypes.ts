@@ -15,5 +15,6 @@ export type LoginUserParams = {
 
 export type ResetPasswordParams = {
   userId: mongoose.Types.ObjectId;
+  role?: string;
   password: string;
 };

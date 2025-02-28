@@ -29,6 +29,7 @@ import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../reposit
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
 import { ERRORS, IcreateOtp, IcreateSession, IcreateWallet } from "../../shared/utils/builder";
 import UserRoleTypes from "../../shared/constants/UserRole";
+import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 
 export type TokenPayload = {
   sessionId: mongoose.Types.ObjectId;
@@ -41,7 +42,8 @@ export class RegisterUserUseCase {
     @Inject(IVerficaitonCodeRepositoryToken) private verificationCodeRepository: IVerficaitonCodeRepository,
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
     @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
-    @Inject(IWalletRepositoryToken) private walletRespository: IWalletRepository
+    @Inject(IWalletRepositoryToken) private walletRespository: IWalletRepository,
+    @Inject(IDoctorRepositoryToken) private doctorRespository: IDoctorRepository
   ) {}
 
   async registerUser(userData: RegisterUserParams): Promise<any> {
@@ -215,8 +217,11 @@ export class RegisterUserUseCase {
   }
 
   // handler for user forgot password [user enter the email for getting the reset otp]
-  async sendPasswordResetEmail(email: string) {
-    const user = await this.userRepository.findUserByEmail(email);
+  async sendPasswordResetEmail(email: string, role: string) {
+    let user;
+    role === UserRoleTypes.USER
+      ? (user = await this.userRepository.findUserByEmail(email))
+      : (user = await this.doctorRespository.findDoctorByEmail(email));
     appAssert(user, NOT_FOUND, "User not found");
     appAssert(user.status !== "blocked", UNAUTHORIZED, "Your account is suspended. Please contact with our team");
     const fiveMinAgo = fiveMinutesAgo();
@@ -244,8 +249,12 @@ export class RegisterUserUseCase {
     };
   }
   // handler for setting the new password
-  async resetPassword({ userId, password }: ResetPasswordParams) {
-    const existingUser = await this.userRepository.findUserById(userId);
+  async resetPassword({ userId, role, password }: ResetPasswordParams) {
+    let existingUser;
+    role === UserRoleTypes.USER
+      ? (existingUser = await this.userRepository.findUserById(userId))
+      : (existingUser = await this.doctorRespository.findDoctorByID(userId));
+
     if (!existingUser) {
       appAssert(false, NOT_FOUND, "User not found");
     }
@@ -253,7 +262,11 @@ export class RegisterUserUseCase {
     appAssert(!isOldPassword, BAD_REQUEST, "New password cannot be the same as the old password");
     // if not set password
     const hashedPassword = await hashPassword(password);
-    const updatedUser = await this.userRepository.updateUserById(userId, { password: hashedPassword });
+    let updatedUser;
+    role === UserRoleTypes.USER
+      ? (updatedUser = await this.userRepository.updateUserById(userId, { password: hashedPassword }))
+      : (updatedUser = await this.doctorRespository.updateUserById(userId, { password: hashedPassword }));
+
     appAssert(updatedUser, NOT_FOUND, "User not found");
 
     await this.otpRepository.deleteOtpByUserId(userId);
@@ -265,8 +278,11 @@ export class RegisterUserUseCase {
   }
 
   // handler for resend the otp code for the user
-  async resendVerificaitonCode(email: string) {
-    const user = await this.userRepository.findUserByEmail(email);
+  async resendVerificaitonCode(email: string, role: string) {
+    let user;
+    role === UserRoleTypes.USER
+      ? (user = await this.userRepository.findUserByEmail(email))
+      : (user = await this.doctorRespository.findDoctorByEmail(email));
     appAssert(user, NOT_FOUND, "User not found");
     await this.otpRepository.deleteOtpByUserId(user._id);
     const otpCode = IcreateOtp(user._id, OtpCodeTypes.EmailVerification);
