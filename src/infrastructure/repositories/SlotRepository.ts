@@ -76,4 +76,12 @@ export class SlotRepository implements ISlotRepository {
 
     return updatedSlot;
   }
+
+  async cancelSlotById(slotId: mongoose.Types.ObjectId): Promise<void> {
+    await SlotModel.findByIdAndUpdate(slotId, {
+      $unset: { patientId: "" },
+      status: "available",
+      updatedAt: new Date(),
+    });
+  }
 }

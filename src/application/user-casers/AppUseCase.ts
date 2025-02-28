@@ -156,6 +156,7 @@ export class AppUseCase {
   async cancelAppointment(appointmentId: mongoose.Types.ObjectId) {
     const details = await this.appointmentRepository.cancelAppointment(appointmentId);
     appAssert(details, BAD_REQUEST, "Unable to cancel appointment. Please try few minutes later.");
+    await this.slotRespository.cancelSlotById(details.slotId);
     await this.walletRepository.increaseBalance(details.patientId, details.amount);
     const wallet = await this.walletRepository.addTransaction(details.patientId, {
       type: "credit",

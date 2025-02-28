@@ -123,7 +123,7 @@ export class AppointmentRepository implements IAppointmentRepository {
   async cancelAppointment(id: mongoose.Types.ObjectId): Promise<Appointments | null> {
     const response = await AppointmentModel.findOneAndUpdate(
       { _id: id },
-      { $set: { status: "cancelled" } },
+      { $set: { status: "available" } },
       { new: true }
     );
     return response;
