@@ -25,6 +25,7 @@ export type Appointment = {
   consultationType?: "video" | "audio" | "chat";
   date: Date;
   paymentStatus?: "pending" | "completed" | "failed";
+  meetingId?: string;
   amount: number;
   paymentId?: string;
   status?: "scheduled" | "completed" | "cancelled";

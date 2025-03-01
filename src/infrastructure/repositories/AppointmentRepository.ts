@@ -5,7 +5,7 @@ import {
   IAppointmentRepositoryToken,
 } from "../../application/repositories/IAppointmentRepository";
 import mongoose, { PipelineStage } from "mongoose";
-import { Appointments } from "../../domain/entities/Appointments";
+import { Appointment, Appointments } from "../../domain/entities/Appointments";
 import { AppointmentModel } from "../models/appointmentModel";
 import { AppointmentProps } from "../../domain/types/Slot";
 
@@ -191,5 +191,10 @@ export class AppointmentRepository implements IAppointmentRepository {
       data: result[0].data,
       total: result[0].metadata[0]?.total || 0,
     };
+  }
+
+  async findAppointmentByMeetingId(meetingId: string): Promise<Appointment | null> {
+    const response = await AppointmentModel.findOne({ meetingId: meetingId }).exec();
+    return response;
   }
 }

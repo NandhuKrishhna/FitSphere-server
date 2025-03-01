@@ -21,6 +21,7 @@ export interface IAppointmentRepository {
   findDetailsByPatientId(userId: mongoose.Types.ObjectId): Promise<any>;
   cancelAppointment(id: mongoose.Types.ObjectId): Promise<Appointment | null>;
   findAllAppointmentsByDocID(props: AppointmentProps): Promise<{ data: any[]; total: number }>;
+  findAppointmentByMeetingId(meetingId: string): Promise<Appointment | null>;
 }
 
 export const IAppointmentRepositoryToken = new Token<IAppointmentRepository>();

@@ -1,5 +1,5 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
-
+import { v4 as uuidv4 } from "uuid";
 export interface AppointmentDocument extends Document {
   _id: mongoose.Types.ObjectId;
   doctorId: mongoose.Types.ObjectId;
@@ -11,6 +11,7 @@ export interface AppointmentDocument extends Document {
   paymentId?: string;
   amount: number;
   status: "scheduled" | "completed" | "cancelled";
+  meetingId?: string;
   orderId?: string;
   paymentMethod?: string;
   paymentThrough?: string;
@@ -30,6 +31,7 @@ const AppointmentSchema = new Schema<AppointmentDocument>({
   paymentId: { type: String, required: false },
   amount: { type: Number, required: true },
   status: { type: String, enum: ["scheduled", "completed", "cancelled"], default: "scheduled" },
+  meetingId: { type: String, default: uuidv4, unique: true },
   orderId: { type: String, required: false },
   paymentMethod: { type: String, required: false },
   paymentThrough: { type: String, required: false },

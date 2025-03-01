@@ -18,6 +18,7 @@ import authorizeRoles from "./interface/middleware/auth/roleBaseAuthentication";
 import UserRoleTypes from "./shared/constants/UserRole";
 import caloriesRouter from "./interface/routes/Apps/calories.router";
 import doctorFeatRouter from "./interface/routes/doctor/doctorFeatRoutes";
+import webrtcRouter from "./interface/routes/Apps/webrtcRouter";
 
 app.use(express.json());
 app.use(cookieParser());
@@ -44,6 +45,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/app", authenticate, authorizeRoles([UserRoleTypes.USER]), appRouter);
 app.use("/api/app", authenticate, authorizeRoles([UserRoleTypes.USER]), caloriesRouter);
 app.use("/api/doctor", authenticate, authorizeRoles([UserRoleTypes.DOCTOR]), doctorFeatRouter);
+app.use("/api/meeting", webrtcRouter);
 app.use(errorHandler);
 
 server.listen(PORT, async () => {
