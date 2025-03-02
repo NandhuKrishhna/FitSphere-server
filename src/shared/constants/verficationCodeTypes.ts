@@ -12,4 +12,8 @@ export const enum OtpCodeTypes {
 export const enum NotificationType {
   DoctorRegistration = "doctor_registration",
   Appointment = "appointment",
+  Chat = "chat",
+  General = "general",
+  Payment = "payment",
+  VideoCall = "video_call",
 }

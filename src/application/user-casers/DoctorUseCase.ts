@@ -20,9 +20,9 @@ import { getPendingApprovalEmailTemplate } from "../../shared/utils/doctorEmailT
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 import cloudinary from "../../infrastructure/config/cloudinary";
 import { LoginUserParams } from "../../domain/types/userTypes";
-import UserRoleTypes from "../../shared/constants/UserRole";
+import Role from "../../shared/constants/UserRole";
 import { IcreateOtp, IcreateSession } from "../../shared/utils/builder";
-import { IcreateDoctorDetails, IcreateNotification } from "../../shared/utils/doctorHelper";
+import { IcreateDoctorDetails } from "../../shared/utils/doctorHelper";
 
 @Service()
 export class DoctorUseCase {
@@ -92,13 +92,19 @@ export class DoctorUseCase {
     const newDoctorDetails = await this.doctorRepository.createDoctorDetails(doctorDetails);
     const newDoctorEmail = newDoctorDetails.professionalEmail;
     await sendMail({ to: newDoctorEmail, ...getPendingApprovalEmailTemplate() });
-
-    // creating Notification for admin >>>>>>> later do impliment websocket
     let message = `${doctorName} has registered as a doctor and is waiting for approval.`;
 
-    const notification = IcreateNotification(userId, NotificationType.DoctorRegistration, message);
+    const notification = await this.notificationRepository.createNotification({
+      userId,
+      type: NotificationType.DoctorRegistration,
+      message,
+      status: "pending",
+      metadata: {},
+      read: false,
+    });
 
     const new_notification = await this.notificationRepository.createNotification(notification);
+
     return {
       doctorDetails: newDoctorDetails,
       notification: new_notification,
@@ -142,18 +148,18 @@ export class DoctorUseCase {
     );
     const isValidUser = await existingDoctor.comparePassword(doctorData.password);
     appAssert(isValidUser, UNAUTHORIZED, "Invalid Email or Password");
-    const newSession = IcreateSession(existingDoctor._id, UserRoleTypes.DOCTOR, doctorData.userAgent, oneYearFromNow());
+    const newSession = IcreateSession(existingDoctor._id, Role.DOCTOR, doctorData.userAgent, oneYearFromNow());
     const session = await this.sessionRepository.createSession(newSession);
 
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
-      role: UserRoleTypes.DOCTOR,
+      role: Role.DOCTOR,
     };
     const userId = existingDoctor._id;
     const accessToken = signToken({
       ...sessionInfo,
       userId: userId,
-      role: UserRoleTypes.DOCTOR,
+      role: Role.DOCTOR,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
 

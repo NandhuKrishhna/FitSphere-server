@@ -13,7 +13,10 @@ import { BookAppointmentParams } from "../../domain/types/appTypes";
 import { IAppointmentRepository, IAppointmentRepositoryToken } from "../repositories/IAppointmentRepository";
 import { Appointments } from "../../domain/entities/Appointments";
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
-import { describe } from "node:test";
+import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
+import { NotificationType } from "../../shared/constants/verficationCodeTypes";
+import { INotification } from "../../shared/utils/builder";
+import { getReceiverSocketId, io } from "../../infrastructure/config/socket.io";
 
 @Service()
 export class AppUseCase {
@@ -24,7 +27,8 @@ export class AppUseCase {
     @Inject(ISlotRepositoryToken) private slotRespository: ISlotRepository,
     @Inject(IAppointmentRepositoryToken)
     private appointmentRepository: IAppointmentRepository,
-    @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository
+    @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository,
+    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository
   ) {}
   async displayAllDoctors({
     page,
@@ -114,7 +118,20 @@ export class AppUseCase {
     );
 
     const newAppointmentDetails = await this.appointmentRepository.createAppointment(newAppointment);
-
+    // const patientNotification = INotification(
+    //   patientId,
+    //   NotificationType.Appointment,
+    //   "Your appointment has been scheduled",
+    //   "pending",
+    //   {
+    //     meetingId: newAppointmentDetails.meetingId,
+    //     appointMentId: newAppointmentDetails._id,
+    //   }
+    // );
+    // const patientSocketId = getReceiverSocketId(patientId);
+    // if (patientSocketId) {
+    //   io.to(patientSocketId).emit("newNotification", patientNotification);
+    // }
     return {
       newAppointmentDetails,
       order: {
@@ -142,6 +159,28 @@ export class AppUseCase {
       console.log(additionalDetails);
       const receiptId = new mongoose.Types.ObjectId(orderInfo.receipt);
       const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId, additionalDetails);
+      // creating notification for user
+      //TODO same for doctor//
+      await this.notificationRepository.createNotification({
+        userId: appointment?.doctorId,
+        type: NotificationType.Appointment,
+        message: "Your appointment has been scheduled",
+        status: "pending",
+        metadata: {
+          meetingId: appointment?.meetingId,
+          appointMentId: appointment?._id,
+        },
+      });
+      await this.notificationRepository.createNotification({
+        userId: appointment?.patientId,
+        type: NotificationType.Appointment,
+        message: "Your appointment has been scheduled",
+        status: "pending",
+        metadata: {
+          meetingId: appointment?.meetingId,
+          appointMentId: appointment?._id,
+        },
+      });
       appAssert(appointment, BAD_REQUEST, "Unable to fetch order details. Please try few minutes later.");
       await this.slotRespository.updateSlotById(appointment?.slotId, appointment?.patientId);
     }
@@ -172,6 +211,11 @@ export class AppUseCase {
 
   async getWalletDetails(userId: mongoose.Types.ObjectId) {
     const details = await this.walletRepository.getWalletDetailsById(userId, {});
+    return details;
+  }
+  async getNotifications(userId: mongoose.Types.ObjectId) {
+    const details = await this.notificationRepository.getAllNotificationById(userId);
+    appAssert(details, BAD_REQUEST, "Unable to fetch notifications. Please try few minutes later.");
     return details;
   }
 }

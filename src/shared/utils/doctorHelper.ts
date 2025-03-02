@@ -40,15 +40,15 @@ export function IcreateDoctorDetails(
   );
 }
 
-export function IcreateNotification(
-  userId: mongoose.Types.ObjectId,
-  type: NotificationType,
-  message: string,
-  status: NotificationStatus = "pending",
-  metadata?: Record<string, any>
-): Notification {
-  return new Notification(userId, type, message, status, metadata);
-}
+// export function IcreateNotification(
+//   userId: mongoose.Types.ObjectId,
+//   type: NotificationType,
+//   message: string,
+//   status: NotificationStatus = "pending",
+//   metadata?: Record<string, any>
+// ): Notification {
+//   return new Notification(new mongoose.Types.ObjectId(), userId, type, message, status, metadata);
+// }
 export const enum ConsultationType {
   Video = "video",
   Audio = "audio",

@@ -9,6 +9,7 @@ export class Notification {
     public type: NotificationType,
     public message: string,
     public status: NotificationStatus = "pending",
-    public metadata?: Record<string, any>
+    public metadata?: Record<string, any>,
+    public read?: boolean
   ) {}
 }

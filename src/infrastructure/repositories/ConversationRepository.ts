@@ -5,7 +5,7 @@ import {
 } from "../../application/repositories/IConversationRepository";
 import ConversationModel, { IConversation } from "../models/conversationModel";
 import { Service } from "typedi";
-import UserRoleTypes from "../../shared/constants/UserRole";
+import Role from "../../shared/constants/UserRole";
 
 @Service(IConversationRepositoryToken)
 export class ConversationRepository implements IConversationRepository {
@@ -43,7 +43,7 @@ export class ConversationRepository implements IConversationRepository {
       },
       {
         $lookup: {
-          from: role === UserRoleTypes.USER ? "doctors" : "users",
+          from: role === Role.USER ? "doctors" : "users",
           localField: "participants",
           foreignField: "_id",
           as: "doctorDetails",

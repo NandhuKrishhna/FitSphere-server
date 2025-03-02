@@ -14,7 +14,7 @@ import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepo
 import { getRejectionEmailTemplate } from "../../shared/utils/EmailTemplates/RequestRejectEmailTemplate";
 import { getApprovalEmailTemplate } from "../../shared/utils/EmailTemplates/DoctorApprovalTemplate";
 import { Session } from "../../domain/entities/Session";
-import UserRoleTypes from "../../shared/constants/UserRole";
+import Role from "../../shared/constants/UserRole";
 import { IcreateSession } from "../../shared/utils/builder";
 
 @Service()
@@ -34,7 +34,7 @@ export class AdminUseCase {
     appAssert(existingUser, UNAUTHORIZED, "Invalid email or user does not exist");
     const isValid = await existingUser.comparePassword(adminData.password);
     appAssert(isValid, UNAUTHORIZED, "Invalid email or password!");
-    const newSession = IcreateSession(existingUser._id, UserRoleTypes.ADMIN, adminData.userAgent, oneYearFromNow());
+    const newSession = IcreateSession(existingUser._id, Role.ADMIN, adminData.userAgent, oneYearFromNow());
     const session = await this.sessionRepository.createSession(newSession);
 
     const sessionInfo: RefreshTokenPayload = {

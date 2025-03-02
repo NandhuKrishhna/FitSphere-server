@@ -139,4 +139,14 @@ export class AppController {
       response,
     });
   });
+
+  getNotificationsHandler = catchErrors(async (req: Request, res: Response) => {
+    const userId = req as AuthenticatedRequest;
+    const allNotifications = await this.appUseCase.getNotifications(userId.userId);
+    res.status(OK).json({
+      success: true,
+      message: "Notifications fetched successfully",
+      allNotifications,
+    });
+  });
 }

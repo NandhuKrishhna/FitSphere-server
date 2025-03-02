@@ -15,10 +15,11 @@ import appRouter from "./interface/routes/Apps/app.router";
 import authenticate from "./interface/middleware/auth/authMiddleware";
 import { app, server } from "./infrastructure/config/socket.io";
 import authorizeRoles from "./interface/middleware/auth/roleBaseAuthentication";
-import UserRoleTypes from "./shared/constants/UserRole";
+import Role from "./shared/constants/UserRole";
 import caloriesRouter from "./interface/routes/Apps/calories.router";
 import doctorFeatRouter from "./interface/routes/doctor/doctorFeatRoutes";
 import webrtcRouter from "./interface/routes/Apps/webrtcRouter";
+import notificationRouter from "./interface/routes/Apps/notificatation.router";
 
 app.use(express.json());
 app.use(cookieParser());
@@ -42,9 +43,10 @@ app.get("/health", (req: Request, res: Response, next) => {
 app.use("/api/auth", authRouter);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/admin", adminRouter);
-app.use("/api/app", authenticate, authorizeRoles([UserRoleTypes.USER]), appRouter);
-app.use("/api/app", authenticate, authorizeRoles([UserRoleTypes.USER]), caloriesRouter);
-app.use("/api/doctor", authenticate, authorizeRoles([UserRoleTypes.DOCTOR]), doctorFeatRouter);
+app.use("/api/app", authenticate, authorizeRoles([Role.USER]), appRouter);
+app.use("/api/app", authenticate, authorizeRoles([Role.USER]), caloriesRouter);
+app.use("/api/doctor", authenticate, authorizeRoles([Role.DOCTOR]), doctorFeatRouter);
+app.use("/api/notification", authenticate, authorizeRoles([Role.USER, Role.DOCTOR, Role.ADMIN]), notificationRouter);
 app.use("/api/meeting", webrtcRouter);
 app.use(errorHandler);
 

@@ -1,7 +1,7 @@
- const enum UserRoleTypes  {
-    USER = "user",
-    ADMIN = "admin",
-    DOCTOR = "doctor"
-};
+const enum Role {
+  USER = "user",
+  ADMIN = "admin",
+  DOCTOR = "doctor",
+}
 
-export default UserRoleTypes
+export default Role;

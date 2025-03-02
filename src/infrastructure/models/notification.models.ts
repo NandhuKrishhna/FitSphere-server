@@ -1,23 +1,23 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface INotification extends Document {
-  userId?: mongoose.Types.ObjectId; 
-  type: "doctor_registration" | "general";
+  userId?: mongoose.Types.ObjectId;
+  type: "doctor_registration" | "general" | "chat" | "appointment";
   message: string;
-  status: "pending" | "approved" | "rejected";
-  metadata?: Record<string, any>; 
-  read ?: boolean
-  createdAt: Date;
+  status?: "pending" | "approved" | "rejected";
+  metadata?: Record<string, any>;
+  read?: boolean;
+  createdAt?: Date;
 }
 
 const NotificationSchema = new Schema<INotification>(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false },
-    type: { type: String, enum: ["doctor_registration", "general"], required: true },
+    type: { type: String, enum: ["doctor_registration", "general", "chat", "appointment"], required: true },
     message: { type: String, required: true },
     status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
-    metadata: { type: Schema.Types.Mixed }, 
-    read : {type : Boolean , default : false}
+    metadata: { type: Schema.Types.Mixed },
+    read: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

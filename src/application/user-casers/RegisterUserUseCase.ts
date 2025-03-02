@@ -28,7 +28,7 @@ import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../reposit
 
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
 import { ERRORS, IcreateOtp, IcreateSession, IcreateWallet } from "../../shared/utils/builder";
-import UserRoleTypes from "../../shared/constants/UserRole";
+import Role from "../../shared/constants/UserRole";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 
 export type TokenPayload = {
@@ -62,7 +62,7 @@ export class RegisterUserUseCase {
       ...getVerifyEmailTemplates(newOtp.code, user.name),
     });
 
-    const newSession = IcreateSession(newUser._id, UserRoleTypes.USER, userData.userAgent, oneYearFromNow());
+    const newSession = IcreateSession(newUser._id, Role.USER, userData.userAgent, oneYearFromNow());
     const session = await this.sessionRepository.createSession(newSession);
 
     // creating a wallet for the user
@@ -71,13 +71,13 @@ export class RegisterUserUseCase {
 
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
-      role: UserRoleTypes.USER,
+      role: Role.USER,
     };
     const userId = newUser._id;
     const accessToken = signToken({
       ...sessionInfo,
       userId: userId,
-      role: UserRoleTypes.USER,
+      role: Role.USER,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
     return {
@@ -132,18 +132,18 @@ export class RegisterUserUseCase {
     const isValid = await existingUser.comparePassword(userData.password);
     appAssert(isValid, UNAUTHORIZED, "Invalid Email or Password");
 
-    const newSession = IcreateSession(existingUser._id, UserRoleTypes.USER, userData.userAgent, oneYearFromNow());
+    const newSession = IcreateSession(existingUser._id, Role.USER, userData.userAgent, oneYearFromNow());
     const session = await this.sessionRepository.createSession(newSession);
 
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
-      role: UserRoleTypes.USER,
+      role: Role.USER,
     };
     const userId = existingUser._id;
     const accessToken = signToken({
       ...sessionInfo,
       userId: userId,
-      role: UserRoleTypes.USER,
+      role: Role.USER,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
 
@@ -219,7 +219,7 @@ export class RegisterUserUseCase {
   // handler for user forgot password [user enter the email for getting the reset otp]
   async sendPasswordResetEmail(email: string, role: string) {
     let user;
-    role === UserRoleTypes.USER
+    role === Role.USER
       ? (user = await this.userRepository.findUserByEmail(email))
       : (user = await this.doctorRespository.findDoctorByEmail(email));
     appAssert(user, NOT_FOUND, "User not found");
@@ -251,7 +251,7 @@ export class RegisterUserUseCase {
   // handler for setting the new password
   async resetPassword({ userId, role, password }: ResetPasswordParams) {
     let existingUser;
-    role === UserRoleTypes.USER
+    role === Role.USER
       ? (existingUser = await this.userRepository.findUserById(userId))
       : (existingUser = await this.doctorRespository.findDoctorByID(userId));
 
@@ -263,7 +263,7 @@ export class RegisterUserUseCase {
     // if not set password
     const hashedPassword = await hashPassword(password);
     let updatedUser;
-    role === UserRoleTypes.USER
+    role === Role.USER
       ? (updatedUser = await this.userRepository.updateUserById(userId, { password: hashedPassword }))
       : (updatedUser = await this.doctorRespository.updateUserById(userId, { password: hashedPassword }));
 
@@ -280,7 +280,7 @@ export class RegisterUserUseCase {
   // handler for resend the otp code for the user
   async resendVerificaitonCode(email: string, role: string) {
     let user;
-    role === UserRoleTypes.USER
+    role === Role.USER
       ? (user = await this.userRepository.findUserByEmail(email))
       : (user = await this.doctorRespository.findDoctorByEmail(email));
     appAssert(user, NOT_FOUND, "User not found");
