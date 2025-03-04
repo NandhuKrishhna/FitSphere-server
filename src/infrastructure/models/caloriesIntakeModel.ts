@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { ObjectId } from "./UserModel";
 
 interface IFoodItem {
   name: string;
@@ -6,6 +7,7 @@ interface IFoodItem {
   protein?: number;
   carbs?: number;
   fats?: number;
+  _id?: ObjectId;
 }
 
 export interface ICalorieIntake extends Document {

@@ -7,6 +7,7 @@ import appAssert from "../../../shared/utils/appAssert";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { userDetailsSchema } from "../../validations/user.details.schema";
 import { IUserDetails } from "../../../infrastructure/models/user.addition.details";
+import { stringToObjectId } from "../../../shared/utils/bcrypt";
 
 @Service()
 export class CaloriesController {
@@ -78,6 +79,19 @@ export class CaloriesController {
       success: true,
       message: "Food Logs Fetched Successfully",
       response,
+    });
+  });
+
+  //delete food
+  deleteFoodHandler = catchErrors(async (req: Request, res: Response) => {
+    const foodId = stringToObjectId(req.body.foodId);
+    const date = req.body.date;
+    console.log(req.body);
+    const { userId } = req as AuthenticatedRequest;
+    await this.caloriesUseCase.deleteFood(userId, foodId, date);
+    res.status(OK).json({
+      success: true,
+      message: "Food Deleted Successfully",
     });
   });
 }

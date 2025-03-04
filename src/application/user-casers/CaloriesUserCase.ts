@@ -60,4 +60,11 @@ export class CaloriesUseCase {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
     return await this.caloriesDetailsRepository.getFoodLogs(userId, date);
   }
+
+  // delete food log by id
+  public async deleteFood(userId: ObjectId, foodId: ObjectId, date: Date) {
+    appAssert(userId, BAD_REQUEST, "Please Login to delete food log");
+    appAssert(foodId, BAD_REQUEST, "Something went wrong. Please try again");
+    await this.caloriesDetailsRepository.deleteFoodLogByFoodId(userId, foodId, date);
+  }
 }
