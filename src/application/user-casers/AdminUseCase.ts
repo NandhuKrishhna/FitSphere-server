@@ -16,6 +16,7 @@ import { getApprovalEmailTemplate } from "../../shared/utils/EmailTemplates/Doct
 import { Session } from "../../domain/entities/Session";
 import Role from "../../shared/constants/UserRole";
 import { IcreateSession } from "../../shared/utils/builder";
+import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
 
 @Service()
 export class AdminUseCase {
@@ -24,7 +25,8 @@ export class AdminUseCase {
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
     @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
     @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
-    @Inject(IUserRepositoryToken) private userRepository: IUserRepository
+    @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
+    @Inject(IWalletRepositoryToken) private walletRespository: IWalletRepository
   ) {}
 
   // method for admin login
@@ -94,6 +96,14 @@ export class AdminUseCase {
     const user = await this.doctorRepository.findDoctorByID(id);
     console.log("User after approved", user);
     appAssert(user, BAD_REQUEST, "User not found . Please try again");
+    //TODO create a wallet here after approval for the doctor;
+    await this.walletRespository.createWallet({
+      userId: user._id,
+      balance: 0,
+      currency: "INR",
+      status: "active",
+      transactions: [],
+    });
     await this.notificationRepository.deleteNotification(id);
     await sendMail({
       to: user.name,

@@ -68,6 +68,7 @@ export class SlotRepository implements ISlotRepository {
         $set: {
           patientId: patientId,
           updatedAt: new Date(),
+          status: "booked",
         },
       }
     );

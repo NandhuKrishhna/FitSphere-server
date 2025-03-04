@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 export interface Wallet {
-  _id: mongoose.Types.ObjectId;
+  _id?: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   balance: number;
   currency: string;
@@ -11,19 +11,19 @@ export interface Wallet {
 }
 export interface Transaction {
   _id: mongoose.Types.ObjectId;
-  type: "credit" | "debit"; 
-  amount: number; 
-  currency: string; 
+  type: "credit" | "debit";
+  amount: number;
+  currency: string;
   status: "success" | "failed" | "pending";
-  description?: string; 
+  description?: string;
   createdAt: Date;
 }
 
 export interface WalletDocument extends Document {
   _id: mongoose.Types.ObjectId;
-  userId: mongoose.Types.ObjectId; 
+  userId: mongoose.Types.ObjectId;
   balance: number;
-  currency: string; 
+  currency: string;
   status: "active" | "inactive" | "suspended";
   transactions: Transaction[];
   createdAt?: Date;
@@ -44,7 +44,7 @@ const WalletSchema = new Schema<WalletDocument>({
   balance: { type: Number, required: true, default: 0 },
   currency: { type: String, required: true },
   status: { type: String, enum: ["active", "inactive", "suspended"], default: "active" },
-  transactions: { type: [TransactionSchema], default: [] }, 
+  transactions: { type: [TransactionSchema], default: [] },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
