@@ -9,6 +9,8 @@ import { ICalorieIntake } from "../../infrastructure/models/caloriesIntakeModel"
 export interface ICaloriesDetailsRepository {
   createCaloriesDetails(userId: mongoose.Types.ObjectId, data: TUserDetails): Promise<IUserDetails>;
   addMeal(userId: ObjectId, foodItems: IFoodItem, mealType: string): Promise<ICalorieIntake>;
+  getFoodLogs(userId: ObjectId, date?: Date): Promise<ICalorieIntake | null>;
+  getUserHealthDetails(userId: ObjectId): Promise<IUserDetails | null>;
 }
 
 export const ICaloriesDetailsRepositoryToken = new Token<ICaloriesDetailsRepository>();

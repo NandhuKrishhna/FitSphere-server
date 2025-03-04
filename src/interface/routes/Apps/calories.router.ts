@@ -7,5 +7,8 @@ const caloriesController = Container.get(CaloriesController);
 caloriesRouter.post("/serach-food", caloriesController.searchRecipeHandler);
 caloriesRouter.post("/generate-recipe", caloriesController.getRecipeHandler);
 caloriesRouter.post("/update-userdetails", caloriesController.updateUserDetails);
+caloriesRouter.post("/add-foodlog", caloriesController.addMealHandler);
+caloriesRouter.post("/get-foodlog", caloriesController.getFoodLogsHandler);
+caloriesRouter.get("/get-userHealthDetails", caloriesController.getUserHealthDetailsHandler);
 
 export default caloriesRouter;

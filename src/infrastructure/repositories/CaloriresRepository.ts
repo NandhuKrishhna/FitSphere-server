@@ -16,23 +16,41 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
     return user;
   }
 
-  async addMeal(
-    userId: ObjectId,
-    foodItem: IFoodItem,
-    mealType: keyof ICalorieIntake["meals"]
-  ): Promise<ICalorieIntake> {
+  async addMeal(userId: mongoose.Types.ObjectId, foodItem: IFoodItem, mealType: string): Promise<ICalorieIntake> {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
+    let calorieIntake = await CalorieIntakeModel.findOne({
+      userId,
+      date: today,
+    });
 
-    const updatedLog = await CalorieIntakeModel.findOneAndUpdate(
-      { userId, date: today },
-      {
-        $push: { [`meals.${mealType}`]: foodItem },
-        $inc: { totalCalories: foodItem.calories },
-      },
-      { new: true, upsert: true }
-    );
+    if (!calorieIntake) {
+      calorieIntake = new CalorieIntakeModel({
+        userId,
+        date: today,
+        meals: {
+          breakfast: [],
+          lunch: [],
+          dinner: [],
+          snacks: [],
+        },
+      });
+    }
+    calorieIntake.meals[mealType as keyof typeof calorieIntake.meals].push(foodItem);
+    const updatedLog = await calorieIntake.save();
 
-    return updatedLog!;
+    return updatedLog;
+  }
+
+  async getFoodLogs(userId: mongoose.Types.ObjectId, date?: Date): Promise<ICalorieIntake | null> {
+    const targetDate = date ? new Date(date) : new Date();
+    targetDate.setUTCHours(0, 0, 0, 0);
+    const foodLog = await CalorieIntakeModel.findOne({ userId, date: targetDate });
+    return foodLog;
+  }
+
+  async getUserHealthDetails(userId: mongoose.Types.ObjectId): Promise<IUserDetails | null> {
+    const user = await UserDetailsModel.findOne({ userId }).select("-password -__v -_id");
+    return user;
   }
 }

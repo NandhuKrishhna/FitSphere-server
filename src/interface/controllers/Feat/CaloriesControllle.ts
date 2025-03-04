@@ -43,13 +43,40 @@ export class CaloriesController {
     });
   });
 
-  addMealHandler = catchErrors(async (req: Request, res: Response) => {
+  // get user health details
+  getUserHealthDetailsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
-    const { mealType, foodItems } = req.body;
-    const response = await this.caloriesUseCase.addMeal(userId, mealType, foodItems);
+    const userHealthDetails = await this.caloriesUseCase.getUserHealthDetails(userId);
+    res.status(OK).json({
+      success: true,
+      message: "User Health Details Fetched Successfully",
+      userHealthDetails,
+    });
+  });
+
+  // add foodlog
+  addMealHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body);
+    const { userId } = req as AuthenticatedRequest;
+    const mealType = req.body.mealType;
+    const foodItem = req.body.foodItem;
+    // console.log("Food Item:", foodItem);
+    // console.log("MealType:", mealType);
+    const response = await this.caloriesUseCase.addMeal(userId, mealType, foodItem);
     res.status(CREATED).json({
       success: true,
       message: "Meal Added Successfully",
+      response,
+    });
+  });
+
+  getFoodLogsHandler = catchErrors(async (req: Request, res: Response) => {
+    const { userId } = req as AuthenticatedRequest;
+    const date = req.body.date;
+    const response = await this.caloriesUseCase.getFoodLogs(userId, date);
+    res.status(OK).json({
+      success: true,
+      message: "Food Logs Fetched Successfully",
       response,
     });
   });
