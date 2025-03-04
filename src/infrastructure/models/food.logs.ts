@@ -49,4 +49,4 @@ foodLogSchema.pre<IFoodLog>("save", function (next) {
   next();
 });
 
-export const FoodLog = model<IFoodLog>("FoodLog", foodLogSchema);
+export const FoodLogModel = model<IFoodLog>("FoodLog", foodLogSchema);

@@ -2,7 +2,7 @@ import { Service } from "typedi";
 import { IUserRepository, IUserRepositoryToken } from "../../application/repositories/IUserRepository";
 import { UserModel } from "../models/UserModel";
 import { User, UserType } from "../../domain/entities/User";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 @Service(IUserRepositoryToken)
 export class UserRepository implements IUserRepository {

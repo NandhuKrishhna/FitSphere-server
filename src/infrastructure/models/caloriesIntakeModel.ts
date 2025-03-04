@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
 interface IFoodItem {
   name: string;
@@ -8,7 +8,7 @@ interface IFoodItem {
   fats?: number;
 }
 
-interface ICalorieIntake extends Document {
+export interface ICalorieIntake extends Document {
   userId: mongoose.Types.ObjectId;
   date: Date;
   meals: {
@@ -17,7 +17,7 @@ interface ICalorieIntake extends Document {
     dinner: IFoodItem[];
     snacks: IFoodItem[];
   };
-  totalCalories: number;
+  totalCalories?: number; // Changed to optional
 }
 
 const FoodItemSchema = new Schema<IFoodItem>({
@@ -31,16 +31,16 @@ const FoodItemSchema = new Schema<IFoodItem>({
 const CalorieIntakeSchema = new Schema<ICalorieIntake>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    date: { type: Date, required: true, default: Date.now },
+    date: { type: Date, required: true, default: () => new Date().setUTCHours(0, 0, 0, 0) },
     meals: {
       breakfast: [FoodItemSchema],
       lunch: [FoodItemSchema],
       dinner: [FoodItemSchema],
       snacks: [FoodItemSchema],
     },
-    totalCalories: { type: Number, required: true },
+    totalCalories: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
 
-export const CalorieIntake = mongoose.model<ICalorieIntake>("CalorieIntake", CalorieIntakeSchema);
+export const CalorieIntakeModel = mongoose.model<ICalorieIntake>("CalorieIntake", CalorieIntakeSchema);

@@ -1,9 +1,7 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, model, Document } from "mongoose";
 
 export interface IUserDetails extends Document {
-  email: string;
-  password: string;
-  name: string;
+  userId: mongoose.Types.ObjectId;
   age: number;
   gender: "male" | "female";
   height: number;
@@ -19,9 +17,7 @@ export interface IUserDetails extends Document {
 
 const userSchema = new Schema<IUserDetails>(
   {
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    name: String,
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
     age: Number,
     gender: String,
     height: Number,

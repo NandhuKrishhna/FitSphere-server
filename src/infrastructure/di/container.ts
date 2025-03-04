@@ -25,16 +25,19 @@ import { IChatRepositoryToken } from "../../application/repositories/IChatReposi
 import { ChatRepository } from "../repositories/ChatRepository";
 import { IConversationRepositoryToken } from "../../application/repositories/IConversationRepository";
 import { ConversationRepository } from "../repositories/ConversationRepository";
+import { ICaloriesDetailsRepositoryToken } from "../../application/repositories/ICaloriesDetailsRepository";
+import { CaloriesRepository } from "../repositories/CaloriresRepository";
 
 Container.set(IUserRepositoryToken, new UserRepository());
 Container.set(IVerficaitonCodeRepositoryToken, new VerificationCodeRepository());
 Container.set(ISessionRepositoryToken, new SessionRepository());
 Container.set(IOtpReposirtoryCodeToken, new OtpRepository());
-Container.set(IDoctorRepositoryToken , new DoctorRepository());
-Container.set(IAdminRepositoryToken , new AdminRepository());
-Container.set(INotificationRepositoryToken , new NotificationRepository());
-Container.set(ISlotRepositoryToken , new SlotRepository());
-Container.set(IAppointmentRepositoryToken , new AppointmentRepository());
+Container.set(IDoctorRepositoryToken, new DoctorRepository());
+Container.set(IAdminRepositoryToken, new AdminRepository());
+Container.set(INotificationRepositoryToken, new NotificationRepository());
+Container.set(ISlotRepositoryToken, new SlotRepository());
+Container.set(IAppointmentRepositoryToken, new AppointmentRepository());
 Container.set(IWalletRepositoryToken, new WalletRepository());
-Container.set(IChatRepositoryToken , new ChatRepository);
-Container.set(IConversationRepositoryToken , new ConversationRepository);
+Container.set(IChatRepositoryToken, new ChatRepository());
+Container.set(IConversationRepositoryToken, new ConversationRepository());
+Container.set(ICaloriesDetailsRepositoryToken, new CaloriesRepository());
