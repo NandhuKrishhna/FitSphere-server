@@ -13,11 +13,11 @@ import { sendMail } from "../../shared/constants/sendMail";
 import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
 import { getRejectionEmailTemplate } from "../../shared/utils/EmailTemplates/RequestRejectEmailTemplate";
 import { getApprovalEmailTemplate } from "../../shared/utils/EmailTemplates/DoctorApprovalTemplate";
-import { Session } from "../../domain/entities/Session";
 import Role from "../../shared/constants/UserRole";
 import { IcreateSession } from "../../shared/utils/builder";
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
 import { ObjectId } from "../../infrastructure/models/UserModel";
+import { NotificationType } from "../../shared/constants/verficationCodeTypes";
 
 @Service()
 export class AdminUseCase {
@@ -85,8 +85,9 @@ export class AdminUseCase {
   async logoutAdmin(payload: AccessTokenPayload) {
     await this.sessionRepository.findByIdAndDelete(payload.sessionId);
   }
-  async getNotification(userId: ObjectId) {
-    const notification = await this.notificationRepository.getAllNotifications();
+  async getNotification() {
+    const type: string[] = [NotificationType.DoctorRegistration];
+    const notification = await this.notificationRepository.getAllNotifications(type);
     return {
       notification,
     };

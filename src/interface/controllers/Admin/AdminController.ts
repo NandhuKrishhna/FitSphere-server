@@ -55,8 +55,7 @@ export class AdminController {
   });
 
   notificationHandler = catchErrors(async (req: Request, res: Response) => {
-    const { userId } = req as AuthenticatedRequest;
-    const notification = await this.adminUseCase.getNotification(userId);
+    const notification = await this.adminUseCase.getNotification();
     return res.status(OK).json({
       success: true,
       notification,

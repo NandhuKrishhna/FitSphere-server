@@ -6,6 +6,7 @@ import {
 import NotificationModel, { INotification } from "../models/notification.models";
 import { Notification } from "../../domain/entities/Notification";
 import mongoose from "mongoose";
+import { ObjectId } from "../models/UserModel";
 
 @Service({ id: INotificationRepositoryToken })
 export class NotificationRepository implements INotificationRepository {
@@ -14,8 +15,13 @@ export class NotificationRepository implements INotificationRepository {
     return result;
   }
 
-  async getAllNotifications(): Promise<any> {
-    const result = await NotificationModel.find({});
+  async getAllNotifications(types: string[]): Promise<any> {
+    const result = await NotificationModel.find({
+      type: { $in: types },
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
     return result;
   }
 

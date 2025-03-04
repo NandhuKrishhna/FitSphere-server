@@ -99,7 +99,7 @@ export class DoctorUseCase {
       type: NotificationType.DoctorRegistration,
       message,
       status: "pending",
-      metadata: {},
+      metadata: { ...newDoctorDetails },
       read: false,
     });
 
