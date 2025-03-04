@@ -44,8 +44,6 @@ export class SlotRepository implements ISlotRepository {
       date: { $gte: new Date(todayDateIST) },
     }).sort({ date: 1, startTime: 1 });
 
-    console.log("Fetched Slots:", slots);
-
     return slots;
   }
 
