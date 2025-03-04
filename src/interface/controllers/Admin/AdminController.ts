@@ -7,6 +7,7 @@ import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthC
 import { OK } from "../../../shared/constants/http";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
+import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 
 @Service()
 export class AdminController {
@@ -54,7 +55,8 @@ export class AdminController {
   });
 
   notificationHandler = catchErrors(async (req: Request, res: Response) => {
-    const notification = await this.adminUseCase.getNotification();
+    const { userId } = req as AuthenticatedRequest;
+    const notification = await this.adminUseCase.getNotification(userId);
     return res.status(OK).json({
       success: true,
       notification,

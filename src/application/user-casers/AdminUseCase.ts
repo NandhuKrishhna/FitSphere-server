@@ -17,6 +17,7 @@ import { Session } from "../../domain/entities/Session";
 import Role from "../../shared/constants/UserRole";
 import { IcreateSession } from "../../shared/utils/builder";
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
+import { ObjectId } from "../../infrastructure/models/UserModel";
 
 @Service()
 export class AdminUseCase {
@@ -84,7 +85,7 @@ export class AdminUseCase {
   async logoutAdmin(payload: AccessTokenPayload) {
     await this.sessionRepository.findByIdAndDelete(payload.sessionId);
   }
-  async getNotification() {
+  async getNotification(userId: ObjectId) {
     const notification = await this.notificationRepository.getAllNotifications();
     return {
       notification,
