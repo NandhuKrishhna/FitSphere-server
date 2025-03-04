@@ -113,3 +113,10 @@ export interface DoctorProfile {
     professionalTitle: string;
   };
 }
+export type DoctorInfoParams = {
+  _id: string;
+  name: string;
+  email: string;
+  profilePicture: string;
+  role: string;
+};

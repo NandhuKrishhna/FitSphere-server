@@ -34,15 +34,17 @@ export class DoctorController {
 
   // register as doctor handler
   registerAsDoctorHandler = catchErrors(async (req: Request, res: Response) => {
-    // console.log(req.body);
+    console.log(req.body);
     const request = doctorDetailsSchema.parse({
       ...req.body.formData,
       userAgent: req.headers["user-agent"],
     });
     const userId = stringToObjectId(req.body.userId);
+    const doctorInfo = req.body.doctorInfo;
     const { doctorDetails } = await this.doctorUseCase.registerAsDoctor({
       userId,
       details: request,
+      doctorInfo,
     });
     return res.status(CREATED).json({
       success: true,

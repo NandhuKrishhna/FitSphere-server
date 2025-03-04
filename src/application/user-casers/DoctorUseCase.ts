@@ -11,7 +11,7 @@ import { sendMail } from "../../shared/constants/sendMail";
 import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISessionRepository";
 import { AccessTokenPayload, RefreshTokenPayload, refreshTokenSignOptions, signToken } from "../../shared/utils/jwt";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
-import { DoctorDetailsParams, RegisterDoctorParams } from "../../domain/types/doctorTypes";
+import { DoctorDetailsParams, DoctorInfoParams, RegisterDoctorParams } from "../../domain/types/doctorTypes";
 import { Doctor } from "../../domain/entities/Doctors";
 import { NotificationType, OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verficationCodeTypes";
 import { getVerifyEmailTemplates } from "../../shared/utils/emialTemplates";
@@ -54,17 +54,26 @@ export class DoctorUseCase {
     };
   }
   // register as doctor;
-  async registerAsDoctor({ userId, details }: { userId: mongoose.Types.ObjectId; details: DoctorDetailsParams }) {
+  async registerAsDoctor({
+    userId,
+    details,
+    doctorInfo,
+  }: {
+    userId: mongoose.Types.ObjectId;
+    details: DoctorDetailsParams;
+    doctorInfo: DoctorInfoParams;
+  }) {
     console.log("DoctorId from registerAsDoctor handler : ", userId);
     console.log("DoctorDetails from registerAsDoctor handler : ", details);
     const existingDoctor = await this.doctorRepository.findDoctorDetails(userId);
     appAssert(!existingDoctor, CONFLICT, "Email already exists");
     const doctor = await this.doctorRepository.findDoctorByID(userId);
+    console.log("Doctor:", doctor);
     let doctorName;
     if (doctor) {
       doctorName = doctor.name;
     }
-    console.log(doctor);
+    // console.log(doctor);
     // upload image to cloudinary>>>>>
     const uploadResponse = details.certificate
       ? await cloudinary.uploader.upload(details.certificate, {
@@ -99,7 +108,7 @@ export class DoctorUseCase {
       type: NotificationType.DoctorRegistration,
       message,
       status: "pending",
-      metadata: { ...newDoctorDetails },
+      metadata: { ...doctorInfo, ...newDoctorDetails },
       read: false,
     });
 
