@@ -69,25 +69,36 @@ export class CaloriesUseCase {
     await this.caloriesDetailsRepository.deleteFoodLogByFoodId(userId, foodId, date);
   }
 
-  public async searchFoodForFoodLog(ingredients: string) {
+  public async searchFoodForFoodLog(ingredients: string, quantity?: number) {
     appAssert(ingredients, BAD_REQUEST, "Something went wrong. Please try again");
+
     const response = await axios.get(USDA_FOODDATA_API_URL, {
       params: {
         query: ingredients,
         api_key: USDA_FOODDATA_API_KEY,
       },
     });
+
     const foods = response.data.foods.map((food: any) => {
       const nutrients = food.foodNutrients.reduce((acc: any, nutrient: any) => {
-        if (nutrient.nutrientName.includes("Energy")) acc.calories = nutrient.value;
-        if (nutrient.nutrientName.includes("Protein")) acc.protein = nutrient.value;
-        if (nutrient.nutrientName.includes("Carbohydrate")) acc.carbs = nutrient.value;
-        if (nutrient.nutrientName.includes("Total lipid")) acc.fat = nutrient.value;
+        if (nutrient.nutrientName.includes("Energy")) {
+          acc.calories = quantity ? (nutrient.value / 100) * quantity : nutrient.value;
+        }
+        if (nutrient.nutrientName.includes("Protein")) {
+          acc.protein = quantity ? (nutrient.value / 100) * quantity : nutrient.value;
+        }
+        if (nutrient.nutrientName.includes("Carbohydrate")) {
+          acc.carbs = quantity ? (nutrient.value / 100) * quantity : nutrient.value;
+        }
+        if (nutrient.nutrientName.includes("Total lipid")) {
+          acc.fat = quantity ? (nutrient.value / 100) * quantity : nutrient.value;
+        }
         return acc;
       }, {} as IFoodItem);
 
       return {
         name: food.description,
+        quantity: quantity ? `${quantity}g` : "Default Serving",
         ...nutrients,
       };
     });

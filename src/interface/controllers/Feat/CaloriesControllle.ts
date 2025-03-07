@@ -7,6 +7,7 @@ import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { userDetailsSchema } from "../../validations/user.details.schema";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import appAssert from "../../../shared/utils/appAssert";
+import logger from "../../../shared/utils/logger";
 
 @Service()
 export class CaloriesController {
@@ -97,9 +98,9 @@ export class CaloriesController {
 
   //* (USDA Food Database) user search food handler
   serachFoodHandler = catchErrors(async (req: Request, res: Response) => {
-    const query = req.body.query;
-    console.log("Req Body : ", req.body);
-    const response = await this.caloriesUseCase.searchFoodForFoodLog(query);
+    const { query, quantity } = req.body;
+    logger.info(req.body);
+    const response = await this.caloriesUseCase.searchFoodForFoodLog(query, quantity);
     res.status(OK).json({
       success: true,
       message: "Food Searched Successfully",
