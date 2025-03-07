@@ -3,7 +3,7 @@ import appAssert from "../../shared/utils/appAssert";
 import { BAD_REQUEST } from "../../shared/constants/http";
 import { Inject, Service } from "typedi";
 import { getRecipeByIngredientsUrl, getRecipeInformationUrl } from "../../shared/utils/SponnerApi";
-import { DeepSeek_Api_key } from "../../shared/constants/env";
+import { DeepSeek_Api_key, USDA_FOODDATA_API_KEY } from "../../shared/constants/env";
 import mongoose from "mongoose";
 import {
   ICaloriesDetailsRepository,
@@ -13,6 +13,7 @@ import { TUserDetails } from "../../domain/types/calories.Types";
 import { calculateTargetCalories } from "../../shared/utils/calorieCalculator";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { IFoodItem } from "../../infrastructure/models/food.logs";
+import { USDA_FOODDATA_API_URL } from "../../shared/constants/url";
 @Service()
 export class CaloriesUseCase {
   constructor(@Inject(ICaloriesDetailsRepositoryToken) private caloriesDetailsRepository: ICaloriesDetailsRepository) {}
@@ -66,5 +67,31 @@ export class CaloriesUseCase {
     appAssert(userId, BAD_REQUEST, "Please Login to delete food log");
     appAssert(foodId, BAD_REQUEST, "Something went wrong. Please try again");
     await this.caloriesDetailsRepository.deleteFoodLogByFoodId(userId, foodId, date);
+  }
+
+  public async searchFoodForFoodLog(ingredients: string) {
+    appAssert(ingredients, BAD_REQUEST, "Something went wrong. Please try again");
+    const response = await axios.get(USDA_FOODDATA_API_URL, {
+      params: {
+        query: ingredients,
+        api_key: USDA_FOODDATA_API_KEY,
+      },
+    });
+    const foods = response.data.foods.map((food: any) => {
+      const nutrients = food.foodNutrients.reduce((acc: any, nutrient: any) => {
+        if (nutrient.nutrientName.includes("Energy")) acc.calories = nutrient.value;
+        if (nutrient.nutrientName.includes("Protein")) acc.protein = nutrient.value;
+        if (nutrient.nutrientName.includes("Carbohydrate")) acc.carbs = nutrient.value;
+        if (nutrient.nutrientName.includes("Total lipid")) acc.fat = nutrient.value;
+        return acc;
+      }, {} as IFoodItem);
+
+      return {
+        name: food.description,
+        ...nutrients,
+      };
+    });
+
+    return foods;
   }
 }

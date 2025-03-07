@@ -3,11 +3,10 @@ import catchErrors from "../../../shared/utils/catchErrors";
 import { Inject, Service } from "typedi";
 import { CaloriesUseCase } from "../../../application/user-casers/CaloriesUserCase";
 import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
-import appAssert from "../../../shared/utils/appAssert";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { userDetailsSchema } from "../../validations/user.details.schema";
-import { IUserDetails } from "../../../infrastructure/models/user.addition.details";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
+import appAssert from "../../../shared/utils/appAssert";
 
 @Service()
 export class CaloriesController {
@@ -34,6 +33,7 @@ export class CaloriesController {
   });
 
   updateUserDetails = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body);
     const { userId } = req as AuthenticatedRequest;
     const data = userDetailsSchema.parse(req.body);
     const response = await this.caloriesUseCase.updateUserDetails(userId, data);
@@ -92,6 +92,18 @@ export class CaloriesController {
     res.status(OK).json({
       success: true,
       message: "Food Deleted Successfully",
+    });
+  });
+
+  //* (USDA Food Database) user search food handler
+  serachFoodHandler = catchErrors(async (req: Request, res: Response) => {
+    const query = req.body.query;
+    console.log("Req Body : ", req.body);
+    const response = await this.caloriesUseCase.searchFoodForFoodLog(query);
+    res.status(OK).json({
+      success: true,
+      message: "Food Searched Successfully",
+      foodDetails: response,
     });
   });
 }
