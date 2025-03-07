@@ -11,5 +11,6 @@ caloriesRouter.post("/add-foodlog", caloriesController.addMealHandler);
 caloriesRouter.post("/delete-food", caloriesController.deleteFoodHandler);
 caloriesRouter.post("/get-foodlog", caloriesController.getFoodLogsHandler);
 caloriesRouter.get("/get-userHealthDetails", caloriesController.getUserHealthDetailsHandler);
+caloriesRouter.get("/search-food", caloriesController.serachFoodHandler);
 
 export default caloriesRouter;
