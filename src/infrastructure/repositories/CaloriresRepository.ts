@@ -15,7 +15,6 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
     let calorieIntake = await CalorieIntakeModel.findOne({ userId, date: today });
-
     if (!calorieIntake) {
       calorieIntake = new CalorieIntakeModel({
         userId,
@@ -26,6 +25,7 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
           dinner: [],
           snacks: [],
         },
+        requiredCalories: data.targetDailyCalories,
         totalCalories: 0,
       });
       await calorieIntake.save();
