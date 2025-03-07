@@ -20,11 +20,29 @@ import caloriesRouter from "./interface/routes/Apps/calories.router";
 import doctorFeatRouter from "./interface/routes/doctor/doctorFeatRoutes";
 import webrtcRouter from "./interface/routes/Apps/webrtcRouter";
 import notificationRouter from "./interface/routes/Apps/notificatation.router";
+import morgan from "morgan";
+import logger from "./shared/utils/logger";
+
+const morganFormat = ":method :url :status :response-time ms";
+app.use(
+  morgan(morganFormat, {
+    stream: {
+      write: (message) => {
+        const logObject = {
+          method: message.split(" ")[0],
+          url: message.split(" ")[1],
+          status: message.split(" ")[2],
+          responseTime: message.split(" ")[3],
+        };
+        logger.info(JSON.stringify(logObject));
+      },
+    },
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
 
-// console.log("Allowed Origin:", APP_ORIGIN);
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -35,11 +53,11 @@ app.use(
 );
 
 app.options("*", cors());
-app.get("/health", (req: Request, res: Response, next) => {
-  return res.status(OK).json({
-    status: "healthy",
-  });
+
+app.get("/health", (req: Request, res: Response) => {
+  return res.status(OK).json({ status: "healthy" });
 });
+
 app.use("/api/auth", authRouter);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/admin", adminRouter);
@@ -48,9 +66,10 @@ app.use("/api/app", authenticate, authorizeRoles([Role.USER]), caloriesRouter);
 app.use("/api/doctor", authenticate, authorizeRoles([Role.DOCTOR]), doctorFeatRouter);
 app.use("/api/notification", authenticate, authorizeRoles([Role.USER, Role.DOCTOR, Role.ADMIN]), notificationRouter);
 app.use("/api/meeting", webrtcRouter);
+
 app.use(errorHandler);
 
 server.listen(PORT, async () => {
-  console.log(`Server is running  port the on http://localhost:${PORT} in ${NODE_ENV} environment`);
   await connectToDatabase();
+  logger.info(`🚀 Server running at http://localhost:${PORT} in ${NODE_ENV} mode`);
 });
