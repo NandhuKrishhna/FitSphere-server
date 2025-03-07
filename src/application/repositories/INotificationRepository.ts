@@ -1,7 +1,6 @@
 import { Token } from "typedi";
 import mongoose from "mongoose";
 import { INotification } from "../../infrastructure/models/notification.models";
-import { ObjectId } from "../../infrastructure/models/UserModel";
 
 export interface INotificationRepository {
   createNotification(notification: Partial<INotification>): Promise<INotification>;
