@@ -23,6 +23,7 @@ export interface ICalorieIntake extends Document {
   totalProtien?: number;
   totalCarbs?: number;
   totalFats?: number;
+  requiredCalories?: number;
 }
 
 const FoodItemSchema = new Schema<IFoodItem>({
@@ -47,6 +48,7 @@ const CalorieIntakeSchema = new Schema<ICalorieIntake>(
     totalProtien: { type: Number, default: 0 },
     totalCarbs: { type: Number, default: 0 },
     totalFats: { type: Number, default: 0 },
+    requiredCalories: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
