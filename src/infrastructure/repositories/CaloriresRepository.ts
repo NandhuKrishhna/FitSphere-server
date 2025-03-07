@@ -12,6 +12,25 @@ import { ObjectId } from "../models/UserModel";
 @Service(ICaloriesDetailsRepositoryToken)
 export class CaloriesRepository implements ICaloriesDetailsRepository {
   async createCaloriesDetails(userId: mongoose.Types.ObjectId, data: IUserDetails): Promise<IUserDetails> {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    let calorieIntake = await CalorieIntakeModel.findOne({ userId, date: today });
+
+    if (!calorieIntake) {
+      calorieIntake = new CalorieIntakeModel({
+        userId,
+        date: today,
+        meals: {
+          breakfast: [],
+          lunch: [],
+          dinner: [],
+          snacks: [],
+        },
+        totalCalories: 0,
+      });
+      await calorieIntake.save();
+    }
+
     const user = await UserDetailsModel.create({ ...data, userId });
     return user;
   }
