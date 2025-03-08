@@ -6,8 +6,7 @@ import {
 import { IUserDetails, UserDetailsModel } from "../models/user.addition.details";
 import mongoose from "mongoose";
 import { CalorieIntakeModel, ICalorieIntake } from "../models/caloriesIntakeModel";
-import { FoodLogModel, IFoodItem } from "../models/food.logs";
-import { ObjectId } from "../models/UserModel";
+import { IFoodItem } from "../models/food.logs";
 
 @Service(ICaloriesDetailsRepositoryToken)
 export class CaloriesRepository implements ICaloriesDetailsRepository {
@@ -94,7 +93,6 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
 
     const objectIdFoodId = new mongoose.Types.ObjectId(foodId);
 
-    // First remove the food item
     const updatedDoc = await CalorieIntakeModel.findOneAndUpdate(
       { userId, date: targetDate },
       {
@@ -105,7 +103,7 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
           "meals.snacks": { _id: objectIdFoodId },
         },
       },
-      { new: true } // Return updated document
+      { new: true }
     );
 
     console.log("After Deletion:", updatedDoc);
@@ -115,7 +113,6 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
       return;
     }
 
-    // Recalculate totals
     await CalorieIntakeModel.findOneAndUpdate(
       { userId, date: targetDate },
       [
@@ -153,6 +150,7 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
                 { $sum: "$meals.snacks.fats" },
               ],
             },
+            requiredCalories: "$requiredCalories",
           },
         },
       ],

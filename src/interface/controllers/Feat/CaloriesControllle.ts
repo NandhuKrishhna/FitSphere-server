@@ -75,6 +75,7 @@ export class CaloriesController {
   getFoodLogsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const date = req.body.date;
+    logger.info(req.body.date);
     const response = await this.caloriesUseCase.getFoodLogs(userId, date);
     res.status(OK).json({
       success: true,
