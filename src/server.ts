@@ -22,6 +22,7 @@ import webrtcRouter from "./interface/routes/Apps/webrtcRouter";
 import notificationRouter from "./interface/routes/Apps/notificatation.router";
 import morgan from "morgan";
 import logger from "./shared/utils/logger";
+import { setupCalorieIntakeCron } from "./application/services/cronJobs";
 
 const morganFormat = ":method :url :status :response-time ms";
 app.use(
@@ -71,5 +72,6 @@ app.use(errorHandler);
 
 server.listen(PORT, async () => {
   await connectToDatabase();
+  setupCalorieIntakeCron();
   logger.info(`🚀 Server running at http://localhost:${PORT} in ${NODE_ENV} mode`);
 });
