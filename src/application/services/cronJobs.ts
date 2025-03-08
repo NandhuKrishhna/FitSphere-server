@@ -1,13 +1,15 @@
 import cron from "node-cron";
 import { UserDetailsModel } from "../../infrastructure/models/user.addition.details";
-import { FoodLogModel } from "../../infrastructure/models/food.logs";
+import { CalorieIntakeModel } from "../../infrastructure/models/caloriesIntakeModel";
+import logger from "../../shared/utils/logger";
 
-export const setupFoodLogCron = () => {
+export const setupCalorieIntakeCron = () => {
   cron.schedule("0 0 * * *", async () => {
+    logger.info("Calorie intake cron job running...");
     try {
-      const users = await UserDetailsModel.find().select(
-        "_id targetDailyCalories weight goal targetWeight weeksToGoal"
-      );
+      const users = await UserDetailsModel.find().select("_id targetDailyCalories");
+
+      logger.info(`Found ${users.length} users.`);
 
       const today = new Date();
       today.setUTCHours(0, 0, 0, 0);
@@ -19,7 +21,11 @@ export const setupFoodLogCron = () => {
             $setOnInsert: {
               userId: user._id,
               date: today,
-              targetCalories: user.targetDailyCalories,
+              requiredCalories: user.targetDailyCalories,
+              totalCalories: 0,
+              totalProtien: 0,
+              totalCarbs: 0,
+              totalFats: 0,
               meals: { breakfast: [], lunch: [], dinner: [], snacks: [] },
             },
           },
@@ -27,43 +33,14 @@ export const setupFoodLogCron = () => {
         },
       }));
 
-      await FoodLogModel.bulkWrite(bulkOps);
-      await updateUserWeight();
+      if (bulkOps.length > 0) {
+        await CalorieIntakeModel.bulkWrite(bulkOps);
+        logger.info("Calorie intake logs created for today.");
+      } else {
+        logger.info("No logs created.");
+      }
     } catch (error) {
-      console.error("Error generating daily food logs:", error);
+      logger.error("Error generating daily calorie logs:", error);
     }
   });
-};
-
-const updateUserWeight = async () => {
-  try {
-    const users = await UserDetailsModel.find().select("_id weight goal targetWeight weeksToGoal targetDailyCalories");
-
-    for (const user of users) {
-      const { _id, weight, goal, targetWeight, weeksToGoal, targetDailyCalories } = user;
-      const yesterday = new Date();
-      yesterday.setUTCHours(0, 0, 0, 0);
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      const foodLog = await FoodLogModel.findOne({ userId: _id, date: yesterday });
-
-      if (!foodLog) continue;
-
-      const totalCaloriesConsumed = foodLog.totalConsumed || 0;
-
-      if (Math.abs(totalCaloriesConsumed - targetDailyCalories) <= targetDailyCalories * 0.05) {
-        const weightChangePerDay = (targetWeight - weight) / (weeksToGoal * 7);
-
-        if (goal === "lose" && weight > targetWeight) {
-          user.weight = Math.max(weight + weightChangePerDay, targetWeight);
-        } else if (goal === "gain" && weight < targetWeight) {
-          user.weight = Math.min(weight + weightChangePerDay, targetWeight);
-        }
-
-        await user.save();
-      }
-    }
-  } catch (error) {
-    console.error("Error updating user weights:", error);
-  }
 };
