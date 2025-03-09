@@ -98,6 +98,7 @@ export class AppointmentRepository implements IAppointmentRepository {
           paymentMethod: { $first: "$paymentMethod" },
           paymentThrough: { $first: "$paymentThrough" },
           amount: { $first: "$amount" },
+          paymentStatus: { $first: "$paymentStatus" },
         },
       },
       {
@@ -114,6 +115,7 @@ export class AppointmentRepository implements IAppointmentRepository {
           "slots.endTime": 1,
           "doctor.name": 1,
           "doctor.profilePicture": 1,
+          paymentStatus: 1,
         },
       },
     ]);
