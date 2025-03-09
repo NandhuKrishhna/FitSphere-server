@@ -27,6 +27,8 @@ import { IConversationRepositoryToken } from "../../application/repositories/ICo
 import { ConversationRepository } from "../repositories/ConversationRepository";
 import { ICaloriesDetailsRepositoryToken } from "../../application/repositories/ICaloriesDetailsRepository";
 import { CaloriesRepository } from "../repositories/CaloriresRepository";
+import { IPremiumSubscriptionRepositoryToken } from "../../application/repositories/IPremiumSubscription";
+import { PremiumSubscriptionRepository } from "../repositories/PremiumSubscription";
 
 Container.set(IUserRepositoryToken, new UserRepository());
 Container.set(IVerficaitonCodeRepositoryToken, new VerificationCodeRepository());
@@ -41,3 +43,4 @@ Container.set(IWalletRepositoryToken, new WalletRepository());
 Container.set(IChatRepositoryToken, new ChatRepository());
 Container.set(IConversationRepositoryToken, new ConversationRepository());
 Container.set(ICaloriesDetailsRepositoryToken, new CaloriesRepository());
+Container.set(IPremiumSubscriptionRepositoryToken, new PremiumSubscriptionRepository());
