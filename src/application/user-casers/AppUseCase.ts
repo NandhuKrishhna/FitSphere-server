@@ -6,7 +6,7 @@ import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepo
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
 import appAssert from "../../shared/utils/appAssert";
-import { BAD_REQUEST, NOT_FOUND } from "../../shared/constants/http";
+import { BAD_REQUEST, CONFLICT, NOT_FOUND } from "../../shared/constants/http";
 import { CURRENCY } from "../../shared/constants/env";
 import { razorpayInstance } from "../../infrastructure/config/razorypay";
 import { BookAppointmentParams } from "../../domain/types/appTypes";
@@ -16,6 +16,11 @@ import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWall
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 import { NotificationType } from "../../shared/constants/verficationCodeTypes";
 import logger from "../../shared/utils/logger";
+import { ObjectId } from "../../infrastructure/models/UserModel";
+import {
+  IPremiumSubscriptionRepository,
+  IPremiumSubscriptionRepositoryToken,
+} from "../repositories/IPremiumSubscription";
 
 @Service()
 export class AppUseCase {
@@ -27,7 +32,8 @@ export class AppUseCase {
     @Inject(IAppointmentRepositoryToken)
     private appointmentRepository: IAppointmentRepository,
     @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository,
-    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository
+    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
+    @Inject(IPremiumSubscriptionRepositoryToken) private premiumSubscriptionRepository: IPremiumSubscriptionRepository
   ) {}
   async displayAllDoctors({
     page,
@@ -290,5 +296,25 @@ export class AppUseCase {
         note: "Error details logged on server",
       };
     }
+  }
+  /**
+   // TODO razorpay and wallet payment integration 
+   */
+  async buyPremiumSubscription({ type, userId }: { type: string; userId: ObjectId }) {
+    const user = await this.userRepository.findUserById(userId);
+    appAssert(user, BAD_REQUEST, "User not found. Please try Again");
+    appAssert(!user.isPremium, CONFLICT, "You are already have a subcription");
+    const subscriptionPrices: Record<string, number> = {
+      basic: 199,
+      premium: 499,
+      pro: 999,
+    };
+    const price = subscriptionPrices[type];
+    const razorpay = await razorpayInstance.orders.create({
+      amount: price * 100,
+      currency: CURRENCY,
+      receipt: user._id.toString(),
+      payment_capture: true,
+    });
   }
 }
