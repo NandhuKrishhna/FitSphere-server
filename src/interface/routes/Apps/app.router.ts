@@ -15,6 +15,7 @@ appRouter.post("/book/slots", appController.bookAppointment);
 appRouter.post("/verify/payment", appController.verifyPaymentHandler);
 appRouter.post("/get-appointments", appController.getAppointmentHandlers);
 appRouter.post("/cancel/appointments", appController.cancelAppointmentHandler);
+appRouter.post("/payment-failure", appController.abortPaymentHandler);
 appRouter.post("/wallet", appController.getWalletHandler);
 // chat
 appRouter.post("/send-message", chatController.sendMessageHandler);
