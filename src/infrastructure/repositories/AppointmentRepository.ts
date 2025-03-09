@@ -33,12 +33,13 @@ export class AppointmentRepository implements IAppointmentRepository {
 
   async updatePaymentStatus(
     id: mongoose.Types.ObjectId,
-    additionalDetails: AdditonDetails
+    additionalDetails: AdditonDetails,
+    status: string
   ): Promise<Appointments | null> {
     const response = await AppointmentModel.findOneAndUpdate(
       { slotId: id },
       {
-        paymentStatus: "completed",
+        paymentStatus: status,
         orderId: additionalDetails.orderId,
         paymentMethod: additionalDetails.paymentMethod,
         paymentThrough: additionalDetails.paymentThrough,
