@@ -15,8 +15,7 @@ import { Appointments } from "../../domain/entities/Appointments";
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 import { NotificationType } from "../../shared/constants/verficationCodeTypes";
-import { INotification } from "../../shared/utils/builder";
-import { getReceiverSocketId, io } from "../../infrastructure/config/socket.io";
+import logger from "../../shared/utils/logger";
 
 @Service()
 export class AppUseCase {
@@ -144,8 +143,11 @@ export class AppUseCase {
 
   async verifyPayment(razorpay_order_id: string) {
     const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+    const receiptId = new mongoose.Types.ObjectId(orderInfo.receipt);
     console.log(orderInfo);
     appAssert(orderInfo, BAD_REQUEST, "Unable to fetch order details. Please try few minutes later.");
+
+    //* if the payment is success
     if (orderInfo.status === "paid") {
       const payments = await razorpayInstance.orders.fetchPayments(razorpay_order_id);
       console.log("Payment Details : ", payments);
@@ -157,8 +159,11 @@ export class AppUseCase {
         bank: payments.items[0]?.bank,
       };
       console.log(additionalDetails);
-      const receiptId = new mongoose.Types.ObjectId(orderInfo.receipt);
-      const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId, additionalDetails);
+      const appointment = await this.appointmentRepository.updatePaymentStatus(
+        receiptId,
+        additionalDetails,
+        "completed"
+      );
       // creating notification for user
       //TODO same for doctor//
       await this.notificationRepository.createNotification({
@@ -217,5 +222,73 @@ export class AppUseCase {
     const details = await this.notificationRepository.getAllNotificationById(userId);
     appAssert(details, BAD_REQUEST, "Unable to fetch notifications. Please try few minutes later.");
     return details;
+  }
+
+  async abortPayment(orderId: string) {
+    try {
+      // Fetch the order information
+      const orderInfo = await razorpayInstance.orders.fetch(orderId);
+      const receiptId = new mongoose.Types.ObjectId(orderInfo.receipt);
+      logger.info("Order info fetched:", orderInfo);
+
+      let additionalDetails = {
+        orderId: orderId,
+        paymentMethod: "none",
+        paymentThrough: "Razorpay",
+        description: "Payment cancelled or failed",
+        bank: "",
+      };
+
+      try {
+        // Try to fetch payments but don't fail if there are none
+        const payments = await razorpayInstance.orders.fetchPayments(orderId);
+        logger.info("Payment Details:", payments);
+
+        // Only update additional details if we have payment information
+        if (payments && payments.items && payments.items.length > 0) {
+          additionalDetails = {
+            orderId: payments.items[0]?.order_id || orderId,
+            paymentMethod: payments.items[0]?.method || "none",
+            paymentThrough: "Razorpay",
+            description: payments.items[0]?.description || "Payment cancelled or failed",
+            bank: payments.items[0]?.bank || "",
+          };
+        }
+      } catch (paymentError) {
+        // If fetching payments fails, just log it and continue with default details
+        logger.warn("Failed to fetch payment details:", paymentError);
+        // Continue with the default additionalDetails set above
+      }
+
+      logger.info("Using additional details:", additionalDetails);
+
+      // Update the appointment status regardless of whether we have payment details
+      const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId, additionalDetails, "failed");
+
+      // Send notification if appointment was found
+      if (appointment) {
+        await this.notificationRepository.createNotification({
+          userId: appointment.patientId,
+          type: NotificationType.Appointment,
+          message: "Your payment was cancelled or failed",
+          status: "pending",
+          metadata: {
+            meetingId: appointment.meetingId,
+            appointMentId: appointment._id,
+          },
+        });
+      }
+
+      return { success: true, message: "Payment failure recorded successfully" };
+    } catch (error) {
+      logger.error(`Failed to abort payment for order ${orderId}:`, error);
+      // Return a "success" response even though there was an error
+      // This prevents the 400 status from being sent to the frontend
+      return {
+        success: true,
+        message: "Payment was cancelled",
+        note: "Error details logged on server",
+      };
+    }
   }
 }

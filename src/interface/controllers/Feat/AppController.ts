@@ -149,4 +149,15 @@ export class AppController {
       allNotifications,
     });
   });
+
+  //TODO abortPayment handler;
+  abortPaymentHandler = catchErrors(async (req: Request, res: Response) => {
+    const orderId = req.body.orderId;
+    appAssert(orderId, BAD_REQUEST, "Missing");
+    await this.appUseCase.abortPayment(orderId);
+    res.status(OK).json({
+      success: true,
+      message: "Payment failure recorded",
+    });
+  });
 }
