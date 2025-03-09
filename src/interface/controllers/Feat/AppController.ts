@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import catchErrors from "../../../shared/utils/catchErrors";
-import { BAD_REQUEST, OK } from "../../../shared/constants/http";
+import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
 import appAssert from "../../../shared/utils/appAssert";
 import { Inject, Service } from "typedi";
 import { AppUseCase } from "../../../application/user-casers/AppUseCase";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
+import logger from "../../../shared/utils/logger";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 
 @Service()
@@ -152,12 +153,26 @@ export class AppController {
 
   //TODO abortPayment handler;
   abortPaymentHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body);
     const orderId = req.body.orderId;
     appAssert(orderId, BAD_REQUEST, "Missing");
-    await this.appUseCase.abortPayment(orderId);
+    const response = await this.appUseCase.abortPayment(orderId);
+    logger.info(response);
     res.status(OK).json({
       success: true,
       message: "Payment failure recorded",
+    });
+  });
+
+  // * PremiumSubscription:
+  premiumSubscriptionHandler = catchErrors(async (req: Request, res: Response) => {
+    const { type } = req.body;
+    const { userId } = req as AuthenticatedRequest;
+    const response = await this.appUseCase.buyPremiumSubscription({ type, userId });
+    res.status(CREATED).json({
+      success: true,
+      message: "",
+      response,
     });
   });
 }
