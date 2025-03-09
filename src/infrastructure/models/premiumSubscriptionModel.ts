@@ -1,4 +1,9 @@
 import mongoose, { Schema, Document } from "mongoose";
+export const enum PremiumType {
+  BASIC = "basic",
+  PREMIUM = "premium",
+  PRO = "pro",
+}
 export interface IPremiumSubscription extends Document {
   userId: mongoose.Types.ObjectId;
   type: "basic" | "premium" | "pro";
@@ -22,7 +27,7 @@ const PremiumSubscriptionSchema = new Schema<IPremiumSubscription>(
     },
     planName: { type: String, required: true },
     price: { type: Number, required: true },
-    currency: { type: String, required: true, default: "USD" },
+    currency: { type: String, required: true, default: "INR" },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     status: {
