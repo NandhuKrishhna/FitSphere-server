@@ -4,9 +4,7 @@ import {
   INotificationRepositoryToken,
 } from "../../application/repositories/INotificationRepository";
 import NotificationModel, { INotification } from "../models/notification.models";
-import { Notification } from "../../domain/entities/Notification";
 import mongoose from "mongoose";
-import { ObjectId } from "../models/UserModel";
 
 @Service({ id: INotificationRepositoryToken })
 export class NotificationRepository implements INotificationRepository {
