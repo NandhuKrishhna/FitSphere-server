@@ -17,7 +17,11 @@ export interface IAppointmentRepository {
     date: Date
   ): Promise<Appointment | null>;
   createAppointment(appointment: Appointment): Promise<Appointment>;
-  updatePaymentStatus(id: mongoose.Types.ObjectId, additionalDetails: AdditonDetails): Promise<Appointment | null>;
+  updatePaymentStatus(
+    id: mongoose.Types.ObjectId,
+    additionalDetails: AdditonDetails,
+    status: string
+  ): Promise<Appointment | null>;
   findDetailsByPatientId(userId: mongoose.Types.ObjectId): Promise<any>;
   cancelAppointment(id: mongoose.Types.ObjectId): Promise<Appointment | null>;
   findAllAppointmentsByDocID(props: AppointmentProps): Promise<{ data: any[]; total: number }>;
