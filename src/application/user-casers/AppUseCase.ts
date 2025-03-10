@@ -21,7 +21,16 @@ import {
   IPremiumSubscriptionRepository,
   IPremiumSubscriptionRepositoryToken,
 } from "../repositories/IPremiumSubscription";
-
+import { ITransactionRepository, ITransactionRepositoryToken } from "../repositories/ITransactionRepository";
+export type WalletParams = {
+  userId: ObjectId;
+  type?: "basic" | "premium" | "pro";
+  usecase: string;
+  doctorId?: ObjectId;
+  slotId?: ObjectId;
+  amount: number;
+  patientId?: ObjectId;
+};
 @Service()
 export class AppUseCase {
   constructor(
@@ -33,7 +42,8 @@ export class AppUseCase {
     private appointmentRepository: IAppointmentRepository,
     @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository,
     @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
-    @Inject(IPremiumSubscriptionRepositoryToken) private premiumSubscriptionRepository: IPremiumSubscriptionRepository
+    @Inject(IPremiumSubscriptionRepositoryToken) private premiumSubscriptionRepository: IPremiumSubscriptionRepository,
+    @Inject(ITransactionRepositoryToken) private transactionRepository: ITransactionRepository
   ) {}
   async displayAllDoctors({
     page,
@@ -316,5 +326,117 @@ export class AppUseCase {
       receipt: user._id.toString(),
       payment_capture: true,
     });
+  }
+
+  async walletPayment({ usecase, type, userId, doctorId, patientId, amount, slotId }: WalletParams) {
+    if (usecase === "slot_booking") {
+      const patient = await this.userRepository.findUserById(patientId!);
+      appAssert(patient, BAD_REQUEST, "Patient not found. Please try again.");
+      const wallet = await this.walletRepository.findWalletById(userId);
+      //TODO instead of relying on amount from frontend check the fee of the doctor;
+      appAssert(wallet, BAD_REQUEST, "Wallet not found. Please try again");
+      appAssert(wallet.balance >= amount, BAD_REQUEST, "Insufficient balance. Please add money to wallet.");
+      const doctor = await this.doctorRespository.findDoctorByID(doctorId!);
+      appAssert(doctor, BAD_REQUEST, "Doctor not found. Please try again.");
+      const existingSlot = await this.slotRespository.findSlotById(slotId!);
+      appAssert(existingSlot, BAD_REQUEST, "No slots found. Please try another slot.");
+      appAssert(!existingSlot.patientId, BAD_REQUEST, "Slot is already booked. Please try another slot.");
+      appAssert(existingSlot.status === "available", BAD_REQUEST, "Slot is not available. Please try another slot.");
+      const overlappingAppointment = await this.appointmentRepository.findOverlappingAppointment(
+        doctorId!,
+        existingSlot.startTime,
+        existingSlot.endTime,
+        existingSlot.date
+      );
+      appAssert(!overlappingAppointment, BAD_REQUEST, "Slot is already booked. Please try another slot.");
+      // TODO change the logic of using entity
+      const newAppointment = new Appointments(
+        new mongoose.Types.ObjectId(),
+        doctorId!,
+        patientId!,
+        slotId!,
+        existingSlot.consultationType,
+        existingSlot.date,
+        "completed",
+        amount,
+        wallet._id.toString(),
+        "wallet",
+        "scheduled"
+      );
+      const newAppointmentDetails = await this.appointmentRepository.createAppointment(newAppointment);
+      // create a transaction
+      // TODO create transcation for the doctor and increase the money in doctor wallet, create notification for doctor
+      const transactionInfo = await this.transactionRepository.createTransaction({
+        userId: userId,
+        amount: amount,
+        type: "debit",
+        method: "wallet",
+        paymentType: "slot_booking",
+        status: "success",
+      });
+      await this.transactionRepository.createTransaction({
+        userId: doctorId!,
+        amount: amount,
+        type: "credit",
+        method: "wallet",
+        paymentType: "slot_booking",
+        status: "success",
+      });
+      //TODO impliment this logic after implimenting doctor wallet
+      // await this.walletRepository.increaseBalance(doctorId!, amount);
+      await this.slotRespository.updateSlotById(slotId!, patientId!);
+      await this.walletRepository.decreaseBalance(userId, amount);
+
+      //TODO create notification for user and doctor
+      //TODO create  a service to send notification like pass the [type, metada, userId and doctorId]
+
+      return {
+        newAppointmentDetails,
+        transactionInfo,
+      };
+    } else {
+      // if its subcription ......
+      logger.info("Subscription payment");
+      const subscriptionPrices: Record<string, number> = {
+        basic: 199,
+        premium: 499,
+        pro: 999,
+      };
+      const price = subscriptionPrices[type!];
+      const user = await this.userRepository.findUserById(userId);
+      appAssert(user, BAD_REQUEST, "User not found. Please try again.");
+      const wallet = await this.walletRepository.findWalletById(userId);
+      appAssert(wallet, BAD_REQUEST, "Wallet not found. Please try again");
+      appAssert(wallet.balance >= price, BAD_REQUEST, "Insufficient balance. Please add money to wallet.");
+      const subscription = await this.premiumSubscriptionRepository.getSubscriptionByUserId(userId);
+      appAssert(!subscription, CONFLICT, "You already have a subscription. Please try again.");
+
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + 1);
+      const planName = `${type!.charAt(0).toUpperCase() + type!.slice(1)} Plan`;
+      const currency = CURRENCY;
+      const newSubscription = await this.premiumSubscriptionRepository.createSubscription({
+        userId,
+        type,
+        planName,
+        price,
+        currency,
+        startDate,
+        endDate,
+        status: "active",
+      });
+      await this.walletRepository.decreaseBalance(userId, price);
+      await this.transactionRepository.createTransaction({
+        userId,
+        amount: price,
+        type: "debit",
+        method: "wallet",
+        paymentType: "subscription",
+        status: "success",
+      });
+      await this.userRepository.updateUserById(userId, { isPremium: true });
+    }
+    //TODO create notification for user
   }
 }
