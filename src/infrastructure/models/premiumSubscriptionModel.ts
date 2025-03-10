@@ -13,8 +13,6 @@ export interface IPremiumSubscription extends Document {
   startDate: Date;
   endDate: Date;
   status: "active" | "expired" | "cancelled";
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const PremiumSubscriptionSchema = new Schema<IPremiumSubscription>(
