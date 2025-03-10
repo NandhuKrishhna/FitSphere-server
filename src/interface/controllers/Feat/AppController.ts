@@ -175,4 +175,28 @@ export class AppController {
       response,
     });
   });
+  // TODO move the wallet logic to sepereate wallet controller
+  walletPaymentHandler = catchErrors(async (req: Request, res: Response) => {
+    const { userId } = req as AuthenticatedRequest;
+    const { usecase, type, doctorId, slotId, amount, patientId } = req.body;
+    const response = await this.appUseCase.walletPayment({
+      userId,
+      usecase,
+      type,
+      doctorId,
+      slotId,
+      amount,
+      patientId,
+    });
+    let message;
+    usecase === "slot_booking"
+      ? (message = "Slot booked successfully")
+      : (message = "Subscription purchased successfully");
+    //TODO dynamic message based on the usecase
+    res.status(OK).json({
+      success: true,
+      message: message,
+      response,
+    });
+  });
 }
