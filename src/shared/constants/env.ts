@@ -30,3 +30,4 @@ export const HUGGING_FACE_API_KEY = getEnv("HUGGING_FACE_API_KEY");
 export const MODEL_ID = getEnv("MODEL_ID");
 export const DeepSeek_Api_key = getEnv("DeepSeek_Api_key");
 export const USDA_FOODDATA_API_KEY = getEnv("USDA_FOODDATA_API_KEY");
+export const NGROK_AUTHTOKEN = getEnv("NGROK_AUTHTOKEN");
