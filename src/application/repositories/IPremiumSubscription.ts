@@ -3,7 +3,9 @@ import { IPremiumSubscription } from "../../infrastructure/models/premiumSubscri
 import { ObjectId } from "../../infrastructure/models/UserModel";
 
 export interface IPremiumSubscriptionRepository {
-  subscribeOne(type: string, price: number, useId: ObjectId): Promise<IPremiumSubscription>;
+  createSubscription(subcription: Partial<IPremiumSubscription>): Promise<IPremiumSubscription>;
+  getSubscriptionById(subscriptionId: ObjectId): Promise<IPremiumSubscription | null>;
+  getSubscriptionByUserId(userId: ObjectId): Promise<IPremiumSubscription | null>;
 }
 
 export const IPremiumSubscriptionRepositoryToken = new Token<IPremiumSubscriptionRepository>();
