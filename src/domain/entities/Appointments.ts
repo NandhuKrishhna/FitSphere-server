@@ -11,6 +11,7 @@ export class Appointments {
     public paymentStatus: "pending" | "completed" | "failed" = "pending",
     public amount: number,
     public paymentId?: string,
+    public PaymentThrough?: string,
     public status: "scheduled" | "completed" | "cancelled" = "scheduled",
     public createdAt?: Date,
     public updatedAt?: Date
