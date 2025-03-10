@@ -350,6 +350,7 @@ export class AppUseCase {
       );
       appAssert(!overlappingAppointment, BAD_REQUEST, "Slot is already booked. Please try another slot.");
       // TODO change the logic of using entity
+      // TODO add additional detail like paymentThrough, paymentMethod, description
       const newAppointment = new Appointments(
         new mongoose.Types.ObjectId(),
         doctorId!,
