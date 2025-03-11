@@ -119,34 +119,17 @@ export class AppUseCase {
       payment_capture: true,
     });
     console.log("Razorpay:", razorpayOrder);
-    const newAppointment = new Appointments(
-      new mongoose.Types.ObjectId(),
+    const newAppointmentDetails = await this.appointmentRepository.createAppointment({
       doctorId,
       patientId,
       slotId,
-      existingSlot.consultationType,
-      existingSlot.date,
-      "pending",
+      consultationType: existingSlot.consultationType,
+      date: existingSlot.date,
+      paymentStatus: "pending",
       amount,
-      razorpayOrder.id,
-      "scheduled"
-    );
-
-    const newAppointmentDetails = await this.appointmentRepository.createAppointment(newAppointment);
-    // const patientNotification = INotification(
-    //   patientId,
-    //   NotificationType.Appointment,
-    //   "Your appointment has been scheduled",
-    //   "pending",
-    //   {
-    //     meetingId: newAppointmentDetails.meetingId,
-    //     appointMentId: newAppointmentDetails._id,
-    //   }
-    // );
-    // const patientSocketId = getReceiverSocketId(patientId);
-    // if (patientSocketId) {
-    //   io.to(patientSocketId).emit("newNotification", patientNotification);
-    // }
+      orderId: razorpayOrder.id,
+      status: "scheduled",
+    });
     return {
       newAppointmentDetails,
       order: {
@@ -180,7 +163,6 @@ export class AppUseCase {
         additionalDetails,
         "completed"
       );
-      // creating notification for user
       //TODO same for doctor//
       await this.notificationRepository.createNotification({
         userId: appointment?.doctorId,
@@ -327,7 +309,7 @@ export class AppUseCase {
       payment_capture: true,
     });
   }
-
+  //*  Wallet
   async walletPayment({ usecase, type, userId, doctorId, patientId, amount, slotId }: WalletParams) {
     if (usecase === "slot_booking") {
       const patient = await this.userRepository.findUserById(patientId!);
@@ -349,22 +331,19 @@ export class AppUseCase {
         existingSlot.date
       );
       appAssert(!overlappingAppointment, BAD_REQUEST, "Slot is already booked. Please try another slot.");
-      // TODO change the logic of using entity
-      // TODO add additional detail like paymentThrough, paymentMethod, description
-      const newAppointment = new Appointments(
-        new mongoose.Types.ObjectId(),
-        doctorId!,
-        patientId!,
-        slotId!,
-        existingSlot.consultationType,
-        existingSlot.date,
-        "completed",
+      const newAppointmentDetails = await this.appointmentRepository.createAppointment({
+        doctorId,
+        patientId,
+        slotId,
+        consultationType: existingSlot.consultationType,
+        date: existingSlot.date,
+        paymentStatus: "completed",
         amount,
-        wallet._id.toString(),
-        "wallet",
-        "scheduled"
-      );
-      const newAppointmentDetails = await this.appointmentRepository.createAppointment(newAppointment);
+        status: "scheduled",
+        paymentMethod: "wallet",
+        paymentThrough: "wallet",
+        description: "Slot booking",
+      });
       // create a transaction
       // TODO create transcation for the doctor and increase the money in doctor wallet, create notification for doctor
       const transactionInfo = await this.transactionRepository.createTransaction({
@@ -384,6 +363,7 @@ export class AppUseCase {
         status: "success",
       });
       //TODO impliment this logic after implimenting doctor wallet
+      //  increase the balance of doctor wallet
       // await this.walletRepository.increaseBalance(doctorId!, amount);
       await this.slotRespository.updateSlotById(slotId!, patientId!);
       await this.walletRepository.decreaseBalance(userId, amount);
