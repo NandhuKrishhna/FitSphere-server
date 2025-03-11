@@ -10,41 +10,6 @@ export class ReviewsRepository implements IReviewsRepository {
     return await ReviewModel.create({ userId, doctorId, rating, reviewText });
   }
 
-  async fetchReviewsAndRating(doctorId: ObjectId): Promise<any> {
-    return await ReviewModel.aggregate([
-      {
-        $match: {
-          doctorId: doctorId,
-        },
-      },
-      {
-        $lookup: {
-          from: "ratings",
-          localField: "doctorId",
-          foreignField: "doctorId",
-          as: "ratingDetails",
-        },
-      },
-      {
-        $unwind: {
-          path: "$ratingDetails",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          userId: 1,
-          doctorId: 1,
-          rating: 1,
-          reviewText: 1,
-          createdAt: 1,
-          averageRating: "$ratingDetails.averageRating",
-          totalReviews: "$ratingDetails.totalReviews",
-        },
-      },
-    ]);
-  }
   async findAllReviewsByDoctorId(doctorId: ObjectId): Promise<IReview[]> {
     return await ReviewModel.find({ doctorId: doctorId });
   }
