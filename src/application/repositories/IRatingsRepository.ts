@@ -7,6 +7,7 @@ import { IRating } from "../../infrastructure/models/RatingsModel";
 export interface IRatingRepository {
   updateRating({ doctorId, averageRating, totalReviews }: RatingParams): Promise<void>;
   findRatingByDoctorId(doctorId: ObjectId): Promise<IRating | null>;
+  findAllRatings(): Promise<IRating[]>;
 }
 
 export const IRatingRepositoryToken = new Token<IRatingRepository>();
