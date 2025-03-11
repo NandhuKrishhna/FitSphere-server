@@ -5,6 +5,6 @@ import { WebRtcController } from "../../controllers/Feat/WebRtcController";
 const webrtcRouter = Router();
 const webrtcController = Container.get(WebRtcController);
 
-webrtcRouter.get("/:meetingId", webrtcController.videoMeetingHandler);
+webrtcRouter.post("/meeting", webrtcController.videoMeetingHandler);
 
 export default webrtcRouter;
