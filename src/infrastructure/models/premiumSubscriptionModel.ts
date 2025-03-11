@@ -2,11 +2,11 @@ import mongoose, { Schema, Document } from "mongoose";
 export const enum PremiumType {
   BASIC = "basic",
   PREMIUM = "premium",
-  PRO = "pro",
+  ETERPRISE = "enterprise",
 }
 export interface IPremiumSubscription extends Document {
   userId: mongoose.Types.ObjectId;
-  type: "basic" | "premium" | "pro";
+  type: "basic" | "premium" | "enterprise";
   planName: string;
   price: number;
   currency: string;
@@ -20,7 +20,7 @@ const PremiumSubscriptionSchema = new Schema<IPremiumSubscription>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     type: {
       type: String,
-      enum: ["basic", "premium", "pro"],
+      enum: ["basic", "premium", "enterprise"],
       required: true,
     },
     planName: { type: String, required: true },
