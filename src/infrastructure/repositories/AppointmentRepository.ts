@@ -60,15 +60,9 @@ export class AppointmentRepository implements IAppointmentRepository {
       {
         $lookup: {
           from: "slots",
-          localField: "patientId",
-          foreignField: "patientId",
-          as: "slots",
-        },
-      },
-      {
-        $unwind: {
-          path: "$slots",
-          preserveNullAndEmptyArrays: true,
+          localField: "slotId",
+          foreignField: "_id",
+          as: "slot",
         },
       },
       {
@@ -81,24 +75,14 @@ export class AppointmentRepository implements IAppointmentRepository {
       },
       {
         $unwind: {
-          path: "$doctor",
+          path: "$slot",
           preserveNullAndEmptyArrays: true,
         },
       },
       {
-        $group: {
-          _id: "$_id",
-          consultationType: { $first: "$consultationType" },
-          date: { $first: "$date" },
-          status: { $first: "$status" },
-          slots: { $first: "$slots" },
-          doctor: { $first: "$doctor" },
-          orderId: { $first: "$orderId" },
-          paymentMethod: { $first: "$paymentMethod" },
-          paymentThrough: { $first: "$paymentThrough" },
-          amount: { $first: "$amount" },
-          paymentStatus: { $first: "$paymentStatus" },
-          meetingId: { $first: "$meetingId" },
+        $unwind: {
+          path: "$doctor",
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -111,12 +95,12 @@ export class AppointmentRepository implements IAppointmentRepository {
           paymentMethod: 1,
           paymentThrough: 1,
           amount: 1,
-          "slots.startTime": 1,
-          "slots.endTime": 1,
-          "doctor.name": 1,
-          "doctor.profilePicture": 1,
           paymentStatus: 1,
           meetingId: 1,
+          "slot.startTime": 1,
+          "slot.endTime": 1,
+          "doctor.name": 1,
+          "doctor.profilePicture": 1,
         },
       },
     ]);
