@@ -222,7 +222,7 @@ export class PaymentUseCase {
     const subscriptionPrices: Record<string, number> = {
       basic: 199,
       premium: 499,
-      pro: 999,
+      enterprice: 999,
     };
     const price = subscriptionPrices[type];
     const razorpay = await razorpayInstance.orders.create({
@@ -232,7 +232,7 @@ export class PaymentUseCase {
       payment_capture: true,
     });
   }
-  //*  Wallet
+
   async walletPayment({ usecase, type, userId, doctorId, patientId, amount, slotId }: WalletParams) {
     if (usecase === "slot_booking") {
       const patient = await this.userRepository.findUserById(patientId!);
