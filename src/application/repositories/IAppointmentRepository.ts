@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Appointment, Appointments } from "../../domain/entities/Appointments";
 import { Token } from "typedi";
 import { AppointmentProps } from "../../domain/types/Slot";
+import { AppointmentDocument } from "../../infrastructure/models/appointmentModel";
 export type AdditonDetails = {
   orderId: string;
   paymentMethod: string;
@@ -15,17 +16,17 @@ export interface IAppointmentRepository {
     startTime: Date,
     endTime: Date,
     date: Date
-  ): Promise<Appointment | null>;
-  createAppointment(appointment: Appointment): Promise<Appointment>;
+  ): Promise<AppointmentDocument | null>;
+  createAppointment(appointment: Partial<AppointmentDocument>): Promise<AppointmentDocument>;
   updatePaymentStatus(
     id: mongoose.Types.ObjectId,
     additionalDetails: AdditonDetails,
     status: string
-  ): Promise<Appointment | null>;
+  ): Promise<AppointmentDocument | null>;
   findDetailsByPatientId(userId: mongoose.Types.ObjectId): Promise<any>;
-  cancelAppointment(id: mongoose.Types.ObjectId): Promise<Appointment | null>;
+  cancelAppointment(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null>;
   findAllAppointmentsByDocID(props: AppointmentProps): Promise<{ data: any[]; total: number }>;
-  findAppointmentByMeetingId(meetingId: string): Promise<Appointment | null>;
+  findAppointmentByMeetingId(meetingId: string): Promise<AppointmentDocument | null>;
 }
 
 export const IAppointmentRepositoryToken = new Token<IAppointmentRepository>();
