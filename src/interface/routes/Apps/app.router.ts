@@ -30,6 +30,7 @@ appRouter.post("/cancel/appointments", paymentController.cancelAppointmentHandle
 
 appRouter.post("/add-reviews", appController.reviewAndRatingHandler);
 appRouter.post("/get-reviews", appController.fetchReviewsAndRatingHandler);
+appRouter.get("/get-all-ratings", appController.getAllRatingsHandler);
 
 // appRouter.post("/start-conversation", chatController.addUsersInSideBarHandler);
 
