@@ -98,6 +98,7 @@ export class AppointmentRepository implements IAppointmentRepository {
           paymentThrough: { $first: "$paymentThrough" },
           amount: { $first: "$amount" },
           paymentStatus: { $first: "$paymentStatus" },
+          meetingId: { $first: "$meetingId" },
         },
       },
       {
@@ -115,6 +116,7 @@ export class AppointmentRepository implements IAppointmentRepository {
           "doctor.name": 1,
           "doctor.profilePicture": 1,
           paymentStatus: 1,
+          meetingId: 1,
         },
       },
     ]);
