@@ -140,4 +140,13 @@ export class AppController {
       },
     });
   });
+
+  getAllRatingsHandler = catchErrors(async (req: Request, res: Response) => {
+    const response = await this.appUseCase.getAllRatings();
+    res.status(OK).json({
+      success: true,
+      message: "All reviews fetched successfully",
+      response,
+    });
+  });
 }
