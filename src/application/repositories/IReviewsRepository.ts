@@ -5,7 +5,6 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 
 export interface IReviewsRepository {
   createReview({ userId, doctorId, rating, reviewText }: ReviewsAndRatingParams): Promise<IReview>;
-  fetchReviewsAndRating(doctorId: ObjectId): Promise<any>;
   findAllReviewsByDoctorId(doctorId: ObjectId): Promise<IReview[]>;
 }
 
