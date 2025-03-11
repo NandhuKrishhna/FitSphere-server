@@ -66,7 +66,8 @@ app.use("/api/app", authenticate, authorizeRoles([Role.USER]), appRouter);
 app.use("/api/app", authenticate, authorizeRoles([Role.USER]), caloriesRouter);
 app.use("/api/doctor", authenticate, authorizeRoles([Role.DOCTOR]), doctorFeatRouter);
 app.use("/api/notification", authenticate, authorizeRoles([Role.USER, Role.DOCTOR, Role.ADMIN]), notificationRouter);
-app.use("/api/meeting", webrtcRouter);
+//webrtc  route
+app.use("/api", authenticate, authorizeRoles([Role.USER, Role.DOCTOR]), webrtcRouter);
 
 app.use(errorHandler);
 
