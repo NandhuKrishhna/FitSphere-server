@@ -31,6 +31,10 @@ import { IPremiumSubscriptionRepositoryToken } from "../../application/repositor
 import { PremiumSubscriptionRepository } from "../repositories/PremiumSubscription";
 import { ITransactionRepositoryToken } from "../../application/repositories/ITransactionRepository";
 import { TransactionRepository } from "../repositories/TransactionRepository";
+import { IReviewsRepositoryToken } from "../../application/repositories/IReviewsRepository";
+import { ReviewsRepository } from "../repositories/ReviewsRepository";
+import { IRatingRepositoryToken } from "../../application/repositories/IRatingsRepository";
+import { RatingsRepository } from "../repositories/RatingsRepository";
 
 Container.set(IUserRepositoryToken, new UserRepository());
 Container.set(IVerficaitonCodeRepositoryToken, new VerificationCodeRepository());
@@ -47,3 +51,5 @@ Container.set(IConversationRepositoryToken, new ConversationRepository());
 Container.set(ICaloriesDetailsRepositoryToken, new CaloriesRepository());
 Container.set(IPremiumSubscriptionRepositoryToken, new PremiumSubscriptionRepository());
 Container.set(ITransactionRepositoryToken, new TransactionRepository());
+Container.set(IReviewsRepositoryToken, new ReviewsRepository());
+Container.set(IRatingRepositoryToken, new RatingsRepository());
