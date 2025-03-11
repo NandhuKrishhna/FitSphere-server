@@ -5,8 +5,7 @@ import {
   IAppointmentRepositoryToken,
 } from "../../application/repositories/IAppointmentRepository";
 import mongoose, { PipelineStage } from "mongoose";
-import { Appointment, Appointments } from "../../domain/entities/Appointments";
-import { AppointmentModel } from "../models/appointmentModel";
+import { AppointmentDocument, AppointmentModel } from "../models/appointmentModel";
 import { AppointmentProps } from "../../domain/types/Slot";
 
 @Service(IAppointmentRepositoryToken)
@@ -16,7 +15,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     startTime: Date,
     endTime: Date,
     date: Date
-  ): Promise<Appointments | null> {
+  ): Promise<AppointmentDocument | null> {
     const appointments = await AppointmentModel.findOne({
       doctorId: doctorId,
       date: date,
@@ -26,7 +25,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     return appointments;
   }
 
-  async createAppointment(appointment: Appointments): Promise<Appointments> {
+  async createAppointment(appointment: AppointmentDocument): Promise<AppointmentDocument> {
     const response = await AppointmentModel.create(appointment);
     return response;
   }
@@ -35,7 +34,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     id: mongoose.Types.ObjectId,
     additionalDetails: AdditonDetails,
     status: string
-  ): Promise<Appointments | null> {
+  ): Promise<AppointmentDocument | null> {
     const response = await AppointmentModel.findOneAndUpdate(
       { slotId: id },
       {
@@ -123,7 +122,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     return response;
   }
 
-  async cancelAppointment(id: mongoose.Types.ObjectId): Promise<Appointments | null> {
+  async cancelAppointment(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null> {
     const response = await AppointmentModel.findOneAndUpdate(
       { _id: id },
       { $set: { status: "available" } },
@@ -196,7 +195,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     };
   }
 
-  async findAppointmentByMeetingId(meetingId: string): Promise<Appointment | null> {
+  async findAppointmentByMeetingId(meetingId: string): Promise<AppointmentDocument | null> {
     const response = await AppointmentModel.findOne({ meetingId: meetingId }).exec();
     return response;
   }
