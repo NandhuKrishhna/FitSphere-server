@@ -18,4 +18,8 @@ export class RatingsRepository implements IRatingRepository {
   async findRatingByDoctorId(doctorId: ObjectId): Promise<IRating | null> {
     return await RatingModel.findOne({ doctorId: doctorId });
   }
+
+  async findAllRatings(): Promise<IRating[]> {
+    return await RatingModel.find();
+  }
 }
