@@ -83,50 +83,12 @@ export class AppController {
     });
   });
 
-  bookAppointment = catchErrors(async (req: Request, res: Response) => {
-    console.log("From book appointment handler", req.body);
-    const { slotId, amount, doctorId, patientId } = req.body;
-    const { newAppointmentDetails, order } = await this.appUseCase.userAppointment({
-      slotId,
-      amount,
-      doctorId,
-      patientId,
-    });
-    res.status(OK).json({
-      success: true,
-      message: "Appointment booked successfully",
-      newAppointmentDetails,
-      order,
-    });
-  });
-
-  verifyPaymentHandler = catchErrors(async (req: Request, res: Response) => {
-    const razorpay_order_id = req.body.razorpay_order_id;
-    appAssert(razorpay_order_id, BAD_REQUEST, "Missing");
-    await this.appUseCase.verifyPayment(razorpay_order_id);
-    res.status(OK).json({
-      success: true,
-      message: "Payment verified successfully",
-      // newAppointmntDetails
-    });
-  });
-
   getAppointmentHandlers = catchErrors(async (req: Request, res: Response) => {
     const userId = stringToObjectId(req.body.patientId);
     const response = await this.appUseCase.displaySlotWithDoctorDetails(userId);
     res.status(OK).json({
       success: true,
       message: "Slot details fetched successfully",
-      response,
-    });
-  });
-
-  cancelAppointmentHandler = catchErrors(async (req: Request, res: Response) => {
-    const appointmentId = stringToObjectId(req.body.appointmentId);
-    const response = await this.appUseCase.cancelAppointment(appointmentId);
-    res.status(OK).json({
-      success: true,
-      message: "Appointment cancelled successfully",
       response,
     });
   });
@@ -148,55 +110,6 @@ export class AppController {
       success: true,
       message: "Notifications fetched successfully",
       allNotifications,
-    });
-  });
-
-  //TODO abortPayment handler;
-  abortPaymentHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
-    const orderId = req.body.orderId;
-    appAssert(orderId, BAD_REQUEST, "Missing");
-    const response = await this.appUseCase.abortPayment(orderId);
-    logger.info(response);
-    res.status(OK).json({
-      success: true,
-      message: "Payment failure recorded",
-    });
-  });
-
-  // * PremiumSubscription:
-  premiumSubscriptionHandler = catchErrors(async (req: Request, res: Response) => {
-    const { type } = req.body;
-    const { userId } = req as AuthenticatedRequest;
-    const response = await this.appUseCase.buyPremiumSubscription({ type, userId });
-    res.status(CREATED).json({
-      success: true,
-      message: "",
-      response,
-    });
-  });
-  // TODO move the wallet logic to sepereate wallet controller
-  walletPaymentHandler = catchErrors(async (req: Request, res: Response) => {
-    const { userId } = req as AuthenticatedRequest;
-    const { usecase, type, doctorId, slotId, amount, patientId } = req.body;
-    const response = await this.appUseCase.walletPayment({
-      userId,
-      usecase,
-      type,
-      doctorId,
-      slotId,
-      amount,
-      patientId,
-    });
-    let message;
-    usecase === "slot_booking"
-      ? (message = "Slot booked successfully")
-      : (message = "Subscription purchased successfully");
-    //TODO dynamic message based on the usecase
-    res.status(OK).json({
-      success: true,
-      message: message,
-      response,
     });
   });
 }
