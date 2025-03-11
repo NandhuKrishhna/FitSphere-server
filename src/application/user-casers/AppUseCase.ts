@@ -16,7 +16,7 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 
 export type WalletParams = {
   userId: ObjectId;
-  type?: "basic" | "premium" | "pro";
+  type?: "basic" | "premium" | "enterprise";
   usecase: string;
   doctorId?: ObjectId;
   slotId?: ObjectId;
