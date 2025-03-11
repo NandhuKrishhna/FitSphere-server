@@ -16,6 +16,7 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 import { ReviewsAndRatingParams } from "../../domain/types/reviewsAndrating";
 import { IReviewsRepository, IReviewsRepositoryToken } from "../repositories/IReviewsRepository";
 import { IRatingRepository, IRatingRepositoryToken } from "../repositories/IRatingsRepository";
+import { IRating } from "../../infrastructure/models/RatingsModel";
 
 export type WalletParams = {
   userId: ObjectId;
@@ -128,5 +129,9 @@ export class AppUseCase {
     console.log("Fetched Rating:", rating);
 
     return { reviews, rating };
+  }
+  async getAllRatings(): Promise<IRating[]> {
+    const ratings = await this.ratingRepository.findAllRatings();
+    return ratings;
   }
 }
