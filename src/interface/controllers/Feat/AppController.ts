@@ -112,4 +112,32 @@ export class AppController {
       allNotifications,
     });
   });
+
+  // review and rating;
+  reviewAndRatingHandler = catchErrors(async (req: Request, res: Response) => {
+    const { rating, reviewText } = req.body;
+    const doctorId = stringToObjectId(req.body.doctorId);
+    const { userId } = req as AuthenticatedRequest;
+    const response = await this.appUseCase.reviewAndRating({ userId, doctorId, rating, reviewText });
+    res.status(OK).json({
+      success: true,
+      message: "Review and rating added successfully",
+      response,
+    });
+  });
+
+  fetchReviewsAndRatingHandler = catchErrors(async (req: Request, res: Response) => {
+    const doctorId = stringToObjectId(req.body.doctorId);
+    appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
+    const { reviews, rating } = await this.appUseCase.fetchReviewsAndRating(doctorId);
+    res.status(OK).json({
+      success: true,
+      message: "Reviews and rating fetched successfully",
+      response: {
+        reviews,
+        averageRating: rating?.averageRating || 0,
+        totalReviews: rating?.totalReviews || 0,
+      },
+    });
+  });
 }
