@@ -18,8 +18,13 @@ export class WebRtcUseCase {
     const appointment = await this.appointmentRepository.findAppointmentByMeetingId(meetingId);
     console.log("Appointment", appointment);
     appAssert(appointment, NOT_FOUND, "Invalid meeting ID");
-    //TODO according to the role of the user, we need to check the user is authorized to join the meeting
-    appAssert(appointment.patientId !== userId, UNAUTHORIZED, "You are not authorized to join this meeting");
+    if (role === "user") {
+      appAssert(appointment.patientId.equals(userId), UNAUTHORIZED, "You are not authorized to join this meeting");
+    } else if (role === "doctor") {
+      appAssert(appointment.doctorId.equals(userId), UNAUTHORIZED, "You are not authorized to join this meeting");
+    } else {
+      appAssert(false, UNAUTHORIZED, "Invalid role");
+    }
     appAssert(appointment.paymentStatus === "completed", BAD_REQUEST, "Payment is not completed for this appointment");
     const slotDetails = await this.slotRepository.findSlotById(appointment.slotId);
     console.log(slotDetails);
