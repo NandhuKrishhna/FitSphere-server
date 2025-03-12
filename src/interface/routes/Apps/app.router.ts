@@ -28,6 +28,10 @@ appRouter.post("/verify/payment", paymentController.verifyPaymentHandler);
 appRouter.post("/payment-failure", paymentController.abortPaymentHandler);
 appRouter.post("/cancel/appointments", paymentController.cancelAppointmentHandler);
 
+appRouter.post("/add-reviews", appController.reviewAndRatingHandler);
+appRouter.post("/get-reviews", appController.fetchReviewsAndRatingHandler);
+appRouter.get("/get-all-ratings", appController.getAllRatingsHandler);
+
 // appRouter.post("/start-conversation", chatController.addUsersInSideBarHandler);
 
 export default appRouter;

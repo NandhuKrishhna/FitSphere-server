@@ -13,6 +13,10 @@ import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWall
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 
 import { ObjectId } from "../../infrastructure/models/UserModel";
+import { ReviewsAndRatingParams } from "../../domain/types/reviewsAndrating";
+import { IReviewsRepository, IReviewsRepositoryToken } from "../repositories/IReviewsRepository";
+import { IRatingRepository, IRatingRepositoryToken } from "../repositories/IRatingsRepository";
+import { IRating } from "../../infrastructure/models/RatingsModel";
 
 export type WalletParams = {
   userId: ObjectId;
@@ -33,7 +37,9 @@ export class AppUseCase {
     @Inject(IAppointmentRepositoryToken)
     private appointmentRepository: IAppointmentRepository,
     @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository,
-    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository
+    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
+    @Inject(IReviewsRepositoryToken) private reviewsRepository: IReviewsRepository,
+    @Inject(IRatingRepositoryToken) private ratingRepository: IRatingRepository
   ) {}
   async displayAllDoctors({
     page,
@@ -99,5 +105,33 @@ export class AppUseCase {
     const details = await this.notificationRepository.getAllNotificationById(userId);
     appAssert(details, BAD_REQUEST, "Unable to fetch notifications. Please try few minutes later.");
     return details;
+  }
+
+  async reviewAndRating({ userId, doctorId, rating, reviewText }: ReviewsAndRatingParams) {
+    appAssert(rating >= 1 && rating <= 5, BAD_REQUEST, "Rating should be between 1 and 5");
+    appAssert(reviewText.length > 0, BAD_REQUEST, "Review is required");
+    await this.reviewsRepository.createReview({ userId, doctorId, rating, reviewText });
+    const ratings = await this.ratingRepository.findRatingByDoctorId(doctorId);
+    if (ratings) {
+      const totalReviews = ratings.totalReviews + 1;
+      const averageRating = (ratings.averageRating * ratings.totalReviews + rating) / totalReviews;
+      await this.ratingRepository.updateRating({ doctorId, totalReviews, averageRating });
+    } else {
+      await this.ratingRepository.updateRating({ doctorId, totalReviews: 1, averageRating: rating });
+    }
+  }
+
+  async fetchReviewsAndRating(doctorId: ObjectId): Promise<any> {
+    const reviews = await this.reviewsRepository.findAllReviewsByDoctorId(doctorId);
+    const rating = await this.ratingRepository.findRatingByDoctorId(doctorId);
+
+    console.log("Fetched Reviews:", reviews);
+    console.log("Fetched Rating:", rating);
+
+    return { reviews, rating };
+  }
+  async getAllRatings(): Promise<IRating[]> {
+    const ratings = await this.ratingRepository.findAllRatings();
+    return ratings;
   }
 }
