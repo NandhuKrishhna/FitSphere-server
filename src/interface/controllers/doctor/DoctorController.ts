@@ -2,16 +2,15 @@ import { Inject, Service } from "typedi";
 import { DoctorUseCase } from "../../../application/user-casers/DoctorUseCase";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { doctorRegisterSchema, verificationCodeSchema } from "../../validations/doctorSchema";
-import { clearAuthCookies, clearTempAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
+import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
 import { CREATED, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
 import { doctorDetailsSchema } from "../../validations/doctor.details.schema";
-import { emailSchema, loginSchema, otpVerificationSchema, resetPasswordSchema } from "../../validations/userSchema";
+import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
-import { SlotType } from "../../validations/slot.schema";
-import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
-import { convertToIST, convertToISTWithOffset } from "../../../shared/utils/date";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
+import mongoose from "mongoose";
+import { SlotValidationSchema } from "../../validations/slot.schema";
 
 @Service()
 export class DoctorController {
@@ -95,5 +94,41 @@ export class DoctorController {
     const verificationCode = verificationCodeSchema.parse(req.params.code);
     await this.doctorUseCase.verifyEmail(verificationCode);
     return res.status(OK).json({ message: "Email verified successfully" });
+  });
+
+  slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
+    const token = req.cookies.accessToken;
+    const { payload } = verfiyToken(token);
+    const userId = payload!.userId;
+    const request = SlotValidationSchema.parse({ ...req.body });
+    const response = await this.doctorUseCase.addSlots(userId, request);
+    return res.status(OK).json({
+      success: true,
+      message: "Slot added successfully",
+      response,
+    });
+  });
+
+  displayAllSlotsHandler = catchErrors(async (req: Request, res: Response) => {
+    const token = req.cookies.accessToken;
+    const { payload } = verfiyToken(token);
+    const userId = payload!.userId;
+    const response = await this.doctorUseCase.displayAllSlots(userId);
+    return res.status(OK).json({
+      success: true,
+      response,
+    });
+  });
+
+  cancelSlotHandler = catchErrors(async (req: Request, res: Response) => {
+    const token = req.cookies.accessToken;
+    const slotId = new mongoose.Types.ObjectId(req.body.slotId);
+    const { payload } = verfiyToken(token);
+    const userId = payload!.userId;
+    await this.doctorUseCase.cancelSlot(userId, slotId);
+    res.status(OK).json({
+      success: true,
+      message: "Slot cancelled successfully",
+    });
   });
 }
