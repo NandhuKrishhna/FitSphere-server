@@ -21,6 +21,10 @@ doctorRoutes.post("/forgot-password", authController.sendPasswordResetHandler);
 doctorRoutes.post("/verify/reset-password/otp", authController.verifyResetPasswordCode);
 doctorRoutes.post("/reset-password", authController.resetPasswordHandler);
 doctorRoutes.post("/resend-otp", authController.resendPasswordHandler);
+
+doctorRoutes.post("/slot-management", doctorController.slotManagementHandler);
+doctorRoutes.get("/get-slots", doctorController.displayAllSlotsHandler);
+doctorRoutes.post("/cancel-slot", doctorController.cancelSlotHandler);
 //TODO impliment later
 doctorRoutes.get("/verify-email/:code", doctorController.verifyEmailHandler);
 
