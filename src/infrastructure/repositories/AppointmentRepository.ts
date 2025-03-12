@@ -7,6 +7,9 @@ import {
 import mongoose, { PipelineStage } from "mongoose";
 import { AppointmentDocument, AppointmentModel } from "../models/appointmentModel";
 import { AppointmentProps } from "../../domain/types/Slot";
+import { ObjectId } from "../models/UserModel";
+import { QueryParams } from "../../interface/controllers/doctor/DoctorFeatController";
+import { AppointmentQueryParams, PaginatedAppointments } from "../../domain/types/appointment.types";
 
 @Service(IAppointmentRepositoryToken)
 export class AppointmentRepository implements IAppointmentRepository {
@@ -104,7 +107,6 @@ export class AppointmentRepository implements IAppointmentRepository {
         },
       },
     ]);
-
     return response;
   }
 
@@ -117,67 +119,100 @@ export class AppointmentRepository implements IAppointmentRepository {
     return response;
   }
 
-  async findAllAppointmentsByDocID({
-    doctorId,
-    filters,
-    page,
-    limit,
-  }: AppointmentProps): Promise<{ data: any[]; total: number }> {
-    const skip = (page - 1) * limit;
-
-    const pipeline: PipelineStage[] = [
+  async findAllAppointmentsByDocID(
+    doctorId: ObjectId,
+    {
+      page = "1",
+      limit = "10",
+      sortBy = "date",
+      sortOrder = "desc",
+      search,
+      status,
+      consultationType,
+      paymentStatus,
+    }: AppointmentQueryParams
+  ): Promise<PaginatedAppointments> {
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    const skip = (pageNum - 1) * limitNum;
+    const pipeline: any[] = [
+      { $match: { doctorId } },
       {
-        $match: {
-          doctorId,
-          ...(filters.status && { status: filters.status }),
-          ...(filters.paymentStatus && { paymentStatus: filters.paymentStatus }),
-          ...(filters.consultationType && { consultationType: filters.consultationType }),
+        $lookup: {
+          from: "slots",
+          localField: "slotId",
+          foreignField: "_id",
+          as: "slot",
         },
       },
-      { $sort: { createdAt: -1 as 1 | -1 } },
+      { $unwind: "$slot" },
       {
-        $facet: {
-          metadata: [{ $count: "total" }],
-          data: [
-            { $skip: skip },
-            { $limit: limit },
-            {
-              $lookup: {
-                from: "slots",
-                localField: "slotId",
-                foreignField: "_id",
-                as: "slotDetails",
-              },
-            },
-            {
-              $unwind: {
-                path: "$slotDetails",
-                preserveNullAndEmptyArrays: true,
-              },
-            },
-            {
-              $lookup: {
-                from: "users",
-                localField: "patientId",
-                foreignField: "_id",
-                as: "patientDetails",
-              },
-            },
-            {
-              $unwind: {
-                path: "$patientDetails",
-                preserveNullAndEmptyArrays: true,
-              },
-            },
-          ],
+        $lookup: {
+          from: "users",
+          localField: "patientId",
+          foreignField: "_id",
+          as: "patient",
+        },
+      },
+      { $unwind: "$patient" },
+      {
+        $match: {
+          ...(status && { status }),
+          ...(consultationType && { consultationType }),
+          ...(paymentStatus && { paymentStatus }),
         },
       },
     ];
-
-    const result = await AppointmentModel.aggregate(pipeline);
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { "patient.name": { $regex: search, $options: "i" } },
+            { "patient.email": { $regex: search, $options: "i" } },
+            { "slot.startTime": { $regex: search, $options: "i" } },
+            { "slot.endTime": { $regex: search, $options: "i" } },
+          ],
+        },
+      });
+    }
+    pipeline.push({
+      $sort: {
+        [sortBy]: sortOrder === "asc" ? 1 : -1,
+      },
+    });
+    pipeline.push({
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: limitNum },
+          {
+            $project: {
+              _id: 1,
+              date: 1,
+              consultationType: 1,
+              status: 1,
+              paymentStatus: 1,
+              amount: 1,
+              meetingId: 1,
+              paymentMethod: 1,
+              paymentThrough: 1,
+              slot: { startTime: 1, endTime: 1 },
+              patient: { name: 1, email: 1, profilePicture: 1 },
+            },
+          },
+        ],
+        total: [{ $count: "total" }],
+      },
+    });
+    const [result] = await AppointmentModel.aggregate(pipeline);
     return {
-      data: result[0].data,
-      total: result[0].metadata[0]?.total || 0,
+      data: result.data,
+      meta: {
+        total: result.total[0]?.total || 0,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil((result.total[0]?.total || 0) / limitNum),
+      },
     };
   }
 
