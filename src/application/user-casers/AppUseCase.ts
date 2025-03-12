@@ -125,8 +125,8 @@ export class AppUseCase {
     const reviews = await this.reviewsRepository.findAllReviewsByDoctorId(doctorId);
     const rating = await this.ratingRepository.findRatingByDoctorId(doctorId);
 
-    console.log("Fetched Reviews:", reviews);
-    console.log("Fetched Rating:", rating);
+    // console.log("Fetched Reviews:", reviews);
+    // console.log("Fetched Rating:", rating);
 
     return { reviews, rating };
   }
