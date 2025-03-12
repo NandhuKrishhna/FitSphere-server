@@ -3,6 +3,9 @@ import { Appointment, Appointments } from "../../domain/entities/Appointments";
 import { Token } from "typedi";
 import { AppointmentProps } from "../../domain/types/Slot";
 import { AppointmentDocument } from "../../infrastructure/models/appointmentModel";
+import { ObjectId } from "../../infrastructure/models/UserModel";
+import { QueryParams } from "../../interface/controllers/doctor/DoctorFeatController";
+import { AppointmentQueryParams, PaginatedAppointments } from "../../domain/types/appointment.types";
 export type AdditonDetails = {
   orderId: string;
   paymentMethod: string;
@@ -25,7 +28,7 @@ export interface IAppointmentRepository {
   ): Promise<AppointmentDocument | null>;
   findDetailsByPatientId(userId: mongoose.Types.ObjectId): Promise<any>;
   cancelAppointment(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null>;
-  findAllAppointmentsByDocID(props: AppointmentProps): Promise<{ data: any[]; total: number }>;
+  findAllAppointmentsByDocID(doctorId: ObjectId, queryParams: AppointmentQueryParams): Promise<PaginatedAppointments>;
   findAppointmentByMeetingId(meetingId: string): Promise<AppointmentDocument | null>;
 }
 
