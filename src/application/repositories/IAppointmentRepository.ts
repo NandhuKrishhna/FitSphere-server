@@ -30,6 +30,7 @@ export interface IAppointmentRepository {
   cancelAppointment(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null>;
   findAllAppointmentsByDocID(doctorId: ObjectId, queryParams: AppointmentQueryParams): Promise<PaginatedAppointments>;
   findAppointmentByMeetingId(meetingId: string): Promise<AppointmentDocument | null>;
+  findAllAppointments(userId: ObjectId): Promise<AppointmentDocument[]>;
 }
 
 export const IAppointmentRepositoryToken = new Token<IAppointmentRepository>();
