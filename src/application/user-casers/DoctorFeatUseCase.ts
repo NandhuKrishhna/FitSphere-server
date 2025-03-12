@@ -8,6 +8,9 @@ import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepo
 import { IAppointmentRepository, IAppointmentRepositoryToken } from "../repositories/IAppointmentRepository";
 import { IConversationRepository, IConversationRepositoryToken } from "../repositories/IConversationRepository";
 import { ConsultationType, IcreateSlot } from "../../shared/utils/doctorHelper";
+import { ObjectId } from "../../infrastructure/models/UserModel";
+import { QueryParams } from "../../interface/controllers/doctor/DoctorFeatController";
+import { AppointmentQueryParams, PaginatedAppointments } from "../../domain/types/appointment.types";
 
 @Service()
 export class DoctorFeatUseCase {
@@ -47,20 +50,10 @@ export class DoctorFeatUseCase {
     await this.slotRepository.deleteSlot(doctorId, slotId);
   }
 
-  async getAllAppointment(
-    doctorId: mongoose.Types.ObjectId,
-    filters: { status?: string; paymentStatus?: string; consultationType?: string },
-    page: number,
-    limit: number
-  ) {
-    const { data, total } = await this.appointmentRepository.findAllAppointmentsByDocID({
-      doctorId,
-      filters,
-      page,
-      limit,
-    });
-    const totalPages = Math.ceil(total / limit);
-    return { appointments: data, total, page, totalPages };
+  async getAllAppointment(doctorId: ObjectId, queryParams: AppointmentQueryParams): Promise<PaginatedAppointments> {
+    appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
+
+    return this.appointmentRepository.findAllAppointmentsByDocID(doctorId, queryParams);
   }
 
   async getAllUsers(userId: mongoose.Types.ObjectId, role: string): Promise<any> {
