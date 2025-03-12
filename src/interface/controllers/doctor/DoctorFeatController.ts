@@ -8,7 +8,17 @@ import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { convertToISTWithOffset } from "../../../shared/utils/date";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { DoctorFeatUseCase } from "../../../application/user-casers/DoctorFeatUseCase";
-
+import { AppointmentQueryParams } from "../../../domain/types/appointment.types";
+export interface QueryParams {
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  search?: string;
+  status?: string;
+  consultationType?: string;
+  paymentStatus?: string;
+}
 @Service()
 export class DoctorFeatController {
   constructor(@Inject() private doctorFeatUseCase: DoctorFeatUseCase) {}
@@ -75,19 +85,14 @@ export class DoctorFeatController {
   });
 
   getAllAppointmentsHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
     const doctorId = stringToObjectId(req.body.userId);
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = 8;
-    const filters = {
-      status: req.query.status as string,
-      paymentStatus: req.query.paymentStatus as string,
-      consultationType: req.query.consultationType as string,
-    };
-    const response = await this.doctorFeatUseCase.getAllAppointment(doctorId, filters, page, limit);
+    const queryParams: AppointmentQueryParams = req.query;
+
+    const response = await this.doctorFeatUseCase.getAllAppointment(doctorId, queryParams);
+
     return res.status(OK).json({
       success: true,
-      response,
+      ...response,
     });
   });
 
