@@ -1,7 +1,7 @@
 import { Inject, Service } from "typedi";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { verificationCodeSchema } from "../../validations/doctorSchema";
-import { OK } from "../../../shared/constants/http";
+import { BAD_REQUEST, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
 import { SlotType } from "../../validations/slot.schema";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
@@ -9,6 +9,7 @@ import { convertToISTWithOffset } from "../../../shared/utils/date";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { DoctorFeatUseCase } from "../../../application/user-casers/DoctorFeatUseCase";
 import { AppointmentQueryParams } from "../../../domain/types/appointment.types";
+import appAssert from "../../../shared/utils/appAssert";
 export interface QueryParams {
   page?: string;
   limit?: string;
@@ -105,6 +106,16 @@ export class DoctorFeatController {
       success: true,
       message: "Users fetched successfully",
       users,
+    });
+  });
+  getDoctorDetailHandler = catchErrors(async (req: Request, res: Response) => {
+    const { userId } = req as AuthenticatedRequest;
+    appAssert(userId, BAD_REQUEST, "Please login or Invalid DoctorId.");
+    const doctorDetails = await this.doctorFeatUseCase.getDoctorDetails({ userId });
+    res.status(OK).json({
+      success: true,
+      message: "Doctor Details fetched successfully",
+      doctorDetails,
     });
   });
 }
