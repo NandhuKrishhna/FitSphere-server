@@ -23,6 +23,9 @@ import { LoginUserParams } from "../../domain/types/userTypes";
 import Role from "../../shared/constants/UserRole";
 import { IcreateOtp, IcreateSession } from "../../shared/utils/builder";
 import { IcreateDoctorDetails } from "../../shared/utils/doctorHelper";
+import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
+import { SlotType } from "../../interface/validations/slot.schema";
+import { Slot } from "../../domain/entities/Slot";
 
 @Service()
 export class DoctorUseCase {
@@ -31,7 +34,8 @@ export class DoctorUseCase {
     @Inject(IVerficaitonCodeRepositoryToken) private verificationCodeRepository: IVerficaitonCodeRepository,
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
     @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
-    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository
+    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
+    @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository
   ) {}
 
   async registerDoctor(details: RegisterDoctorParams) {
@@ -181,5 +185,36 @@ export class DoctorUseCase {
 
   async logoutUser(payload: AccessTokenPayload) {
     await this.sessionRepository.findByIdAndDelete(payload.sessionId);
+  }
+  async addSlots(doctorId: mongoose.Types.ObjectId, slots: SlotType) {
+    console.log(`Doctor Id : ${doctorId} and slots : ${JSON.stringify(slots)}`);
+    const existingSlots = await this.slotRepository.findSlotDetails(
+      doctorId,
+      slots.startTime,
+      slots.endTime,
+      slots.date
+    );
+    appAssert(!existingSlots, CONFLICT, "Slot already exists");
+    const { startTime, endTime } = slots;
+    appAssert(startTime < endTime, BAD_REQUEST, "End time must be after start time");
+    const newSlotDetails = await this.slotRepository.createSlot({
+      doctorId,
+      startTime,
+      endTime,
+      date: slots.date,
+      status: "available",
+    });
+    return newSlotDetails;
+  }
+
+  async displayAllSlots(doctorId: mongoose.Types.ObjectId) {
+    const slots = await this.slotRepository.findAllSlots(doctorId);
+    return slots;
+  }
+
+  async cancelSlot(doctorId: mongoose.Types.ObjectId, slotId: mongoose.Types.ObjectId) {
+    const existingSlot = await this.slotRepository.findSlotById(slotId);
+    appAssert(existingSlot?.status !== "booked", UNAUTHORIZED, "Patient has already booked this slot.");
+    await this.slotRepository.deleteSlot(doctorId, slotId);
   }
 }
