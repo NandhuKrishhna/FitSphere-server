@@ -1,8 +1,8 @@
 import { Service } from "typedi";
 import { ISlotRepository, ISlotRepositoryToken } from "../../application/repositories/ISlotRepository";
 import mongoose from "mongoose";
-import { SlotModel } from "../models/slot.models";
-import { SlotDocument } from "../../domain/types/Slot";
+import { SlotDocument, SlotModel } from "../models/slot.models";
+import { Slot } from "../../domain/entities/Slot";
 function startOfTodayIST(): Date {
   const now = new Date();
   // Convert to IST and reset to start of day
@@ -82,5 +82,9 @@ export class SlotRepository implements ISlotRepository {
       status: "available",
       updatedAt: new Date(),
     });
+  }
+  async findAllSlots(doctorId: mongoose.Types.ObjectId): Promise<SlotDocument[]> {
+    const slots = await SlotModel.find({ doctorId });
+    return slots;
   }
 }
