@@ -66,4 +66,15 @@ export class DoctorFeatUseCase {
   async getDoctorDetails({ userId }: { userId: ObjectId }): Promise<any> {
     const doctorDetails = await this.doctorRepository.findDoctorDetails(userId);
   }
+
+  async profilePageDetails(userId: ObjectId) {
+    const appointments = await this.appointmentRepository.findAllAppointments(userId);
+    const slots = await this.slotRepository.findAllSlots(userId);
+    console.log("Appointments", appointments);
+    console.log("Slots", slots);
+    return {
+      appointments,
+      slots,
+    };
+  }
 }
