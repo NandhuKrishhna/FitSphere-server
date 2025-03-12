@@ -10,6 +10,7 @@ import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { DoctorFeatUseCase } from "../../../application/user-casers/DoctorFeatUseCase";
 import { AppointmentQueryParams } from "../../../domain/types/appointment.types";
 import appAssert from "../../../shared/utils/appAssert";
+import { json } from "stream/consumers";
 export interface QueryParams {
   page?: string;
   limit?: string;
@@ -116,6 +117,17 @@ export class DoctorFeatController {
       success: true,
       message: "Doctor Details fetched successfully",
       doctorDetails,
+    });
+  });
+  profilePageDetailsHandler = catchErrors(async (req: Request, res: Response) => {
+    const { userId } = req as AuthenticatedRequest;
+    console.log("called profilePageDetails handler");
+    appAssert(userId, BAD_REQUEST, "Missing DoctorId. Try Again or Please Login");
+    const profilePageDetails = await this.doctorFeatUseCase.profilePageDetails(userId);
+    return res.status(OK).json({
+      success: true,
+      message: "Successfull",
+      profilePageDetails,
     });
   });
 }
