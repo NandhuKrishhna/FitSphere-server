@@ -17,6 +17,6 @@ doctorFeatRouter.post("/get/all-appointments", doctorFeatController.getAllAppoin
 doctorFeatRouter.get("/get-all-chats", doctorFeatController.getUsersInSideBarHandler);
 doctorFeatRouter.post("/get-all-messages", chatController.getMessagesHandler);
 doctorFeatRouter.post("/send-message", chatController.sendMessageHandler);
-doctorFeatRouter.get("/get-reviews", appController.fetchReviewsAndRatingHandler);
+doctorFeatRouter.post("/get-reviews", appController.fetchReviewsAndRatingHandler);
 
 export default doctorFeatRouter;
