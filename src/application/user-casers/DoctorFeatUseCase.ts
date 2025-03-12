@@ -11,13 +11,15 @@ import { ConsultationType, IcreateSlot } from "../../shared/utils/doctorHelper";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { QueryParams } from "../../interface/controllers/doctor/DoctorFeatController";
 import { AppointmentQueryParams, PaginatedAppointments } from "../../domain/types/appointment.types";
+import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 
 @Service()
 export class DoctorFeatUseCase {
   constructor(
     @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository,
     @Inject(IAppointmentRepositoryToken) private appointmentRepository: IAppointmentRepository,
-    @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository
+    @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository,
+    @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository
   ) {}
 
   async addSlots(doctorId: mongoose.Types.ObjectId, payload: SlotType) {
@@ -59,5 +61,9 @@ export class DoctorFeatUseCase {
   async getAllUsers(userId: mongoose.Types.ObjectId, role: string): Promise<any> {
     const users = await this.conversationRepository.getUsers(userId, role);
     return users;
+  }
+
+  async getDoctorDetails({ userId }: { userId: ObjectId }): Promise<any> {
+    const doctorDetails = await this.doctorRepository.findDoctorDetails(userId);
   }
 }
