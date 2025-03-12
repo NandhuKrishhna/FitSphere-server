@@ -220,4 +220,56 @@ export class AppointmentRepository implements IAppointmentRepository {
     const response = await AppointmentModel.findOne({ meetingId: meetingId }).exec();
     return response;
   }
+
+  async findAllAppointments(userId: ObjectId): Promise<AppointmentDocument[]> {
+    console.log("DoctorId", userId); // Debugging
+    const details = await AppointmentModel.aggregate([
+      {
+        $match: {
+          doctorId: new mongoose.Types.ObjectId(userId), // Ensure it's an ObjectId
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "patientId",
+          foreignField: "_id",
+          as: "patientDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$patientDetails",
+          preserveNullAndEmptyArrays: true, // Avoid errors if there's no patient found
+        },
+      },
+      {
+        $lookup: {
+          from: "slots",
+          localField: "slotId",
+          foreignField: "_id",
+          as: "slotDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$slotDetails",
+          preserveNullAndEmptyArrays: true, // Avoid errors if no slot is found
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          date: 1,
+          startTime: "$slotDetails.startTime",
+          endTime: "$slotDetails.endTime",
+          patientName: "$patientDetails.name",
+          patientProfilePic: "$patientDetails.profilePicture",
+        },
+      },
+    ]);
+
+    console.log("Aggregated Data:", details);
+    return details;
+  }
 }
