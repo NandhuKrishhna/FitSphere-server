@@ -101,10 +101,7 @@ export class AdminUseCase {
     //TODO create a wallet here after approval for the doctor;
     await this.walletRespository.createWallet({
       userId: user._id,
-      balance: 0,
-      currency: "INR",
-      status: "active",
-      transactions: [],
+      role:"Doctor"
     });
     await this.notificationRepository.deleteNotification(id);
     await sendMail({
