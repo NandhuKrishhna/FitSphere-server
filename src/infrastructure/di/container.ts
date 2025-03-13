@@ -20,7 +20,6 @@ import { SlotRepository } from "../repositories/SlotRepository";
 import { IAppointmentRepositoryToken } from "../../application/repositories/IAppointmentRepository";
 import { AppointmentRepository } from "../repositories/AppointmentRepository";
 import { IWalletRepositoryToken } from "../../application/repositories/IWalletRepository";
-import { WalletRepository } from "../repositories/WalletRepository";
 import { IChatRepositoryToken } from "../../application/repositories/IChatRepository";
 import { ChatRepository } from "../repositories/ChatRepository";
 import { IConversationRepositoryToken } from "../../application/repositories/IConversationRepository";
@@ -35,6 +34,7 @@ import { IReviewsRepositoryToken } from "../../application/repositories/IReviews
 import { ReviewsRepository } from "../repositories/ReviewsRepository";
 import { IRatingRepositoryToken } from "../../application/repositories/IRatingsRepository";
 import { RatingsRepository } from "../repositories/RatingsRepository";
+import WalletRepository from "../repositories/WalletRepository";
 
 Container.set(IUserRepositoryToken, new UserRepository());
 Container.set(IVerficaitonCodeRepositoryToken, new VerificationCodeRepository());
