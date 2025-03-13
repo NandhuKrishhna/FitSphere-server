@@ -5,7 +5,6 @@ import { generateOTP } from "./otpGenerator";
 import { Otp } from "../../domain/entities/Otp";
 import Role from "../constants/UserRole";
 import { Session } from "../../domain/entities/Session";
-import { Wallet } from "../../domain/entities/Wallet";
 import { Notification } from "../../domain/entities/Notification";
 
 //create OTP
@@ -21,11 +20,6 @@ export function IcreateSession(
   expiresAt: Date
 ) {
   return new Session(new mongoose.Types.ObjectId(), userId, role, expiresAt, new Date(), userAgent);
-}
-
-//wallet
-export function IcreateWallet(userId: mongoose.Types.ObjectId, currency: string = "INR", balance: number = 0) {
-  return new Wallet(new mongoose.Types.ObjectId(), userId, balance, currency);
 }
 
 export const ERRORS = {
