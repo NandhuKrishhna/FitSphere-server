@@ -12,7 +12,7 @@ export interface IPremiumSubscription extends Document {
   currency: string;
   startDate: Date;
   endDate: Date;
-  status: "active" | "expired" | "cancelled";
+  status: "active" | "expired" | "cancelled" | "not_active";
 }
 
 const PremiumSubscriptionSchema = new Schema<IPremiumSubscription>(
@@ -30,8 +30,8 @@ const PremiumSubscriptionSchema = new Schema<IPremiumSubscription>(
     endDate: { type: Date, required: true },
     status: {
       type: String,
-      enum: ["active", "expired", "cancelled"],
-      default: "active",
+      enum: ["active", "expired", "cancelled", "not_active"],
+      default: "not_active",
     },
   },
   { timestamps: true }
