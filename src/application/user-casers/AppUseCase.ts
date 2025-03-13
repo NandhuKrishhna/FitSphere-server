@@ -27,6 +27,10 @@ export type WalletParams = {
   amount: number;
   patientId?: ObjectId;
 };
+export type MarkAsReadNotificationParams ={
+  userId : ObjectId,
+  notificationId : ObjectId
+}
 @Service()
 export class AppUseCase {
   constructor(
@@ -122,6 +126,7 @@ export class AppUseCase {
   }
 
   async fetchReviewsAndRating(doctorId: ObjectId): Promise<any> {
+    console.log("DoctorId",doctorId)
     const reviews = await this.reviewsRepository.findAllReviewsByDoctorId(doctorId);
     const rating = await this.ratingRepository.findRatingByDoctorId(doctorId);
 
@@ -133,5 +138,9 @@ export class AppUseCase {
   async getAllRatings(): Promise<IRating[]> {
     const ratings = await this.ratingRepository.findAllRatings();
     return ratings;
+  }
+  async markAsReadNotification(notificationId : ObjectId) {
+    await this.notificationRepository.markNotificationAsRead(notificationId);
+    
   }
 }
