@@ -5,6 +5,7 @@ import {
 } from "../../application/repositories/INotificationRepository";
 import NotificationModel, { INotification } from "../models/notification.models";
 import mongoose from "mongoose";
+import { ObjectId } from "../models/UserModel";
 
 @Service({ id: INotificationRepositoryToken })
 export class NotificationRepository implements INotificationRepository {
@@ -28,19 +29,15 @@ export class NotificationRepository implements INotificationRepository {
   }
 
   async getAllNotificationById(userId: mongoose.Types.ObjectId): Promise<INotification[]> {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const result = await NotificationModel.find({
-      userId: userId,
-      createdAt: { $gte: startOfDay, $lte: endOfDay },
-    })
-      .sort({ createdAt: -1 })
+    const result = await NotificationModel.find({ userId: userId }) 
+      .sort({ createdAt: -1 }) 
       .exec();
 
     return result;
+}
+
+
+  async markNotificationAsRead(id:ObjectId): Promise<void> {
+    await NotificationModel.findByIdAndUpdate({ _id: id }, { $set: { read: true } });
   }
 }
