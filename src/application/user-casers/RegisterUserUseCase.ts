@@ -27,7 +27,7 @@ import { OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verf
 import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../repositories/IOtpReposirtory";
 
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
-import { ERRORS, IcreateOtp, IcreateSession, IcreateWallet } from "../../shared/utils/builder";
+import { ERRORS, IcreateOtp, IcreateSession } from "../../shared/utils/builder";
 import Role from "../../shared/constants/UserRole";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 
@@ -66,8 +66,10 @@ export class RegisterUserUseCase {
     const session = await this.sessionRepository.createSession(newSession);
 
     // creating a wallet for the user
-    const newWallet = IcreateWallet(user._id);
-    await this.walletRespository.createWallet(newWallet);
+    await this.walletRespository.createWallet({
+      userId : user._id,
+      role :"User",
+    })
 
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
