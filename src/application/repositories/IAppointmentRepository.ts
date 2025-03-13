@@ -12,6 +12,7 @@ export type AdditonDetails = {
   paymentThrough: string;
   description: string;
   bank: string;
+  meetingId: string;
 };
 export interface IAppointmentRepository {
   findOverlappingAppointment(
