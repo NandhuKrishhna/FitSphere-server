@@ -14,21 +14,41 @@ const io = new Server(server, {
   },
 });
 
+const userSocketMap: { [key: string]: string } = {};
+
 export function getReceiverSocketId(userId: any) {
   return userSocketMap[userId] || null;
 }
-const userSocketMap: { [key: string]: string } = {};
-
 io.on("connection", (socket) => {
-  console.log("user connected", socket.id);
+  console.log("User connected:", socket.id);
 
   const userId = socket.handshake.query.userId as string;
   if (userId) userSocketMap[userId] = socket.id;
 
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
+  // Handle Typing Indicator
+  socket.on("typing", ({ senderId, receiverId }) => {
+    console.log(senderId , receiverId)
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    console.log("Receiver Socket Id",receiverSocketId)
+    if (receiverSocketId) {
+      console.log(`User ${senderId} is typing...`);
+      io.to(receiverSocketId).emit("typing", { senderId });
+    }
+  });
+
+  socket.on("stop_typing", ({ senderId, receiverId }) => {
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      console.log(`User ${senderId} stopped typing.`);
+      io.to(receiverSocketId).emit("stop_typing", { senderId });
+    }
+  });
+
+  // Video Call Events
   socket.on("join-room", (roomId: string, userId: string) => {
-    console.log(`A new user ${userId} joined room ${roomId}`);
+    console.log(`User ${userId} joined room ${roomId}`);
     socket.join(roomId);
     socket.broadcast.to(roomId).emit("user-connected", userId);
   });
@@ -37,16 +57,19 @@ io.on("connection", (socket) => {
     socket.join(roomId);
     socket.broadcast.to(roomId).emit("user-toggle-audio", userId);
   });
+
   socket.on("user-toggle-video", (userId, roomId) => {
     socket.join(roomId);
     socket.broadcast.to(roomId).emit("user-toggle-video", userId);
   });
+
   socket.on("user-leave", (userId, roomId) => {
     socket.join(roomId);
     socket.broadcast.to(roomId).emit("user-leave", userId);
   });
+
   socket.on("disconnect", () => {
-    console.log("user disconnected", socket.id);
+    console.log("User disconnected:", socket.id);
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
