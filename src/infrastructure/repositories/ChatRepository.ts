@@ -11,7 +11,7 @@ export class ChatRepository implements IChatRepository {
   async getMessagesByConversationId(conversationId: Types.ObjectId): Promise<IChat[]> {
     return await ChatModel.find({ conversationId })
       .sort({ createdAt: 1 })
-      .select("senderId receiverId message isRead createdAt");
+      .select("senderId receiverId message image isRead createdAt");
   }
 
   async markMessageAsRead(messageId: Types.ObjectId): Promise<void> {
