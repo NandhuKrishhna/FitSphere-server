@@ -7,6 +7,7 @@ import { AppUseCase } from "../../../application/user-casers/AppUseCase";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import logger from "../../../shared/utils/logger";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+import { json } from "stream/consumers";
 
 @Service()
 export class AppController {
@@ -95,7 +96,8 @@ export class AppController {
 
   getWalletHandler = catchErrors(async (req: Request, res: Response) => {
     const userId = stringToObjectId(req.body.userId);
-    const response = await this.appUseCase.getWalletDetails(userId);
+    const {role}  = req as AuthenticatedRequest
+    const response = await this.appUseCase.getWalletDetails(userId, role);
     res.status(OK).json({
       success: true,
       message: "Wallet details fetched successfully",
@@ -104,8 +106,8 @@ export class AppController {
   });
 
   getNotificationsHandler = catchErrors(async (req: Request, res: Response) => {
-    const userId = req as AuthenticatedRequest;
-    const allNotifications = await this.appUseCase.getNotifications(userId.userId);
+    const {userId} = req as AuthenticatedRequest;
+    const allNotifications = await this.appUseCase.getNotifications(userId);
     res.status(OK).json({
       success: true,
       message: "Notifications fetched successfully",
@@ -127,6 +129,8 @@ export class AppController {
   });
 
   fetchReviewsAndRatingHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log("Hello world")
+    console.log(req.body)
     const doctorId = stringToObjectId(req.body.doctorId);
     appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
     const { reviews, rating } = await this.appUseCase.fetchReviewsAndRating(doctorId);
@@ -149,4 +153,26 @@ export class AppController {
       response,
     });
   });
+
+  markAsReadNotificationHandler = catchErrors(async (req: Request, res: Response) => {
+    const {userId}  = req as AuthenticatedRequest;
+    const notificationId = stringToObjectId(req.body.notificationId);
+    appAssert(notificationId, BAD_REQUEST, "No Notificaiton was found");
+    await this.appUseCase.markAsReadNotification( notificationId);
+    res.status(OK).json({
+      success: true,
+      message: "Notification marked as read successfully",
+    })
+  });
+
+  getAllTransactionsHandler = catchErrors(async (req: Request, res: Response) => {
+    const {userId}  = req as AuthenticatedRequest;
+    const transactions = await this.appUseCase.getTransactions( userId);
+    res.status(OK).json({
+      success: true,
+      message: "Transactions fetched successfully",
+      transactions
+    })
+  })
+
 }
