@@ -12,14 +12,17 @@ export class ChatController {
 
   //send message
   sendMessageHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body);
     const { userId: senderId } = req as AuthenticatedRequest;
     const receiverId = stringToObjectId(req.body.receiverId);
     console.log("ReceiverId from sendMessage Handler", receiverId);
     const message = req.body.message;
+    const image = req.body.image;
     const newMessage = await this.chatUseCase.sendMessage({
       senderId,
       receiverId,
       message,
+      image,
     });
 
     res.status(CREATED).json({
@@ -31,6 +34,8 @@ export class ChatController {
 
   //get messages
   getMessagesHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body);
+    console.log(typeof req.body.receiverId);
     const { userId: senderId } = req as AuthenticatedRequest;
     const receiverId = stringToObjectId(req.body.receiverId);
     const { messages, conversationId } = await this.chatUseCase.getMessages({
