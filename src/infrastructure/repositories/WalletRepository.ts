@@ -13,32 +13,24 @@ class WalletRepository implements IWalletRepository {
   async increaseBalance(data: WalletParams): Promise<WalletDocument | null> {
     try {
         console.log("🔹 increaseBalance called with data:", data);
-
-        // Find the wallet
         const wallet = await WalletModel.findOne({
             userId: data.userId,
             role: data.role,
         });
-
         console.log("🔹 Wallet found:", wallet);
-
         if (!wallet) {
             console.log("⚠️ Wallet not found for user:", data.userId);
             return null;
         }
-
         if (wallet.status !== "active") {
             console.log("⚠️ Wallet is not active:", wallet.status);
             return null;
         }
 
-        // Update wallet balance
-        console.log(`🔹 Current balance: ${wallet.balance}, Adding amount: ${data.amount}`);
+        console.log(` Current balance: ${wallet.balance}, Adding amount: ${data.amount}`);
         wallet.balance += data.amount;
         await wallet.save();
-        console.log("✅ Wallet balance updated successfully. New balance:", wallet.balance);
-
-        // Create a transaction record if necessary
+        console.log(" Wallet balance updated successfully. New balance:", wallet.balance);
         if (data.description || data.relatedTransactionId) {
             console.log("🔹 Creating wallet transaction...");
             const transaction = await WalletTransactionModel.create({
@@ -56,7 +48,6 @@ class WalletRepository implements IWalletRepository {
         } else {
             console.log("ℹ️ No transaction created, no description or relatedTransactionId provided.");
         }
-
         return wallet;
     } catch (error) {
         console.error("❌ Error increasing wallet balance:", error);
@@ -65,12 +56,25 @@ class WalletRepository implements IWalletRepository {
 }
 
 
-  async getWalletDetailsById(
-    userId: mongoose.Types.ObjectId,
-    data: any
-  ): Promise<WalletDocument | null> {
-    return await WalletModel.findOne({ userId }).exec();
+async getWalletDetailsById(
+    userId: ObjectId,
+    role: "User" | "Doctor"
+  ): Promise<any> {
+    return await WalletModel.aggregate([
+      {
+        $match: {  userId: userId, role : role }
+      },
+      {
+        $lookup: {
+          from: "wallettransactions", 
+          localField: "_id", 
+          foreignField: "walletId", 
+          as: "transactions" 
+        }
+      }
+    ]).exec();
   }
+  
 
   async findWalletById(
     userId: ObjectId,
