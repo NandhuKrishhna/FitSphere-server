@@ -36,22 +36,29 @@ export class AppointmentRepository implements IAppointmentRepository {
   async updatePaymentStatus(
     id: mongoose.Types.ObjectId,
     additionalDetails: AdditonDetails,
-    status: string
+    status: "pending" | "completed" | "failed"
   ): Promise<AppointmentDocument | null> {
+    const updateFields: Partial<AppointmentDocument> = {
+      paymentStatus: status,
+      orderId: additionalDetails.orderId,
+      paymentMethod: additionalDetails.paymentMethod,
+      paymentThrough: additionalDetails.paymentThrough,
+      description: additionalDetails.description,
+      bank: additionalDetails.bank,
+      meetingId: additionalDetails.meetingId,
+    };
+    if (status === "failed") {
+      updateFields.status = "failed";
+    }
     const response = await AppointmentModel.findOneAndUpdate(
       { slotId: id },
-      {
-        paymentStatus: status,
-        orderId: additionalDetails.orderId,
-        paymentMethod: additionalDetails.paymentMethod,
-        paymentThrough: additionalDetails.paymentThrough,
-        description: additionalDetails.description,
-        bank: additionalDetails.bank,
-      },
+      updateFields,
       { new: true }
     );
+  
     return response;
   }
+  
 
   async findDetailsByPatientId(userId: mongoose.Types.ObjectId): Promise<any> {
     const response = await AppointmentModel.aggregate([
@@ -113,7 +120,7 @@ export class AppointmentRepository implements IAppointmentRepository {
   async cancelAppointment(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null> {
     const response = await AppointmentModel.findOneAndUpdate(
       { _id: id },
-      { $set: { status: "available" } },
+      { $set: { status: "cancelled" } },
       { new: true }
     );
     return response;
@@ -222,11 +229,11 @@ export class AppointmentRepository implements IAppointmentRepository {
   }
 
   async findAllAppointments(userId: ObjectId): Promise<AppointmentDocument[]> {
-    console.log("DoctorId", userId); // Debugging
+    console.log("DoctorId", userId); 
     const details = await AppointmentModel.aggregate([
       {
         $match: {
-          doctorId: new mongoose.Types.ObjectId(userId), // Ensure it's an ObjectId
+          doctorId: new mongoose.Types.ObjectId(userId), 
         },
       },
       {
@@ -240,7 +247,7 @@ export class AppointmentRepository implements IAppointmentRepository {
       {
         $unwind: {
           path: "$patientDetails",
-          preserveNullAndEmptyArrays: true, // Avoid errors if there's no patient found
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -254,7 +261,7 @@ export class AppointmentRepository implements IAppointmentRepository {
       {
         $unwind: {
           path: "$slotDetails",
-          preserveNullAndEmptyArrays: true, // Avoid errors if no slot is found
+          preserveNullAndEmptyArrays: true, 
         },
       },
       {
