@@ -17,6 +17,7 @@ import { ReviewsAndRatingParams } from "../../domain/types/reviewsAndrating";
 import { IReviewsRepository, IReviewsRepositoryToken } from "../repositories/IReviewsRepository";
 import { IRatingRepository, IRatingRepositoryToken } from "../repositories/IRatingsRepository";
 import { IRating } from "../../infrastructure/models/RatingsModel";
+import { ITransactionRepository, ITransactionRepositoryToken } from "../repositories/ITransactionRepository";
 
 export type WalletParams = {
   userId: ObjectId;
@@ -43,7 +44,9 @@ export class AppUseCase {
     @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository,
     @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
     @Inject(IReviewsRepositoryToken) private reviewsRepository: IReviewsRepository,
-    @Inject(IRatingRepositoryToken) private ratingRepository: IRatingRepository
+    @Inject(IRatingRepositoryToken) private ratingRepository: IRatingRepository,
+    @Inject(ITransactionRepositoryToken) private transactionRepository: ITransactionRepository,
+
   ) {}
   async displayAllDoctors({
     page,
@@ -101,8 +104,10 @@ export class AppUseCase {
     return details;
   }
 
-  async getWalletDetails(userId: mongoose.Types.ObjectId) {
-    const details = await this.walletRepository.getWalletDetailsById(userId, {});
+  async getWalletDetails(userId: mongoose.Types.ObjectId, role: string) {
+    const roleType = role === "user" ? "User" : "Doctor"; 
+  
+    const details = await this.walletRepository.getWalletDetailsById(userId, roleType);
     return details;
   }
   async getNotifications(userId: mongoose.Types.ObjectId) {
@@ -142,5 +147,10 @@ export class AppUseCase {
   async markAsReadNotification(notificationId : ObjectId) {
     await this.notificationRepository.markNotificationAsRead(notificationId);
     
+  }
+
+  async getTransactions(userId: mongoose.Types.ObjectId) {
+    const transactions = await this.transactionRepository.getAllTransactions(userId);
+    return transactions;
   }
 }
