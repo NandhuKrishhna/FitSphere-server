@@ -8,7 +8,7 @@ export interface AppointmentDocument extends Document {
   paymentStatus: "pending" | "completed" | "failed";
   paymentId?: string;
   amount: number;
-  status: "scheduled" | "completed" | "cancelled";
+  status: "scheduled" | "completed" | "cancelled" |"failed";
   meetingId?: string;
   orderId?: string;
   paymentMethod?: string;
@@ -27,7 +27,7 @@ const AppointmentSchema = new Schema<AppointmentDocument>(
     paymentStatus: { type: String, enum: ["pending", "completed", "failed"], default: "pending" },
     paymentId: { type: String, required: false },
     amount: { type: Number, required: true },
-    status: { type: String, enum: ["scheduled", "completed", "cancelled"], default: "scheduled" },
+    status: { type: String, enum: ["scheduled", "completed", "cancelled","failed"], default: "scheduled" },
     meetingId: { type: String, unique: true },
     orderId: { type: String, required: false },
     paymentMethod: { type: String, required: false },
