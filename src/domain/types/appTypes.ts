@@ -11,7 +11,8 @@ export type BookAppointmentParams ={
 export type SendMessageProps={
     senderId : Types.ObjectId,
     receiverId : Types.ObjectId,
-    message : string
+    message : string,
+    image ?: string
 }
 
 export type ParticipantsType = {
