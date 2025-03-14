@@ -15,8 +15,8 @@ export interface IWalletRepository {
   increaseBalance(data: WalletParams):Promise<WalletDocument | null>;
 
   getWalletDetailsById(
-    userId: mongoose.Types.ObjectId,
-    data: any
+    userId: ObjectId,
+    role: "User" | "Doctor"
   ): Promise<WalletDocument | null>;
 
   findWalletById(
