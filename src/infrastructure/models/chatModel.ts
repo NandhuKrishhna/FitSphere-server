@@ -3,7 +3,8 @@ export interface IChat extends Document {
   conversationId: mongoose.Types.ObjectId; 
   senderId: mongoose.Types.ObjectId;      
   receiverId: mongoose.Types.ObjectId;    
-  message: string;       
+  message: string; 
+  image?: string;      
   isRead: boolean;     
   createdAt: Date;
   updatedAt: Date;
@@ -25,7 +26,10 @@ const chatSchema: Schema<IChat> = new Schema(
     },
     message: {
       type: String,
-      required: true,
+      required: false,
+    },
+    image :{
+      type: String
     },
     isRead: {
       type: Boolean,
