@@ -6,6 +6,7 @@ import { BAD_REQUEST, NOT_FOUND } from "../../shared/constants/http";
 import { IConversationRepository, IConversationRepositoryToken } from "../repositories/IConversationRepository";
 import mongoose from "mongoose";
 import { getReceiverSocketId, io } from "../../infrastructure/config/socket.io";
+import cloudinary from "../../infrastructure/config/cloudinary";
 
 @Service()
 export class ChatUseCase {
@@ -14,18 +15,24 @@ export class ChatUseCase {
     @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository
   ) {}
 
-  public async sendMessage({ senderId, receiverId, message }: SendMessageProps): Promise<any> {
-    appAssert(message || message.trim() !== "", BAD_REQUEST, "Message is required");
+  public async sendMessage({ senderId, receiverId, message , image }: SendMessageProps): Promise<any> {
+    appAssert(message?.trim() || image, BAD_REQUEST, "Message or image is required");
     const participants = [senderId, receiverId].sort((a, b) => a.toString().localeCompare(b.toString()));
     let conversation = await this.conversationRepository.getConversationByParticipants(participants);
     if (!conversation) {
       conversation = await this.conversationRepository.createConversation(participants);
     }
+    let imageUrl;
+    if (image) {
+      const uploadResponse = await cloudinary.uploader.upload(image);
+      imageUrl = uploadResponse.secure_url;
+    }
     const newMessage = await this.chatRepository.createMessage({
       conversationId: conversation._id,
       senderId,
       receiverId,
-      message,
+      message: message?.trim() || "", 
+      image : imageUrl
     });
     const receiverSocketid = getReceiverSocketId(receiverId);
     if (receiverSocketid) {
