@@ -62,9 +62,9 @@ app.get("/health", (req: Request, res: Response) => {
 app.use("/api/auth", authRouter);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/admin", adminRouter);
-app.use("/api/app", authenticate, authorizeRoles([Role.USER]), appRouter);
-app.use("/api/app", authenticate, authorizeRoles([Role.USER]), caloriesRouter);
 //TODO remove the user from this route added because to test purpose only...for code reusability for now called some user api routes
+app.use("/api/app", authenticate, authorizeRoles([Role.USER,Role.DOCTOR]), appRouter);
+app.use("/api/app", authenticate, authorizeRoles([Role.USER]), caloriesRouter);
 app.use("/api/doctor", authenticate, authorizeRoles([Role.DOCTOR,Role.USER]), doctorFeatRouter);
 app.use("/api/notification", authenticate, authorizeRoles([Role.USER, Role.DOCTOR, Role.ADMIN]), notificationRouter);
 //webrtc  route
