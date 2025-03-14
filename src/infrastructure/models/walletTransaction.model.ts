@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface TransactionDocument extends Document {
   walletId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
+  role:"User" | "Doctor"
   type: "credit" | "debit";
   amount: number;
   currency: string;
@@ -13,7 +14,8 @@ export interface TransactionDocument extends Document {
 const TransactionSchema = new Schema<TransactionDocument>(
   {
     walletId: { type: Schema.Types.ObjectId, ref: "Wallet", required: true },
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    userId: { type: Schema.Types.ObjectId, required:true , refPath:"role" },
+    role :{type: String , enum:["User","Doctor"] , required:true},
     type: { type: String, enum: ["credit", "debit"], required: true },
     amount: { type: Number, required: true },
     currency: { type: String, required: true },
@@ -23,4 +25,4 @@ const TransactionSchema = new Schema<TransactionDocument>(
   { timestamps: true }
 );
 
-export const TransactionModel = mongoose.model<TransactionDocument>("Transaction", TransactionSchema);
+export const WalletTransactionModel = mongoose.model<TransactionDocument>("WalletTransaction", TransactionSchema);
