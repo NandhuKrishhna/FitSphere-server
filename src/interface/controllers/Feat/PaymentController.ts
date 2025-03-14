@@ -6,6 +6,7 @@ import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
 import appAssert from "../../../shared/utils/appAssert";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+import logger from "../../../shared/utils/logger";
 
 @Service()
 export class PaymentController {
@@ -43,6 +44,7 @@ export class PaymentController {
 
   cancelAppointmentHandler = catchErrors(async (req: Request, res: Response) => {
     const appointmentId = stringToObjectId(req.body.appointmentId);
+    logger.info(req.body)
     const response = await this.paymentUseCase.cancelAppointment(appointmentId);
     res.status(OK).json({
       success: true,
@@ -51,17 +53,17 @@ export class PaymentController {
     });
   });
 
-  // abortPaymentHandler = catchErrors(async (req: Request, res: Response) => {
-  //   console.log(req.body);
-  //   const orderId = req.body.orderId;
-  //   appAssert(orderId, BAD_REQUEST, "Missing");
-  //   const response = await this.paymentUseCase.abortPayment(orderId);
-  //   logger.info(response);
-  //   res.status(OK).json({
-  //     success: true,
-  //     message: "Payment failure recorded",
-  //   });
-  // });
+  abortPaymentHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body);
+    const orderId = req.body.orderId;
+    appAssert(orderId, BAD_REQUEST, "Missing");
+    const response = await this.paymentUseCase.abortPayment(orderId);
+    logger.info(response);
+    res.status(OK).json({
+      success: true,
+      message: "Payment failure recorded",
+    });
+  });
 
   // premiumSubscriptionHandler = catchErrors(async (req: Request, res: Response) => {
   //   const { type } = req.body;
@@ -74,7 +76,7 @@ export class PaymentController {
   //   });
   // });
 
-  // // TODO move the wallet logic to sepereate wallet controller
+  // TODO move the wallet logic to sepereate wallet controller
   walletPaymentHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const { usecase, type, doctorId, slotId, amount, patientId } = req.body;
