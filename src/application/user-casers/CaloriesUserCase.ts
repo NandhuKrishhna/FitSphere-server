@@ -12,8 +12,8 @@ import {
 import { TUserDetails } from "../../domain/types/calories.Types";
 import { calculateTargetCalories } from "../../shared/utils/calorieCalculator";
 import { ObjectId } from "../../infrastructure/models/UserModel";
-import { IFoodItem } from "../../infrastructure/models/food.logs";
 import { USDA_FOODDATA_API_URL } from "../../shared/constants/url";
+import { IFoodItem } from "../../infrastructure/models/caloriesIntakeModel";
 @Service()
 export class CaloriesUseCase {
   constructor(@Inject(ICaloriesDetailsRepositoryToken) private caloriesDetailsRepository: ICaloriesDetailsRepository) {}
@@ -106,4 +106,10 @@ export class CaloriesUseCase {
 
     return foods;
   }
+
+   async editFood(userId :ObjectId, foodId :ObjectId, date :Date, updatedFoodItem :IFoodItem, mealType:string){
+    appAssert(userId, BAD_REQUEST, "Please Login to delete food log");
+    appAssert(foodId, BAD_REQUEST, "Something went wrong. Please try again");
+    await this.caloriesDetailsRepository.editFoodLog(userId, foodId, date, updatedFoodItem, mealType);
+   }
 }
