@@ -102,12 +102,28 @@ export class CaloriesController {
     const { query, quantity } = req.query;
     logger.info(req.query);
     const response = await this.caloriesUseCase.searchFoodForFoodLog(query as string, quantity ? Number(quantity) : undefined);
-    console.log(response)
+    // console.log(response)
     res.status(OK).json({
       success: true,
       message: "Food Searched Successfully",
       foodDetails: response,
     });
   });
+
+  //edit food 
+  editFoodHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body);
+    const foodId = stringToObjectId(req.body.foodId);
+    const date = req.body.date;
+    const updatedFoodItem = req.body.foodItem;
+    const mealType = req.body.mealType;
+    const { userId } = req as AuthenticatedRequest;
+    const response = await this.caloriesUseCase.editFood(userId, foodId, date, updatedFoodItem, mealType);
+    res.status(OK).json({
+      success: true,
+      message: "Food Updated Successfully",
+      response,
+    });
+  })
   
 }
