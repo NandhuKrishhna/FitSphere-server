@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { ObjectId } from "./UserModel";
 
-interface IFoodItem {
+export interface IFoodItem {
   name: string;
   calories: number;
   protein?: number;
