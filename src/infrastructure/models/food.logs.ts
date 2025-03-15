@@ -2,6 +2,7 @@ import { Schema, model, Document } from "mongoose";
 
 export interface IFoodItem {
   name: string;
+  quantity: number;
   calories: number;
   protein?: number;
   carbs?: number;
@@ -18,20 +19,30 @@ export interface IFoodLog extends Document {
   isUnder: boolean;
 }
 
+const foodItemSchema = new Schema<IFoodItem>({
+  name: { type: String, required: true },
+  quantity: { type: Number, required: true }, 
+  calories: { type: Number, required: true },
+  protein: { type: Number, default: 0 },
+  carbs: { type: Number, default: 0 },
+  fat: { type: Number, default: 0 },
+});
+
 const foodLogSchema = new Schema<IFoodLog>({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   date: { type: Date, default: () => new Date().setUTCHours(0, 0, 0, 0) },
   meals: {
-    breakfast: [{ type: Object }],
-    lunch: [{ type: Object }],
-    dinner: [{ type: Object }],
-    snacks: [{ type: Object }],
+    breakfast: [foodItemSchema], 
+    lunch: [foodItemSchema],
+    dinner: [foodItemSchema],
+    snacks: [foodItemSchema],
   },
   totalConsumed: { type: Number, default: 0 },
-  targetCalories: Number,
-  remainingCalories: Number,
-  isUnder: Boolean,
+  targetCalories: { type: Number, required: true },
+  remainingCalories: { type: Number, default: 0 },
+  isUnder: { type: Boolean, default: true },
 });
+
 
 foodLogSchema.pre<IFoodLog>("save", function (next) {
   let total = 0;
@@ -39,7 +50,7 @@ foodLogSchema.pre<IFoodLog>("save", function (next) {
 
   mealTypes.forEach((meal) => {
     this.meals[meal]?.forEach((item) => {
-      total += item.calories;
+      total += (item.calories / 100) * item.quantity; 
     });
   });
 
