@@ -62,8 +62,8 @@ export class CaloriesController {
     const { userId } = req as AuthenticatedRequest;
     const mealType = req.body.mealType;
     const foodItem = req.body.foodItem;
-    // console.log("Food Item:", foodItem);
-    // console.log("MealType:", mealType);
+    logger.info("Food Item:", foodItem);
+    logger.info("MealType:", mealType);
     const response = await this.caloriesUseCase.addMeal(userId, mealType, foodItem);
     res.status(CREATED).json({
       success: true,
@@ -98,14 +98,16 @@ export class CaloriesController {
   });
 
   //* (USDA Food Database) user search food handler
-  serachFoodHandler = catchErrors(async (req: Request, res: Response) => {
-    const { query, quantity } = req.body;
-    logger.info(req.body);
-    const response = await this.caloriesUseCase.searchFoodForFoodLog(query, quantity);
+  searchFoodHandler = catchErrors(async (req: Request, res: Response) => {
+    const { query, quantity } = req.query;
+    logger.info(req.query);
+    const response = await this.caloriesUseCase.searchFoodForFoodLog(query as string, quantity ? Number(quantity) : undefined);
+    console.log(response)
     res.status(OK).json({
       success: true,
       message: "Food Searched Successfully",
       foodDetails: response,
     });
   });
+  
 }
