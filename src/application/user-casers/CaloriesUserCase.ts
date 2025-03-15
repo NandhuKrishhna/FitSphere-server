@@ -82,26 +82,27 @@ export class CaloriesUseCase {
     const foods = response.data.foods.map((food: any) => {
       const nutrients = food.foodNutrients.reduce((acc: any, nutrient: any) => {
         if (nutrient.nutrientName.includes("Energy")) {
-          acc.calories = quantity ? (nutrient.value / 100) * quantity : nutrient.value;
+          acc.calories = quantity ? Math.round((nutrient.value / 100) * quantity) : Math.round(nutrient.value);
         }
         if (nutrient.nutrientName.includes("Protein")) {
-          acc.protein = quantity ? (nutrient.value / 100) * quantity : nutrient.value;
+          acc.protein = quantity ? Math.round((nutrient.value / 100) * quantity) : Math.round(nutrient.value);
         }
         if (nutrient.nutrientName.includes("Carbohydrate")) {
-          acc.carbs = quantity ? (nutrient.value / 100) * quantity : nutrient.value;
+          acc.carbs = quantity ? Math.round((nutrient.value / 100) * quantity) : Math.round(nutrient.value);
         }
         if (nutrient.nutrientName.includes("Total lipid")) {
-          acc.fat = quantity ? (nutrient.value / 100) * quantity : nutrient.value;
+          acc.fat = quantity ? Math.round((nutrient.value / 100) * quantity) : Math.round(nutrient.value);
         }
         return acc;
       }, {} as IFoodItem);
-
+    
       return {
         name: food.description,
         quantity: quantity ? `${quantity}g` : "Default Serving",
         ...nutrients,
       };
     });
+    
 
     return foods;
   }
