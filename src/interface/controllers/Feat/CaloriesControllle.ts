@@ -102,7 +102,7 @@ export class CaloriesController {
     const { query, quantity } = req.query;
     logger.info(req.query);
     const response = await this.caloriesUseCase.searchFoodForFoodLog(query as string, quantity ? Number(quantity) : undefined);
-    // console.log(response)
+    console.log(response)
     res.status(OK).json({
       success: true,
       message: "Food Searched Successfully",
