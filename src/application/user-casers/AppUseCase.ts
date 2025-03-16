@@ -135,9 +135,6 @@ export class AppUseCase {
     const reviews = await this.reviewsRepository.findAllReviewsByDoctorId(doctorId);
     const rating = await this.ratingRepository.findRatingByDoctorId(doctorId);
 
-    // console.log("Fetched Reviews:", reviews);
-    // console.log("Fetched Rating:", rating);
-
     return { reviews, rating };
   }
   async getAllRatings(): Promise<IRating[]> {
@@ -152,5 +149,18 @@ export class AppUseCase {
   async getTransactions(userId: mongoose.Types.ObjectId) {
     const transactions = await this.transactionRepository.getAllTransactions(userId);
     return transactions;
+  }
+  async editReview({ userId, doctorId, rating, reviewText , reviewId }: ReviewsAndRatingParams) {
+    appAssert(rating >= 1 && rating <= 5, BAD_REQUEST, "Rating should be between 1 and 5");
+    appAssert(reviewText.length > 0, BAD_REQUEST, "Review is required");
+    await this.reviewsRepository.updateReview({ userId, doctorId, rating, reviewText , reviewId });
+  }
+
+  async deleteReview( doctorId: ObjectId, reviewId: ObjectId , userId : ObjectId) {
+    const doctor = await this.doctorRespository.findDoctorByID(doctorId);
+    appAssert(doctor, BAD_REQUEST, "Doctor not found");
+    appAssert(reviewId, BAD_REQUEST, "Review is required");
+    appAssert(doctorId, BAD_REQUEST, "Doctor is required");
+    await this.reviewsRepository.deleteReview( doctorId, reviewId, userId);
   }
 }

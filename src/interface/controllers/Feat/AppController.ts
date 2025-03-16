@@ -131,7 +131,7 @@ export class AppController {
   fetchReviewsAndRatingHandler = catchErrors(async (req: Request, res: Response) => {
     console.log("Hello world")
     console.log(req.body)
-    const doctorId = stringToObjectId(req.body.doctorId);
+    const doctorId = stringToObjectId(req.params.doctorId as string);
     appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
     const { reviews, rating } = await this.appUseCase.fetchReviewsAndRating(doctorId);
     res.status(OK).json({
@@ -172,6 +172,32 @@ export class AppController {
       success: true,
       message: "Transactions fetched successfully",
       transactions
+    })
+  })
+
+  editReviewHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body)
+    const {userId}  = req as AuthenticatedRequest;
+    const { rating, reviewText } = req.body;
+    const doctorId = stringToObjectId(req.body.doctorId);
+    const reviewId = stringToObjectId(req.body.reviewId);
+    const response = await this.appUseCase.editReview({ userId, doctorId, rating, reviewText , reviewId});
+    res.status(OK).json({
+      success: true,
+      message: "Review and rating edited successfully",
+      response,
+    });
+  })
+
+  deleteReviewHandler = catchErrors(async (req: Request, res: Response) => {
+    const {userId} = req as AuthenticatedRequest;
+    const doctorId = stringToObjectId(req.body.doctorId);
+    const reviewId = stringToObjectId(req.body.reviewId);
+    const response = await this.appUseCase.deleteReview(doctorId, reviewId , userId );
+    res.status(OK).json({
+      success: true,
+      message: "Review deleted successfully",
+      response,
     })
   })
 

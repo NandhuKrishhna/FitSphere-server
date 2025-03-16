@@ -5,6 +5,7 @@ export type ReviewsAndRatingParams = {
   rating: number;
   reviewText: string;
   userId: ObjectId;
+  reviewId?: ObjectId
 };
 
 export type RatingParams = {
