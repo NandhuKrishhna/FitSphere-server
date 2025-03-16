@@ -91,7 +91,7 @@ export class CaloriesUseCase {
           acc.carbs = quantity ? Math.round((nutrient.value / 100) * quantity) : Math.round(nutrient.value);
         }
         if (nutrient.nutrientName.includes("Total lipid")) {
-          acc.fat = quantity ? Math.round((nutrient.value / 100) * quantity) : Math.round(nutrient.value);
+          acc.fats = quantity ? Math.round((nutrient.value / 100) * quantity) : Math.round(nutrient.value);
         }
         return acc;
       }, {} as IFoodItem);
