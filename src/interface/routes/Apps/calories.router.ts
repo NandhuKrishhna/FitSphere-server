@@ -12,7 +12,7 @@ caloriesRouter.post("/delete-food", caloriesController.deleteFoodHandler);
 caloriesRouter.post("/get-foodlog", caloriesController.getFoodLogsHandler);
 caloriesRouter.get("/get-userHealthDetails", caloriesController.getUserHealthDetailsHandler);
 caloriesRouter.get("/get-foods", caloriesController.searchFoodHandler);
-caloriesRouter.patch("/edit-foods", caloriesController.editFoodHandler);
+caloriesRouter.patch("/edit-food", caloriesController.editFoodHandler);
 
 
 export default caloriesRouter;
