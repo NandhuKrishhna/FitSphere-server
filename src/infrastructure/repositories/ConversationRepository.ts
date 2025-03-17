@@ -62,6 +62,7 @@ export class ConversationRepository implements IConversationRepository {
           "doctorDetails.profilePicture": 1,
           lastMessage: 1,
           _id: 1,
+          updatedAt: 1,
         },
       },
     ]);
