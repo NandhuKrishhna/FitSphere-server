@@ -7,6 +7,7 @@ import { IConversationRepository, IConversationRepositoryToken } from "../reposi
 import mongoose from "mongoose";
 import { getReceiverSocketId, io } from "../../infrastructure/config/socket.io";
 import cloudinary from "../../infrastructure/config/cloudinary";
+import { ObjectId } from "../../infrastructure/models/UserModel";
 
 @Service()
 export class ChatUseCase {
@@ -59,5 +60,12 @@ export class ChatUseCase {
   public async getAllUsers(userId: mongoose.Types.ObjectId, role: string): Promise<any> {
     const users = await this.conversationRepository.getUsers(userId, role);
     return users;
+  }
+  public async createConversation(senderId : ObjectId , receiverId : ObjectId): Promise<void> {
+    const participants = [senderId, receiverId].sort((a, b) => a.toString().localeCompare(b.toString()));
+    const conversation = await this.conversationRepository.getConversationByParticipants(participants);
+    if(conversation) return
+    await this.conversationRepository.addUserForSidebar(participants);
+
   }
 }
