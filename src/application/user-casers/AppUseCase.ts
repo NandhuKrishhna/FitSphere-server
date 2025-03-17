@@ -18,6 +18,7 @@ import { IReviewsRepository, IReviewsRepositoryToken } from "../repositories/IRe
 import { IRatingRepository, IRatingRepositoryToken } from "../repositories/IRatingsRepository";
 import { IRating } from "../../infrastructure/models/RatingsModel";
 import { ITransactionRepository, ITransactionRepositoryToken } from "../repositories/ITransactionRepository";
+import { TransactionQueryParams } from "../../interface/controllers/Feat/AppController";
 
 export type WalletParams = {
   userId: ObjectId;
@@ -163,4 +164,11 @@ export class AppUseCase {
     appAssert(doctorId, BAD_REQUEST, "Doctor is required");
     await this.reviewsRepository.deleteReview( doctorId, reviewId, userId);
   }
+
+ async fetchTransactions(userId:ObjectId , queryParams:TransactionQueryParams):Promise<any>{
+   appAssert(userId , BAD_REQUEST , "Invalid userId");
+   return this.transactionRepository.fetchAllTransactionById(userId , queryParams);
+
+ }
+  
 }
