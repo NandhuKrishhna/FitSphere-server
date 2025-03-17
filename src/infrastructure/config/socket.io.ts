@@ -15,7 +15,7 @@ const io = new Server(server, {
 });
 
 const userSocketMap: { [key: string]: string } = {};
-
+//TODO remove console.log 
 export function getReceiverSocketId(userId: any) {
   return userSocketMap[userId] || null;
 }
