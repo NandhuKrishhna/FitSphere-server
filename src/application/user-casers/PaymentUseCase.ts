@@ -54,13 +54,20 @@ export class PaymentUseCase {
     appAssert(existingSlot, BAD_REQUEST, "No slots found. Please try another slot.");
     appAssert(!existingSlot.patientId, BAD_REQUEST, "Slot is already booked. Please try another slot.");
     appAssert(existingSlot.status === "available", BAD_REQUEST, "Slot is not available. Please try another slot.");
-    const overlappingAppointment = await this.appointmentRepository.findOverlappingAppointment(
-      doctorId,
-      existingSlot.startTime,
-      existingSlot.endTime,
-      existingSlot.date
-    );
-    appAssert(!overlappingAppointment, BAD_REQUEST, "Slot is already booked. Please try another slot.");
+    const currentTime = new Date();
+    //TODO remove console.logs
+    console.log("Current UTC Time:", currentTime);
+    const slotStartTime = new Date(existingSlot.startTime);
+    console.log("Slot Start Time (from DB):", slotStartTime);
+    const istOffset = 5.5 * 60 * 60 * 1000; 
+    const istCurrentTime = new Date(currentTime.getTime() + istOffset);
+    console.log("IST Current Time:", istCurrentTime);
+    console.log("Comparing IST Time with Slot Start Time:");
+    console.log(`IST Time: ${istCurrentTime}, Slot Start Time: ${slotStartTime}`);
+    console.log("Is Slot Start Time > IST Current Time?", slotStartTime > istCurrentTime);
+    appAssert(slotStartTime > istCurrentTime, BAD_REQUEST, "Slot is not available. Please try another slot.");
+
+
 
     const razorpayOrder = await razorpayInstance.orders.create({
       amount: amount * 100,
