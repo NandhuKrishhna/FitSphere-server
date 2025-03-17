@@ -4,7 +4,7 @@ import { Types } from "mongoose";
 
 export interface IChatRepository {
   createMessage(messageData: Partial<IChat>): Promise<IChat>;
-  getMessagesByConversationId(conversationId: Types.ObjectId): Promise<IChat[]>;
+  getMessagesByConversationId(conversationId: Types.ObjectId ): Promise<IChat[]>;
   markMessageAsRead(messageId: Types.ObjectId): Promise<void>;
 }
   
