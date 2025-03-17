@@ -18,8 +18,9 @@ appRouter.post("/wallet", appController.getWalletHandler);
 
 // chat
 appRouter.post("/send-message", chatController.sendMessageHandler);
-appRouter.post("/conversation", chatController.getMessagesHandler);
+appRouter.get("/conversation", chatController.getMessagesHandler);
 appRouter.get("/get-users", chatController.getAllUsersHandler);
+appRouter.post("/create-conversation", chatController.createConversationHandler)
 
 //payment [wallet, transactions, book appointment]
 appRouter.post("/book/slots", paymentController.bookAppointment);
@@ -37,6 +38,9 @@ appRouter.post("/get-all-notification", appController.getNotificationsHandler);
 appRouter.post("/mark-as-read", appController.markAsReadNotificationHandler);  
 
 appRouter.get("/get-all-transactions", appController.getAllTransactionsHandler);
+appRouter.get("/get-transaction-history", appController.fetchTransactionHandler);
+
+
 appRouter.patch("/edit-review", appController.editReviewHandler);
 appRouter.delete("/delete-review", appController.deleteReviewHandler);
 
