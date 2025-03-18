@@ -87,11 +87,9 @@ export class DoctorFeatController {
   });
 
   getAllAppointmentsHandler = catchErrors(async (req: Request, res: Response) => {
-    const doctorId = stringToObjectId(req.body.userId);
+    const {userId, role} = req as AuthenticatedRequest;
     const queryParams: AppointmentQueryParams = req.query;
-
-    const response = await this.doctorFeatUseCase.getAllAppointment(doctorId, queryParams);
-
+    const response = await this.doctorFeatUseCase.getAllAppointment(userId, queryParams, role);
     return res.status(OK).json({
       success: true,
       ...response,
