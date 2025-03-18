@@ -46,6 +46,7 @@ export class PaymentUseCase {
   ) {}
 
   async userAppointment({ doctorId, patientId, slotId, amount }: BookAppointmentParams) {
+    console.log("-----------------")
     const patient = await this.userRepository.findUserById(patientId);
     appAssert(patient, BAD_REQUEST, "Patient not found. Please try again.");
     const doctor = await this.doctorRespository.findDoctorByID(doctorId);
@@ -66,13 +67,14 @@ export class PaymentUseCase {
     console.log(`IST Time: ${istCurrentTime}, Slot Start Time: ${slotStartTime}`);
     console.log("Is Slot Start Time > IST Current Time?", slotStartTime > istCurrentTime);
     appAssert(slotStartTime > istCurrentTime, BAD_REQUEST, "Slot is not available. Please try another slot.");
-
+    const shortPatientId = patientId.toString().slice(-6); 
+    const receiptId = `rct_${shortPatientId}_${Date.now().toString()}`;
 
 
     const razorpayOrder = await razorpayInstance.orders.create({
       amount: amount * 100,
       currency: CURRENCY,
-      receipt: slotId.toString(),
+      receipt: receiptId,
       payment_capture: true,
     });
     console.log("Razorpay:", razorpayOrder);
@@ -84,7 +86,7 @@ export class PaymentUseCase {
       consultationType: existingSlot.consultationType,
       date: existingSlot.date,
       amount,
-      orderId: razorpayOrder.id,
+      orderId: razorpayOrder.receipt,
     });
 
     const transaction = await this.transactionRepository.createTransaction({
@@ -97,8 +99,8 @@ export class PaymentUseCase {
       method: "razorpay",
       paymentType: "slot_booking",
       status: "pending",
-      paymentGatewayId: razorpayOrder.id,
-      bookingId: newAppointmentDetails._id as ObjectId,
+      paymentGatewayId: razorpayOrder.receipt,
+      bookingId: newAppointmentDetails._id as string,
     });
     console.log("Transaction created: ", transaction);
 
@@ -115,7 +117,7 @@ export class PaymentUseCase {
 
   async verifyPayment({ userId, razorpay_order_id, doctorId }: VerifyPaymentParams) {
     const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
-    const receiptId = new mongoose.Types.ObjectId(orderInfo.receipt);
+    const receiptId = orderInfo.receipt
     console.log("Order Info:", orderInfo);
     appAssert(orderInfo, BAD_REQUEST, "Unable to fetch order details. Please try again later.");
 
@@ -133,13 +135,13 @@ export class PaymentUseCase {
       console.log("Additional Details:", additionalDetails);
 
       const appointment = await this.appointmentRepository.updatePaymentStatus(
-        receiptId,
+        receiptId!,
         additionalDetails,
         "completed"
       );
       appAssert(appointment, BAD_REQUEST, "Appointment details are missing. Please try again.");
       const updatedUserTransaction = await this.transactionRepository.updateTransaction(
-        { paymentGatewayId: razorpay_order_id },
+        { paymentGatewayId: receiptId},
         {
           status: "success",
           paymentGatewayId: payments.items[0]?.id || razorpay_order_id, 
@@ -156,7 +158,7 @@ export class PaymentUseCase {
         method: "razorpay",
         paymentType: "slot_booking",
         status: "success",
-        bookingId: appointment._id as ObjectId,
+        bookingId: appointment._id as string,
         paymentGatewayId: payments.items[0]?.id || razorpay_order_id, 
         relatedTransactionId: updatedUserTransaction.transactionId,
       });
@@ -206,6 +208,7 @@ export class PaymentUseCase {
     throw new Error("Payment not completed.");
   }
   async cancelAppointment(appointmentId: mongoose.Types.ObjectId) {
+    console.log("<<<<<<<<<<<<<<<<<<<Cancel Appointment>>>>>>>>>>>>>>>>>>>");
     const details = await this.appointmentRepository.cancelAppointment(appointmentId);
     appAssert(details, BAD_REQUEST, "Unable to cancel appointment. Please try few minutes later.");
     await this.slotRespository.cancelSlotById(details.slotId);
@@ -232,7 +235,7 @@ export class PaymentUseCase {
       method: "wallet",
       paymentType: "cancel_appointment",
       status: "success",
-      bookingId: details._id as ObjectId, 
+      bookingId: details._id as string, 
 
     });
 
@@ -246,78 +249,83 @@ export class PaymentUseCase {
         method: "wallet",
         paymentType: "cancel_appointment",
         status: "success",
-        bookingId: details._id as ObjectId, 
+        bookingId: details._id  as string, 
     });
     
     return details;
   }
   async abortPayment(orderId: string) {
+    logger.info("Aborting payment for order ID:", orderId);
     try {
-      const orderInfo = await razorpayInstance.orders.fetch(orderId);
-      const receiptId = new mongoose.Types.ObjectId(orderInfo.receipt);
-      logger.info("Order info fetched:", orderInfo);
+        const orderInfo = await razorpayInstance.orders.fetch(orderId);
+        const receiptId = orderInfo.receipt;
+        logger.info("Order info fetched:", orderInfo);
 
-      let additionalDetails = {
-        orderId: orderId,
-        paymentMethod: "none",
-        paymentThrough: "Razorpay",
-        description: "Payment cancelled or failed",
-        bank: "",
-        meetingId: "",
-      };
-
-      try {
-        const payments = await razorpayInstance.orders.fetchPayments(orderId);
-        logger.info("Payment Details:", payments);
-        if (payments && payments.items && payments.items.length > 0) {
-          additionalDetails = {
-            orderId: payments.items[0]?.order_id || orderId,
-            paymentMethod: payments.items[0]?.method || "none",
+        let additionalDetails = {
+            orderId: orderId,
+            paymentMethod: "none",
             paymentThrough: "Razorpay",
-            description: payments.items[0]?.description || "Payment cancelled or failed",
-            bank: payments.items[0]?.bank || "",
-            meetingId: uuidv4() || "",
-          };
+            description: "Payment cancelled or failed",
+            bank: "",
+            meetingId: "",
+        };
+
+        let payments: any = null;  
+
+        try {
+            payments = await razorpayInstance.orders.fetchPayments(orderId);
+            logger.info("Payment Details:", payments);
+            if (payments?.items?.length > 0) {
+                additionalDetails = {
+                    orderId: payments.items[0]?.order_id || orderId,
+                    paymentMethod: payments.items[0]?.method || "none",
+                    paymentThrough: "Razorpay",
+                    description: payments.items[0]?.description || "Payment cancelled or failed",
+                    bank: payments.items[0]?.bank || "",
+                    meetingId: "",
+                };
+            }
+        } catch (paymentError) {
+            logger.warn("Failed to fetch payment details:", paymentError);
+        };
+        logger.info("Using additional details:", additionalDetails);
+        const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId!, additionalDetails, "failed");
+        console.log(appointment);
+
+        if (appointment) {
+            await this.notificationRepository.createNotification({
+                userId: appointment.patientId,
+                role: Role.USER,
+                type: NotificationType.Appointment,
+                message: "Your payment was cancelled or failed",
+                status: "pending",
+                metadata: {
+                    meetingId: appointment.meetingId,
+                    appointMentId: appointment._id,
+                },
+            });
+            const response = await this.transactionRepository.updateTransaction(
+                { paymentGatewayId: receiptId },  
+                {
+                    status: "failed",
+                    type: "failed",
+                    paymentGatewayId: payments?.items[0]?.id || receiptId, 
+                }
+            );
+
+            console.log("Created from the abort payment:", response);
         }
-      } catch (paymentError) {
-        logger.warn("Failed to fetch payment details:", paymentError);
-      }
-      logger.info("Using additional details:", additionalDetails);
-      const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId, additionalDetails, "failed");
-
-      if (appointment) {
-        await this.notificationRepository.createNotification({
-          userId: appointment.patientId,
-          type: NotificationType.Appointment,
-          message: "Your payment was cancelled or failed",
-          status: "pending",
-          metadata: {
-            meetingId: appointment.meetingId,
-            appointMentId: appointment._id,
-          },
-        });
-
-        await this.transactionRepository.createTransaction({
-          from: appointment.patientId,
-          fromModel: "User",
-          amount: Number(appointment.amount), 
-          type: "debit",
-          method: "wallet",
-          paymentType: "cancel_appointment",
-          status: "failed",
-          bookingId: appointment._id as ObjectId, 
-        })
-      }
-      return { success: true, message: "Payment failure recorded successfully" };
+        return { success: true, message: "Payment failure recorded successfully" };
     } catch (error) {
-      logger.error(`Failed to abort payment for order ${orderId}:`, error);
-      return {
-        success: true,
-        message: "Payment failed",
-        note: "Error details logged on server",
-      };
+        logger.error(`Failed to abort payment for order ${orderId}:`, error);
+        return {
+            success: false,
+            message: "Payment failed",
+            note: "Error details logged on server",
+        };
     }
-  }
+}
+
   // /**
   //  // TODO razorpay and wallet payment integration 
   //  */
@@ -384,7 +392,7 @@ export class PaymentUseCase {
         method: "wallet",
         paymentType: "slot_booking",
         status: "success",
-        bookingId: newAppointmentDetails._id as ObjectId, 
+        bookingId: newAppointmentDetails._id as string, 
         relatedTransactionId: wallet._id as string,
       });
       console.log("Doctor Transaction created:", doctorTransaction);
@@ -399,7 +407,7 @@ export class PaymentUseCase {
         method: "wallet",
         paymentType: "slot_booking",
         status: "success",
-        bookingId: newAppointmentDetails._id as ObjectId, 
+        bookingId: newAppointmentDetails._id as string, 
         relatedTransactionId: wallet._id as string,
       });
 
