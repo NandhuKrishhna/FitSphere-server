@@ -52,10 +52,10 @@ export class DoctorFeatUseCase {
     await this.slotRepository.deleteSlot(doctorId, slotId);
   }
 
-  async getAllAppointment(doctorId: ObjectId, queryParams: AppointmentQueryParams): Promise<PaginatedAppointments> {
-    appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
+  async getAllAppointment(userId: ObjectId, queryParams: AppointmentQueryParams, role : string): Promise<PaginatedAppointments> {
+    appAssert(userId, BAD_REQUEST, "Doctor Id is required");
 
-    return this.appointmentRepository.findAllAppointmentsByDocID(doctorId, queryParams);
+    return this.appointmentRepository.findAllAppointmentByUserIdAndRole(userId, queryParams ,role);
   }
 
   async getAllUsers(userId: mongoose.Types.ObjectId, role: string): Promise<any> {
