@@ -53,6 +53,7 @@ export class PaymentController {
     });
   });
 
+
   abortPaymentHandler = catchErrors(async (req: Request, res: Response) => {
     console.log(req.body);
     const orderId = req.body.orderId;
@@ -75,6 +76,8 @@ export class PaymentController {
   //     response,
   //   });
   // });
+
+
 
   // TODO move the wallet logic to sepereate wallet controller
   walletPaymentHandler = catchErrors(async (req: Request, res: Response) => {
@@ -100,4 +103,6 @@ export class PaymentController {
       response,
     });
   });
+  
+  
 }
