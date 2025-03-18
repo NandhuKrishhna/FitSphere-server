@@ -13,7 +13,7 @@ const appController = Container.get(AppController);
 doctorFeatRouter.post("/slot-management", doctorFeatController.slotManagementHandler);
 doctorFeatRouter.get("/get-slots", doctorFeatController.displayAllSlotsHandler);
 doctorFeatRouter.post("/cancel-slot", doctorFeatController.cancelSlotHandler);
-doctorFeatRouter.post("/get/all-appointments", doctorFeatController.getAllAppointmentsHandler);
+doctorFeatRouter.get("/get/all-appointments", doctorFeatController.getAllAppointmentsHandler);
 doctorFeatRouter.get("/get-all-chats", doctorFeatController.getUsersInSideBarHandler);
 doctorFeatRouter.post("/get-all-messages", chatController.getMessagesHandler);
 doctorFeatRouter.post("/send-message", chatController.sendMessageHandler);
