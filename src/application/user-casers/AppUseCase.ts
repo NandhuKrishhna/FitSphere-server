@@ -111,8 +111,8 @@ export class AppUseCase {
     const details = await this.walletRepository.getWalletDetailsById(userId, roleType);
     return details;
   }
-  async getNotifications(userId: mongoose.Types.ObjectId) {
-    const details = await this.notificationRepository.getAllNotificationById(userId);
+  async getNotifications(userId: mongoose.Types.ObjectId ,role : string) {
+    const details = await this.notificationRepository.getAllNotificationById(userId , role);
     appAssert(details, BAD_REQUEST, "Unable to fetch notifications. Please try few minutes later.");
     return details;
   }
