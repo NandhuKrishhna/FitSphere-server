@@ -39,6 +39,14 @@ const AppointmentSchema = new Schema<AppointmentDocument>(
     timestamps: true,
   }
 );
+AppointmentSchema.index({ doctorId: 1 }); 
+AppointmentSchema.index({ patientId: 1 }); 
+AppointmentSchema.index({ slotId: 1 });
+AppointmentSchema.index({ date: 1 });
+AppointmentSchema.index({ paymentStatus: 1 }); 
+AppointmentSchema.index({ status: 1 });
+AppointmentSchema.index({ meetingId: 1 }, { unique: true }); 
+AppointmentSchema.index({ createdAt: -1 }); 
 
 export const AppointmentModel: Model<AppointmentDocument> = mongoose.model<AppointmentDocument>(
   "Appointment",
