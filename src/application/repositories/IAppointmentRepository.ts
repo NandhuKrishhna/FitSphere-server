@@ -23,13 +23,13 @@ export interface IAppointmentRepository {
   ): Promise<AppointmentDocument | null>;
   createAppointment(appointment: Partial<AppointmentDocument>): Promise<AppointmentDocument>;
   updatePaymentStatus(
-    id: mongoose.Types.ObjectId,
+    id: string,
     additionalDetails: AdditonDetails,
     status: string
   ): Promise<AppointmentDocument | null>;
   findDetailsByPatientId(userId: mongoose.Types.ObjectId): Promise<any>;
   cancelAppointment(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null>;
-  findAllAppointmentsByDocID(doctorId: ObjectId, queryParams: AppointmentQueryParams): Promise<PaginatedAppointments>;
+  findAllAppointmentByUserIdAndRole(userId: ObjectId, queryParams: AppointmentQueryParams, role: string): Promise<PaginatedAppointments>;
   findAppointmentByMeetingId(meetingId: string): Promise<AppointmentDocument | null>;
   findAllAppointments(userId: ObjectId): Promise<AppointmentDocument[]>;
 }
