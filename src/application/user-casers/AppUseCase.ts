@@ -165,9 +165,9 @@ export class AppUseCase {
     await this.reviewsRepository.deleteReview( doctorId, reviewId, userId);
   }
 
- async fetchTransactions(userId:ObjectId , queryParams:TransactionQueryParams):Promise<any>{
+ async fetchTransactions(userId:ObjectId , queryParams:TransactionQueryParams, role:string):Promise<any>{
    appAssert(userId , BAD_REQUEST , "Invalid userId");
-   return this.transactionRepository.fetchAllTransactionById(userId , queryParams);
+   return this.transactionRepository.fetchAllTransactionById(userId , queryParams, role);
 
  }
   
