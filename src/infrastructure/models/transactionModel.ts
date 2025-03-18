@@ -6,14 +6,14 @@ export interface ITransaction extends Document {
   to?: mongoose.Types.ObjectId;
   toModel?: "User" | "Doctor";
   amount: number;
-  type: "credit" | "debit";
+  type: "credit" | "debit" | "failed";
   method: "wallet" | "razorpay";
-  paymentType: "subscription" | "slot_booking" | "wallet_payment" | "cancel_appointment";
+  paymentType: "subscription" | "slot_booking" | "wallet_payment" | "cancel_appointment" | "refund";
   status: "pending" | "success" | "failed";
   transactionId: string;
   currency?: string;
-  subscriptionId?: mongoose.Types.ObjectId;
-  bookingId?: mongoose.Types.ObjectId;
+  subscriptionId?: string;
+  bookingId?: string;
   paymentGatewayId?: string;
   relatedTransactionId?: string;
 }
@@ -24,14 +24,14 @@ const transactionSchema = new Schema<ITransaction>(
     to: { type: Schema.Types.ObjectId, refPath: "toModel", required: false },
     toModel: { type: String, enum: ["User", "Doctor"], required: false },
     amount: { type: Number, required: true },
-    type: { type: String, enum: ["credit", "debit"], required: true },
+    type: { type: String, enum: ["credit", "debit", "failed"], required: true },
     method: { type: String, enum: ["wallet", "razorpay"], required: true },
-    paymentType: { type: String, enum: ["subscription", "slot_booking", "wallet_payment", "cancel_appointment"], required: true },
+    paymentType: { type: String, enum: ["subscription", "slot_booking", "wallet_payment", "cancel_appointment" , "refund"], required: true },
     status: { type: String, enum: ["pending", "success", "failed"], default: "pending" },
     transactionId: { type: String, default: uuidv4, unique: true },
     currency: { type: String, default: "INR" },
-    subscriptionId: { type: Schema.Types.ObjectId, ref: "Subscription", required: false },
-    bookingId: { type: Schema.Types.ObjectId, ref: "Booking", required: false },
+    subscriptionId: { type: String, ref: "Subscription", required: false },
+    bookingId: { type: String, ref: "Booking", required: false },
     paymentGatewayId: { type: String, required: false },
     relatedTransactionId: { type: String, required: false },
   },
