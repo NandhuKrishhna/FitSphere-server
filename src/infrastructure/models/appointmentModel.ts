@@ -45,8 +45,7 @@ AppointmentSchema.index({ slotId: 1 });
 AppointmentSchema.index({ date: 1 });
 AppointmentSchema.index({ paymentStatus: 1 }); 
 AppointmentSchema.index({ status: 1 });
-AppointmentSchema.index({ meetingId: 1 }, { unique: true }); 
-AppointmentSchema.index({ createdAt: -1 }); 
+
 
 export const AppointmentModel: Model<AppointmentDocument> = mongoose.model<AppointmentDocument>(
   "Appointment",
