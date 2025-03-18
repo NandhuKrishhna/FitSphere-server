@@ -7,6 +7,7 @@ import { IUserDetails, UserDetailsModel } from "../models/user.addition.details"
 import mongoose from "mongoose";
 import { CalorieIntakeModel, ICalorieIntake, IFoodItem } from "../models/caloriesIntakeModel";
 import { ObjectId } from "../models/UserModel";
+import { IWeightLog, WeightLogModel } from "../models/weightLog.model";
 
 @Service(ICaloriesDetailsRepositoryToken)
 export class CaloriesRepository implements ICaloriesDetailsRepository {
@@ -157,7 +158,6 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
       { new: true }
     );
   }
-
   async editFoodLog(
     userId: mongoose.Types.ObjectId,
     foodId: mongoose.Types.ObjectId,
@@ -167,19 +167,14 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
   ): Promise<void> {
     const formattedDate = new Date(date);
     formattedDate.setUTCHours(0, 0, 0, 0);
-  
     const calorieIntake = await CalorieIntakeModel.findOne({ userId, date: formattedDate });
-  
     if (!calorieIntake) {
       throw new Error("Calorie intake record not found for the given date.");
     }
-  
     const mealArray = calorieIntake.meals[mealType as keyof typeof calorieIntake.meals];
     if (!mealArray) {
       throw new Error(`Invalid meal type: ${mealType}`);
     }
-  
-    // Log existing food item IDs
     console.log("Existing food IDs in meal:", mealArray.map((item) => item._id?.toString()));
   
     const foodIndex = mealArray.findIndex((food) => food._id?.toString() === foodId.toString());
@@ -187,13 +182,13 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
     if (foodIndex === -1) {
       throw new Error(`Food item not found in the meal. FoodId: ${foodId}, MealType: ${mealType}`);
     }
-  
-    // Update the food item
     mealArray[foodIndex] = { ...mealArray[foodIndex], ...updatedFoodItem };
   
     const updatedLog = await calorieIntake.save();
   }
   
-  
+  async getWeightLogsByUserId(userId:ObjectId):Promise<IWeightLog[] | null>{
+    return await WeightLogModel.find({userId:userId}).lean()
+  }
 
 }

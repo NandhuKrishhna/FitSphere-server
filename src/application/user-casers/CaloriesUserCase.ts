@@ -112,4 +112,8 @@ export class CaloriesUseCase {
     appAssert(foodId, BAD_REQUEST, "Something went wrong. Please try again");
     await this.caloriesDetailsRepository.editFoodLog(userId, foodId, date, updatedFoodItem, mealType);
    }
+
+   async getWeightLogs(userId : ObjectId){
+     return await this.caloriesDetailsRepository.getWeightLogsByUserId(userId);
+   }
 }

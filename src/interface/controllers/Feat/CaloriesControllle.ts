@@ -125,5 +125,17 @@ export class CaloriesController {
       response,
     });
   })
+
+  //*Get Weight Logs;
+  getWeightLogHandler = catchErrors(async (req: Request, res: Response) => {
+    const {userId} = req as AuthenticatedRequest;
+    appAssert(userId, BAD_REQUEST , "Invalid User ID. Please login again.");
+    const weightProgress = await this.caloriesUseCase.getWeightLogs(userId);
+    res.status(OK).json({
+      success : true ,
+      message : "Weight Log fetch successfully",
+      weightProgress
+    })
+  })
   
 }
