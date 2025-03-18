@@ -1,14 +1,23 @@
 import { Request, Response } from "express";
 import catchErrors from "../../../shared/utils/catchErrors";
-import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
+import { BAD_REQUEST, OK } from "../../../shared/constants/http";
 import appAssert from "../../../shared/utils/appAssert";
 import { Inject, Service } from "typedi";
 import { AppUseCase } from "../../../application/user-casers/AppUseCase";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
-import logger from "../../../shared/utils/logger";
-import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
-import { json } from "stream/consumers";
 
+import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+export type TransactionQueryParams ={
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  search?: string;
+  doctorName?: string;
+  status?: string;
+  method?: string;
+  type?: string;
+}
 @Service()
 export class AppController {
   constructor(@Inject() private appUseCase: AppUseCase) {}
@@ -83,9 +92,9 @@ export class AppController {
       slots,
     });
   });
-
+  // TODO remove this one created common for user and doctor in doctorFeatController
   getAppointmentHandlers = catchErrors(async (req: Request, res: Response) => {
-    const userId = stringToObjectId(req.body.patientId);
+    const {userId} = req as AuthenticatedRequest;
     const response = await this.appUseCase.displaySlotWithDoctorDetails(userId);
     res.status(OK).json({
       success: true,
@@ -198,6 +207,20 @@ export class AppController {
       success: true,
       message: "Review deleted successfully",
       response,
+    })
+  })
+   
+
+  fetchTransactionHandler = catchErrors(async (req: Request, res: Response) => {
+    const {userId, role} = req as AuthenticatedRequest;
+  
+    console.log(userId)
+    const queryParams : TransactionQueryParams=  req.query;
+    const response = await this.appUseCase.fetchTransactions(userId, queryParams , role);
+    res.status(OK).json({
+      success : true,
+      message :"Transactions fetched successfully",
+      ...response
     })
   })
 
