@@ -115,8 +115,8 @@ export class AppController {
   });
 
   getNotificationsHandler = catchErrors(async (req: Request, res: Response) => {
-    const {userId} = req as AuthenticatedRequest;
-    const allNotifications = await this.appUseCase.getNotifications(userId);
+    const {userId,role} = req as AuthenticatedRequest;
+    const allNotifications = await this.appUseCase.getNotifications(userId ,role);
     res.status(OK).json({
       success: true,
       message: "Notifications fetched successfully",
