@@ -5,7 +5,11 @@ import { Request, Response } from "express";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { CREATED, OK } from "../../../shared/constants/http";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
-
+export type GetMessagesQueryParams = {
+  receiverId: string;
+  page? : string
+  limit? : string
+}
 @Service()
 export class ChatController {
   constructor(@Inject() private chatUseCase: ChatUseCase) {}
@@ -34,10 +38,9 @@ export class ChatController {
 
   //get messages
   getMessagesHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
-    console.log(typeof req.body.receiverId);
-    const { userId: senderId } = req as AuthenticatedRequest;
-    const receiverId = stringToObjectId(req.body.receiverId);
+    console.log("REQUERY",req.query);
+    const receiverId = stringToObjectId(req.query.receiverId as string);
+    const  { userId: senderId } = req as AuthenticatedRequest;
     const { messages, conversationId } = await this.chatUseCase.getMessages({
       senderId,
       receiverId,
@@ -58,6 +61,20 @@ export class ChatController {
       success: true,
       message: "Users fetched successfully",
       users,
+    });
+  });
+
+  createConversationHandler = catchErrors(async (req: Request, res: Response) => {
+    const { userId: senderId } = req as AuthenticatedRequest;
+    const receiverId = stringToObjectId(req.body.receiverId);
+    await this.chatUseCase.createConversation(
+      senderId,
+      receiverId,
+    );
+    res.status(CREATED).json({
+      success: true,
+      message: "Conversation created successfully",
+  
     });
   });
 }
