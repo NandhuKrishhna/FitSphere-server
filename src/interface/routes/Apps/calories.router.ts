@@ -13,6 +13,8 @@ caloriesRouter.post("/get-foodlog", caloriesController.getFoodLogsHandler);
 caloriesRouter.get("/get-userHealthDetails", caloriesController.getUserHealthDetailsHandler);
 caloriesRouter.get("/get-foods", caloriesController.searchFoodHandler);
 caloriesRouter.patch("/edit-food", caloriesController.editFoodHandler);
+caloriesRouter.get("/get-weight-progress", caloriesController.getWeightLogHandler);
+
 
 
 export default caloriesRouter;
