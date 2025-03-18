@@ -23,7 +23,7 @@ const handleAppError = (res: Response, error: AppError) => {
 };
 
 const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
-  logger.error(`Path: ${req.path} , Method: ${req.method} , Error: ${error}`);
+  logger.error(`Path: ${req.path} , Method: ${req.method} , Error: ${JSON.stringify(error)}`);
   if (req.path === REFRESH_PATH) {
     clearAuthCookies(res);
   }
