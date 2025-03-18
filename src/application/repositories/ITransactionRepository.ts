@@ -11,7 +11,7 @@ export interface ITransactionRepository {
     update: Partial<ITransaction>
   ): Promise<ITransaction | null>;
   getAllTransactions(userId : ObjectId): Promise<ITransaction[]>;
-  fetchAllTransactionById(userId:ObjectId , queryParams:TransactionQueryParams):Promise<any>
+  fetchAllTransactionById(userId:ObjectId , queryParams:TransactionQueryParams, role:string):Promise<any>
 }
 
 export const ITransactionRepositoryToken = new Token<ITransactionRepository>();
