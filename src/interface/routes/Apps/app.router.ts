@@ -3,17 +3,21 @@ import Container from "typedi";
 import { AppController } from "../../controllers/Feat/AppController";
 import { ChatController } from "../../controllers/Feat/ChatController";
 import { PaymentController } from "../../controllers/Feat/PaymentController";
+import { DoctorFeatController } from "../../controllers/doctor/DoctorFeatController";
 
 const appRouter = Router();
 
 const appController = Container.get(AppController);
 const chatController = Container.get(ChatController);
 const paymentController = Container.get(PaymentController);
+//TODO create a new Common controller and move all the controller having same logic for user and doctor
+//* TEMPORARY
+const doctorController = Container.get(DoctorFeatController)
 appRouter.get("/doctors/all", appController.displayAllDoctorsHandler);
 appRouter.post("/update-profile", appController.updateProfileHandler);
 appRouter.post("/doctor/profile", appController.doctorDetailsHandler);
 appRouter.post("/doctor/slots", appController.getSlotsHandler);
-appRouter.post("/get-appointments", appController.getAppointmentHandlers);
+appRouter.get("/get-appointments", doctorController.getAllAppointmentsHandler);
 appRouter.post("/wallet", appController.getWalletHandler);
 
 // chat
