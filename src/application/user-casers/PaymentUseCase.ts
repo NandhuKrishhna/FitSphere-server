@@ -1,6 +1,6 @@
 import { Inject, Service } from "typedi";
 import appAssert from "../../shared/utils/appAssert";
-import { BAD_REQUEST, CONFLICT } from "../../shared/constants/http";
+import { BAD_REQUEST } from "../../shared/constants/http";
 import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 import { BookAppointmentParams } from "../../domain/types/appTypes";
@@ -21,10 +21,8 @@ import { WalletParams } from "./AppUseCase";
 import mongoose from "mongoose";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { v4 as uuidv4 } from "uuid";
-import { stringToObjectId } from "../../shared/utils/bcrypt";
 import Role from "../../shared/constants/UserRole";
-import { app } from "../../infrastructure/config/socket.io";
-
+import { getReceiverSocketId, io } from "../../infrastructure/config/socket.io";
 type VerifyPaymentParams = {
   userId: ObjectId;
   doctorId: ObjectId;
@@ -46,7 +44,6 @@ export class PaymentUseCase {
   ) {}
 
   async userAppointment({ doctorId, patientId, slotId, amount }: BookAppointmentParams) {
-    console.log("-----------------")
     const patient = await this.userRepository.findUserById(patientId);
     appAssert(patient, BAD_REQUEST, "Patient not found. Please try again.");
     const doctor = await this.doctorRespository.findDoctorByID(doctorId);
@@ -70,14 +67,12 @@ export class PaymentUseCase {
     const shortPatientId = patientId.toString().slice(-6); 
     const receiptId = `rct_${shortPatientId}_${Date.now().toString()}`;
 
-
     const razorpayOrder = await razorpayInstance.orders.create({
       amount: amount * 100,
       currency: CURRENCY,
       receipt: receiptId,
       payment_capture: true,
     });
-    console.log("Razorpay:", razorpayOrder);
 
     const newAppointmentDetails = await this.appointmentRepository.createAppointment({
       doctorId,
@@ -102,7 +97,8 @@ export class PaymentUseCase {
       paymentGatewayId: razorpayOrder.receipt,
       bookingId: newAppointmentDetails._id as string,
     });
-    console.log("Transaction created: ", transaction);
+
+
 
     return {
       newAppointmentDetails,
@@ -115,12 +111,12 @@ export class PaymentUseCase {
     };
   }
 
-  async verifyPayment({ userId, razorpay_order_id, doctorId }: VerifyPaymentParams) {
+  async verifyPayment({ userId, razorpay_order_id, doctorId, }: VerifyPaymentParams) {
     const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
     const receiptId = orderInfo.receipt
     console.log("Order Info:", orderInfo);
     appAssert(orderInfo, BAD_REQUEST, "Unable to fetch order details. Please try again later.");
-
+    
     if (orderInfo.status === "paid") {
       const payments = await razorpayInstance.orders.fetchPayments(razorpay_order_id);
       console.log("Payment Details:", payments);
@@ -132,7 +128,6 @@ export class PaymentUseCase {
         bank: payments.items[0]?.bank,
         meetingId: uuidv4(),
       };
-      console.log("Additional Details:", additionalDetails);
 
       const appointment = await this.appointmentRepository.updatePaymentStatus(
         receiptId!,
@@ -162,7 +157,6 @@ export class PaymentUseCase {
         paymentGatewayId: payments.items[0]?.id || razorpay_order_id, 
         relatedTransactionId: updatedUserTransaction.transactionId,
       });
-      console.log("Doctor Transaction created:", doctorTransaction);
 
       await this.slotRespository.updateSlotById(appointment?.slotId, appointment?.patientId);
       await this.walletRepository.increaseBalance({
@@ -172,8 +166,7 @@ export class PaymentUseCase {
         description : "Slot Booking",
         relatedTransactionId : doctorTransaction._id as string
 
-      })      
-
+      })  
       try {
         const [doctorNotification, patientNotification] = await Promise.all([
           this.notificationRepository.createNotification({
@@ -197,12 +190,28 @@ export class PaymentUseCase {
             },
           }),
         ]);
+        const doctorSocketId = getReceiverSocketId(appointment?.doctorId.toString());
+        const patientSocketId = getReceiverSocketId(appointment?.patientId.toString());
+      
+        if (doctorSocketId) {
+          io.to(doctorSocketId).emit("new-notification", {
+            message: doctorNotification.message,
+            metadata: doctorNotification.metadata,
+          });
+        }
+      
+        if (patientSocketId) {
+          io.to(patientSocketId).emit("new-notification", {
+            message: patientNotification.message,
+            metadata: patientNotification.metadata,
+          });
+        }
         console.log("Doctor notification:", doctorNotification);
         console.log("Patient notification:", patientNotification);
       } catch (error) {
         console.error("Notification creation failed:", error);
       }
-
+       
       return { appointment, message: "Payment verified and appointment confirmed" };
     }
     throw new Error("Payment not completed.");
@@ -299,10 +308,6 @@ export class PaymentUseCase {
                 type: NotificationType.Appointment,
                 message: "Your payment was cancelled or failed",
                 status: "pending",
-                metadata: {
-                    meetingId: appointment.meetingId,
-                    appointMentId: appointment._id,
-                },
             });
             const response = await this.transactionRepository.updateTransaction(
                 { paymentGatewayId: receiptId },  
