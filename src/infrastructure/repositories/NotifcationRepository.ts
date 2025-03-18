@@ -28,13 +28,16 @@ export class NotificationRepository implements INotificationRepository {
     await NotificationModel.deleteMany({ userId: id });
   }
 
-  async getAllNotificationById(userId: mongoose.Types.ObjectId): Promise<INotification[]> {
-    const result = await NotificationModel.find({ userId: userId }) 
+  async getAllNotificationById(userId: mongoose.Types.ObjectId, role: string): Promise<INotification[]> {
+    const result = await NotificationModel.find({ userId, role })
+      .select("type message status metadata read createdAt") 
       .sort({ createdAt: -1 }) 
+      .lean() 
       .exec();
 
     return result;
 }
+
 
 
   async markNotificationAsRead(id:ObjectId): Promise<void> {
