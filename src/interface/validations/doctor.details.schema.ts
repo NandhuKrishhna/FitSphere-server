@@ -33,3 +33,6 @@ export const doctorDetailsSchema = z.object({
   bio: z.string().min(10, { message: "Bio must be at least 10 characters long." }),
   certificate: z.string(),
 });
+
+
+export const doctorUpdateSchema = doctorDetailsSchema.partial();

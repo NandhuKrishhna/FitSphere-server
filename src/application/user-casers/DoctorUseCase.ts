@@ -26,6 +26,7 @@ import { IcreateDoctorDetails } from "../../shared/utils/doctorHelper";
 import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
 import { SlotType } from "../../interface/validations/slot.schema";
 import { Slot } from "../../domain/entities/Slot";
+import { DoctorDetailsDocument } from "../../infrastructure/models/doctor.details.model";
 
 @Service()
 export class DoctorUseCase {
@@ -87,19 +88,19 @@ export class DoctorUseCase {
     console.log(uploadResponse);
     const doctorDetails = IcreateDoctorDetails(
       userId,
-      details.experience,
-      details.consultationFees,
-      details.contactPhoneNumber,
-      details.professionalEmail,
-      details.officeAddress,
-      details.clinicLocations,
-      details.consultationLanguages,
-      details.primarySpecialty,
-      details.medicalLicenseNumber,
-      details.gender,
-      details.professionalTitle,
-      details.bio,
-      uploadResponse?.secure_url
+      details.experience!,
+      details.consultationFees!,
+      details.contactPhoneNumber!,
+      details.professionalEmail!,
+      details.officeAddress!,
+      details.clinicLocations!,
+      details.consultationLanguages!,
+      details.primarySpecialty!,
+      details.medicalLicenseNumber!,
+      details.gender!,
+      details.professionalTitle!,
+      details.bio!,
+      uploadResponse?.secure_url!
     );
     //add to the database;
     const newDoctorDetails = await this.doctorRepository.createDoctorDetails(doctorDetails);
@@ -185,5 +186,12 @@ export class DoctorUseCase {
 
   async logoutUser(payload: AccessTokenPayload) {
     await this.sessionRepository.findByIdAndDelete(payload.sessionId);
+  }
+
+  async updateDoctorDetails(userId: mongoose.Types.ObjectId, details:DoctorDetailsParams ) {
+    appAssert(userId , BAD_REQUEST , "Invalid userId. Please login again.");
+    const doctorDetails = await this.doctorRepository.findDoctorByID(userId);
+    appAssert(doctorDetails , NOT_FOUND , "User not found");
+    return await this.doctorRepository.updateDoctorDetailsByDocId(userId , details);
   }
 }

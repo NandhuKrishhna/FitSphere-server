@@ -3,7 +3,7 @@ import { IDoctorRepository, IDoctorRepositoryToken } from "../../application/rep
 import { Service } from "typedi";
 import { Doctor } from "../../domain/entities/Doctors";
 import { DoctorDetails } from "../../domain/entities/DoctorDetails";
-import { DoctorDetailsModel } from "../models/doctor.details.model";
+import { DoctorDetailsDocument, DoctorDetailsModel } from "../models/doctor.details.model";
 import { DoctorModel } from "../models/DoctorModel";
 import { DoctorProfile, DoctorwithDetails, UpdateDoctorParams } from "../../domain/types/doctorTypes";
 
@@ -196,4 +196,16 @@ export class DoctorRepository implements IDoctorRepository {
       throw new Error("Failed to fetch doctor details.");
     }
   }
+
+
+  async updateDoctorDetailsByDocId(id: mongoose.Types.ObjectId, updates: Partial<DoctorDetails>): Promise<DoctorDetailsDocument | null> {
+    const result = await DoctorDetailsModel.findOneAndUpdate(
+        { doctorId: id },   
+        { $set: updates },  
+        { new: true }      
+    ); 
+    return result;
+}
+
+
 }

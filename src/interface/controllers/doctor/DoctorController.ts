@@ -5,12 +5,13 @@ import { doctorRegisterSchema, verificationCodeSchema } from "../../validations/
 import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
 import { CREATED, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
-import { doctorDetailsSchema } from "../../validations/doctor.details.schema";
+import { doctorDetailsSchema, doctorUpdateSchema } from "../../validations/doctor.details.schema";
 import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import mongoose from "mongoose";
 import { SlotValidationSchema } from "../../validations/slot.schema";
+import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 
 @Service()
 export class DoctorController {
@@ -95,4 +96,16 @@ export class DoctorController {
     await this.doctorUseCase.verifyEmail(verificationCode);
     return res.status(OK).json({ message: "Email verified successfully" });
   });
+
+  updateDoctorDetailsHandler = catchErrors(async (req: Request, res: Response) => {
+    const request = doctorUpdateSchema.parse(req.body);
+    const {userId} = req as AuthenticatedRequest;
+    const response = await this.doctorUseCase.updateDoctorDetails(userId, request);
+    return res.status(OK).json({
+      success: true,
+      message: "Details updated successfully",
+      response,
+    });
+
+  })
 }
