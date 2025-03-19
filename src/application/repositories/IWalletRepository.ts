@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { WalletDocument } from "../../infrastructure/models/walletModel";
 import { Token } from "typedi";
 import { ObjectId } from "../../infrastructure/models/UserModel";
+import { WalletTransactionQuery } from "../../interface/controllers/Feat/AppController";
 export type WalletParams = {
   userId: ObjectId;
   role : string,
@@ -16,7 +17,8 @@ export interface IWalletRepository {
 
   getWalletDetailsById(
     userId: ObjectId,
-    role: "User" | "Doctor"
+    role: "User" | "Doctor",
+    queryParams:WalletTransactionQuery
   ): Promise<WalletDocument | null>;
 
   findWalletById(
