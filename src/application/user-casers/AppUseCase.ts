@@ -18,7 +18,7 @@ import { IReviewsRepository, IReviewsRepositoryToken } from "../repositories/IRe
 import { IRatingRepository, IRatingRepositoryToken } from "../repositories/IRatingsRepository";
 import { IRating } from "../../infrastructure/models/RatingsModel";
 import { ITransactionRepository, ITransactionRepositoryToken } from "../repositories/ITransactionRepository";
-import { TransactionQueryParams } from "../../interface/controllers/Feat/AppController";
+import { TransactionQueryParams, WalletTransactionQuery } from "../../interface/controllers/Feat/AppController";
 
 export type WalletParams = {
   userId: ObjectId;
@@ -105,10 +105,10 @@ export class AppUseCase {
     return details;
   }
 
-  async getWalletDetails(userId: mongoose.Types.ObjectId, role: string) {
+  async getWalletDetails(userId: mongoose.Types.ObjectId, role: string, queryParams :WalletTransactionQuery) {
     const roleType = role === "user" ? "User" : "Doctor"; 
   
-    const details = await this.walletRepository.getWalletDetailsById(userId, roleType);
+    const details = await this.walletRepository.getWalletDetailsById(userId, roleType , queryParams);
     return details;
   }
   async getNotifications(userId: mongoose.Types.ObjectId ,role : string) {
