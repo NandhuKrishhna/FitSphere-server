@@ -7,6 +7,7 @@ import { AppUseCase } from "../../../application/user-casers/AppUseCase";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+//TODO remove all type from here to seperate files::
 export type TransactionQueryParams ={
   page?: string;
   limit?: string;
@@ -18,6 +19,17 @@ export type TransactionQueryParams ={
   method?: string;
   type?: string;
 }
+
+export type WalletTransactionQuery = {
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  search?: string;
+  status?: string;
+  description?: string;
+}
+
 @Service()
 export class AppController {
   constructor(@Inject() private appUseCase: AppUseCase) {}
@@ -104,9 +116,10 @@ export class AppController {
   });
 
   getWalletHandler = catchErrors(async (req: Request, res: Response) => {
-    const userId = stringToObjectId(req.body.userId);
+    const queryParams: WalletTransactionQuery = req.query as WalletTransactionQuery;
+    const userId = stringToObjectId(req.params.userId);
     const {role}  = req as AuthenticatedRequest
-    const response = await this.appUseCase.getWalletDetails(userId, role);
+    const response = await this.appUseCase.getWalletDetails(userId, role , queryParams);
     res.status(OK).json({
       success: true,
       message: "Wallet details fetched successfully",
