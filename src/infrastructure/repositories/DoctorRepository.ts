@@ -6,7 +6,7 @@ import { DoctorDetails } from "../../domain/entities/DoctorDetails";
 import { DoctorDetailsDocument, DoctorDetailsModel } from "../models/doctor.details.model";
 import { DoctorModel } from "../models/DoctorModel";
 import { DoctorProfile, DoctorwithDetails, UpdateDoctorParams } from "../../domain/types/doctorTypes";
-
+import bcrypt from "bcrypt";
 interface MatchStage {
   isApproved: boolean;
   isVerified: boolean;
@@ -206,6 +206,9 @@ export class DoctorRepository implements IDoctorRepository {
     ); 
     return result;
 }
-
+ async updatePassword(userId: mongoose.Types.ObjectId, newPassword: string): Promise<void> {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await DoctorModel.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
+ }
 
 }

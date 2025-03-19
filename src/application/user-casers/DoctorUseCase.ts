@@ -24,9 +24,12 @@ import Role from "../../shared/constants/UserRole";
 import { IcreateOtp, IcreateSession } from "../../shared/utils/builder";
 import { IcreateDoctorDetails } from "../../shared/utils/doctorHelper";
 import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
-import { SlotType } from "../../interface/validations/slot.schema";
-import { Slot } from "../../domain/entities/Slot";
-import { DoctorDetailsDocument } from "../../infrastructure/models/doctor.details.model";
+
+export type updatePasswordParams = {
+  userId : mongoose.Types.ObjectId;
+  currentPassword: string;
+  newPassword: string;
+};
 
 @Service()
 export class DoctorUseCase {
@@ -193,5 +196,17 @@ export class DoctorUseCase {
     const doctorDetails = await this.doctorRepository.findDoctorByID(userId);
     appAssert(doctorDetails , NOT_FOUND , "User not found");
     return await this.doctorRepository.updateDoctorDetailsByDocId(userId , details);
+  }
+
+  async updatePassword({userId, currentPassword, newPassword}:updatePasswordParams){
+    appAssert(currentPassword , BAD_REQUEST , "Current password is required");
+    appAssert(newPassword , BAD_REQUEST , "New password is required");
+    const isExistingUser = await this.doctorRepository.findDoctorByID(userId);
+    appAssert(isExistingUser , NOT_FOUND , "User not found");
+    const isValidPassword = await isExistingUser.comparePassword(currentPassword);
+    appAssert(isValidPassword , BAD_REQUEST , "Current password is incorrect");
+    const isSamePassword = await isExistingUser.comparePassword(newPassword);
+    appAssert(!isSamePassword, BAD_REQUEST, "New password cannot be the same as the current password");
+    return await this.doctorRepository.updatePassword(userId , newPassword);
   }
 }

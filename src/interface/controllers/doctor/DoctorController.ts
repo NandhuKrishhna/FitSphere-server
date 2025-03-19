@@ -3,7 +3,7 @@ import { DoctorUseCase } from "../../../application/user-casers/DoctorUseCase";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { doctorRegisterSchema, verificationCodeSchema } from "../../validations/doctorSchema";
 import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
-import { CREATED, OK } from "../../../shared/constants/http";
+import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
 import { doctorDetailsSchema, doctorUpdateSchema } from "../../validations/doctor.details.schema";
 import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
@@ -12,6 +12,7 @@ import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import mongoose from "mongoose";
 import { SlotValidationSchema } from "../../validations/slot.schema";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+import appAssert from "../../../shared/utils/appAssert";
 
 @Service()
 export class DoctorController {
@@ -106,6 +107,16 @@ export class DoctorController {
       message: "Details updated successfully",
       response,
     });
+  });
 
-  })
+  updatePasswordHandler = catchErrors(async (req: Request, res: Response) => {
+    const {userId} = req as AuthenticatedRequest;
+    appAssert(userId , BAD_REQUEST, "User not authenticated. Please login");
+    const {currentPassword , newPassword} = req.body;
+     await this.doctorUseCase.updatePassword({userId, currentPassword, newPassword});
+    return res.status(OK).json({
+      success: true,
+      message: "Password updated successfully",
+  });
+})
 }

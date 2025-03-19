@@ -21,6 +21,7 @@ export interface IDoctorRepository {
       }>
     fetchDoctorandDetailsById(id:mongoose.Types.ObjectId) : Promise<DoctorProfile | null>
     updateDoctorDetailsByDocId(userId : mongoose.Types.ObjectId , details :Partial<DoctorDetailsParams> ) : Promise<DoctorDetailsDocument | null>
+    updatePassword(userId : mongoose.Types.ObjectId , newPassword : string) : Promise<void>
     
 }
 
