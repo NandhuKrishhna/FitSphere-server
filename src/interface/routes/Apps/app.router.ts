@@ -6,7 +6,6 @@ import { PaymentController } from "../../controllers/Feat/PaymentController";
 import { DoctorFeatController } from "../../controllers/doctor/DoctorFeatController";
 
 const appRouter = Router();
-
 const appController = Container.get(AppController);
 const chatController = Container.get(ChatController);
 const paymentController = Container.get(PaymentController);
@@ -18,7 +17,8 @@ appRouter.post("/update-profile", appController.updateProfileHandler);
 appRouter.post("/doctor/profile", appController.doctorDetailsHandler);
 appRouter.post("/doctor/slots", appController.getSlotsHandler);
 appRouter.get("/get-appointments", doctorController.getAllAppointmentsHandler);
-appRouter.post("/wallet", appController.getWalletHandler);
+//TODO change to get
+appRouter.get("/wallet/:userId", appController.getWalletHandler);
 
 // chat
 appRouter.post("/send-message", chatController.sendMessageHandler);
