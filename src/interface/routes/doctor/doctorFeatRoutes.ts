@@ -19,6 +19,8 @@ doctorFeatRouter.post("/get-all-messages", chatController.getMessagesHandler);
 doctorFeatRouter.post("/send-message", chatController.sendMessageHandler);
 doctorFeatRouter.post("/get-reviews", appController.fetchReviewsAndRatingHandler);
 doctorFeatRouter.post("/profile", appController.doctorDetailsHandler);
+doctorFeatRouter.get("/wallet/:userId", appController.getWalletHandler);
+
 //* Profile page Patients
 doctorFeatRouter.get("/patients-appointments", doctorFeatController.profilePageDetailsHandler);
 
