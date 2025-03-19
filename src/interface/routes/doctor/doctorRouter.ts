@@ -21,6 +21,7 @@ doctorRoutes.post("/forgot-password", authController.sendPasswordResetHandler);
 doctorRoutes.post("/verify/reset-password/otp", authController.verifyResetPasswordCode);
 doctorRoutes.post("/reset-password", authController.resetPasswordHandler);
 doctorRoutes.post("/resend-otp", authController.resendPasswordHandler);
+doctorRoutes.patch("/update-details", authenticate, authorizeRoles([Role.DOCTOR]), doctorController.updateDoctorDetailsHandler);
 //TODO impliment later
 doctorRoutes.get("/verify-email/:code", doctorController.verifyEmailHandler);
 
