@@ -24,11 +24,15 @@ import Role from "../../shared/constants/UserRole";
 import { IcreateOtp, IcreateSession } from "../../shared/utils/builder";
 import { IcreateDoctorDetails } from "../../shared/utils/doctorHelper";
 import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
+import { ObjectId } from "../../infrastructure/models/UserModel";
+import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
+
 
 export type updatePasswordParams = {
   userId : mongoose.Types.ObjectId;
   currentPassword: string;
   newPassword: string;
+  role : string;
 };
 
 @Service()
@@ -39,17 +43,24 @@ export class DoctorUseCase {
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
     @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
     @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
-    @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository
+    @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
+
   ) {}
 
   async registerDoctor(details: RegisterDoctorParams) {
     const existingDoctor = await this.doctorRepository.findDoctorByEmail(details.email);
     appAssert(!existingDoctor, CONFLICT, "Email already exists");
     // create doctor
-    const newDoctor = new Doctor(new mongoose.Types.ObjectId(), details.name, details.email, details.password);
+    const newDoctor = await this.doctorRepository.createDoctor({
+      email: details.email,
+      password: details.password,
+      name: details.name,
+      role: Role.DOCTOR,
+      provider: "email",
+    })
     const doctor = await this.doctorRepository.createDoctor(newDoctor);
     // send verfication email
-    const otpCode = IcreateOtp(doctor._id, OtpCodeTypes.EmailVerification);
+    const otpCode = IcreateOtp(doctor._id as ObjectId, OtpCodeTypes.EmailVerification);
     const newOtp = await this.otpRepository.saveOtp(otpCode);
     console.log("new created Otp : ", newOtp);
     // send verification email
@@ -165,17 +176,17 @@ export class DoctorUseCase {
     );
     const isValidUser = await existingDoctor.comparePassword(doctorData.password);
     appAssert(isValidUser, UNAUTHORIZED, "Invalid Email or Password");
-    const newSession = IcreateSession(existingDoctor._id, Role.DOCTOR, doctorData.userAgent, oneYearFromNow());
+    const newSession = IcreateSession(existingDoctor._id as ObjectId, Role.DOCTOR, doctorData.userAgent, oneYearFromNow());
     const session = await this.sessionRepository.createSession(newSession);
 
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
       role: Role.DOCTOR,
     };
-    const userId = existingDoctor._id;
+    const userId = existingDoctor._id as ObjectId;
     const accessToken = signToken({
       ...sessionInfo,
-      userId: userId,
+      userId: userId ,
       role: Role.DOCTOR,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
@@ -198,15 +209,45 @@ export class DoctorUseCase {
     return await this.doctorRepository.updateDoctorDetailsByDocId(userId , details);
   }
 
-  async updatePassword({userId, currentPassword, newPassword}:updatePasswordParams){
-    appAssert(currentPassword , BAD_REQUEST , "Current password is required");
-    appAssert(newPassword , BAD_REQUEST , "New password is required");
-    const isExistingUser = await this.doctorRepository.findDoctorByID(userId);
-    appAssert(isExistingUser , NOT_FOUND , "User not found");
-    const isValidPassword = await isExistingUser.comparePassword(currentPassword);
-    appAssert(isValidPassword , BAD_REQUEST , "Current password is incorrect");
-    const isSamePassword = await isExistingUser.comparePassword(newPassword);
-    appAssert(!isSamePassword, BAD_REQUEST, "New password cannot be the same as the current password");
-    return await this.doctorRepository.updatePassword(userId , newPassword);
+  async updatePassword({userId, currentPassword, newPassword ,role}:updatePasswordParams){
+      appAssert(currentPassword, BAD_REQUEST, "Current password is required");
+      appAssert(newPassword, BAD_REQUEST, "New password is required");
+    
+      const isExistingUser = role === Role.DOCTOR 
+        ? await this.doctorRepository.findDoctorByID(userId)
+        : await this.userRepository.findUserById(userId);
+    
+      appAssert(isExistingUser, NOT_FOUND, "User not found");
+    
+      const isValidPassword = await isExistingUser.comparePassword(currentPassword);
+      appAssert(isValidPassword, BAD_REQUEST, "Current password is incorrect");
+    
+      const isSamePassword = await isExistingUser.comparePassword(newPassword);
+      appAssert(!isSamePassword, BAD_REQUEST, "New password cannot be the same as the current password");
+    return await this.doctorRepository.updatePassword(userId , newPassword , role);
   }
+
+  // async googleAuth(code : string){
+  //   const googleResponse = await oauth2Client.getToken(code);
+  //   oauth2Client.setCredentials(googleResponse.tokens);
+
+  //   const userRes = await axios.get(
+  //     `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleResponse.tokens.access_token}`
+  //   );
+  //   // console.log(userRes);
+  //   const { email, name, picture } = userRes.data;
+  //   let doctor = await this.doctorRepository.findDoctorByEmail(email);
+  //   let isNewDoctor = false;
+  //   if(!doctor){
+  //     isNewDoctor = true;
+  //     doctor = await this.doctorRepository.createDoctor({
+  //       name,
+  //       email,
+  //       role: Role.DOCTOR,
+  //       provider: "google",
+  //       isVerified: true,
+  //       isApproved: false
+  //     });
+  //   }
+  // }
 }
