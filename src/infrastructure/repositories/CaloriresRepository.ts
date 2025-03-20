@@ -190,5 +190,14 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
   async getWeightLogsByUserId(userId:ObjectId):Promise<IWeightLog[] | null>{
     return await WeightLogModel.find({userId:userId}).lean()
   }
-
+  async updateUserDetails(userId: ObjectId, data: Partial<IUserDetails>): Promise<void> {
+    console.log("Incoming Data:", data);
+    const updatedUser = await UserDetailsModel.findOneAndUpdate(
+      { userId: new mongoose.Types.ObjectId(userId) },
+      { $set: data }, 
+      { new: true, runValidators: true }
+    );
+    console.log("Updated User:", updatedUser);
+}
+  
 }
