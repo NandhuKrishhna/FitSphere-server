@@ -14,6 +14,7 @@ import { calculateTargetCalories } from "../../shared/utils/calorieCalculator";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { USDA_FOODDATA_API_URL } from "../../shared/constants/url";
 import { IFoodItem } from "../../infrastructure/models/caloriesIntakeModel";
+import { IUserDetails } from "../../infrastructure/models/user.addition.details";
 @Service()
 export class CaloriesUseCase {
   constructor(@Inject(ICaloriesDetailsRepositoryToken) private caloriesDetailsRepository: ICaloriesDetailsRepository) {}
@@ -35,13 +36,20 @@ export class CaloriesUseCase {
     return respones.data;
   }
 
-  public async updateUserDetails(userId: ObjectId, data: TUserDetails) {
+  public async updateUserDetails(userId: ObjectId, data: Partial<IUserDetails>) {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
     appAssert(data, BAD_REQUEST, "Invalid data");
-    const targetDailyCalories = calculateTargetCalories(data);
-    const updatedData = { ...data, targetDailyCalories };
-    await this.caloriesDetailsRepository.createCaloriesDetails(userId, updatedData);
+    const existingUser = await this.caloriesDetailsRepository.getUserHealthDetails(userId);
+    const updatedData = {
+      ...existingUser?.toObject(),
+      ...data,
+    } as TUserDetails;
+    console.log(updatedData)
+    updatedData.targetDailyCalories = calculateTargetCalories(updatedData);
+  
+    await this.caloriesDetailsRepository.updateUserDetails(userId, updatedData);
   }
+  
 
   public async getUserHealthDetails(userId: ObjectId) {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
