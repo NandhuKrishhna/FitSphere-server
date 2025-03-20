@@ -3,22 +3,20 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 import { comparePassword, hashPassword } from "../../shared/utils/bcrypt";
 
 export interface DoctorDocument extends Document {
-  _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
   password: string;
   isActive: boolean;
+  provider : string;
   role: "user" | "doctor";
   isVerified: boolean;
   isApproved: boolean;
   status: "blocked" | "deleted" | "active";
   profilePicture?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
   comparePassword(val: string): Promise<boolean>;
   omitPassword(): Pick<
     DoctorDocument,
-    "_id" | "name" | "email" | "isActive" | "role" | "isVerified" | "isApproved" | "status" | "createdAt" | "updatedAt"
+    "_id" | "name" | "email" | "isActive" | "role" | "isVerified" | "isApproved" | "status" | "profilePicture"
   >;
 }
 
@@ -39,6 +37,11 @@ const DoctorSchema: Schema = new Schema<DoctorDocument>(
     password: {
       type: String,
       required: true,
+    },
+    provider: {
+      type: String,
+      enum: ["email", "google"], 
+      default: "email",
     },
     isActive: {
       type: Boolean,
