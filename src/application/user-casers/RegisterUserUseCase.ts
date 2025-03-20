@@ -30,6 +30,9 @@ import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWall
 import { ERRORS, IcreateOtp, IcreateSession } from "../../shared/utils/builder";
 import Role from "../../shared/constants/UserRole";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
+import { oauth2Client } from "../../infrastructure/config/googleAuth";
+import axios from "axios";
+import { ObjectId, UserModel } from "../../infrastructure/models/UserModel";
 
 export type TokenPayload = {
   sessionId: mongoose.Types.ObjectId;
@@ -49,12 +52,16 @@ export class RegisterUserUseCase {
   async registerUser(userData: RegisterUserParams): Promise<any> {
     const existingUser = await this.userRepository.findUserByEmail(userData.email);
     appAssert(!existingUser, CONFLICT, "Email already in use");
-
-    const newUser = new User(new mongoose.Types.ObjectId(), userData.name, userData.email, userData.password);
-    const user = await this.userRepository.createUser(newUser);
+    const user = await this.userRepository.createUser({
+      name: userData.name,
+      email: userData.email,
+      password: userData.password,
+      provider: "email",
+      role: Role.USER,
+    });
     appAssert(user, INTERNAL_SERVER_ERROR, "Error creating user . Please try again");
 
-    const otpCode = IcreateOtp(user._id, OtpCodeTypes.EmailVerification);
+    const otpCode = IcreateOtp(user._id as ObjectId, OtpCodeTypes.EmailVerification);
     const newOtp = await this.otpRepository.saveOtp(otpCode);
     console.log("new created Otp : ", newOtp);
     await sendMail({
@@ -62,12 +69,11 @@ export class RegisterUserUseCase {
       ...getVerifyEmailTemplates(newOtp.code, user.name),
     });
 
-    const newSession = IcreateSession(newUser._id, Role.USER, userData.userAgent, oneYearFromNow());
+    const newSession = IcreateSession(user._id as ObjectId, Role.USER, userData.userAgent, oneYearFromNow());
     const session = await this.sessionRepository.createSession(newSession);
 
-    // creating a wallet for the user
     await this.walletRespository.createWallet({
-      userId : user._id,
+      userId : user._id as ObjectId,
       role :"User",
     })
 
@@ -75,7 +81,7 @@ export class RegisterUserUseCase {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
       role: Role.USER,
     };
-    const userId = newUser._id;
+    const userId = user._id as ObjectId;
     const accessToken = signToken({
       ...sessionInfo,
       userId: userId,
@@ -121,7 +127,7 @@ export class RegisterUserUseCase {
     appAssert(existingUser, UNAUTHORIZED, "Invalid email or password");
 
     if (!existingUser.isVerfied) {
-      const otpCode = IcreateOtp(existingUser._id, OtpCodeTypes.EmailVerification);
+      const otpCode = IcreateOtp(existingUser._id as ObjectId, OtpCodeTypes.EmailVerification);
       const newOtp = await this.otpRepository.saveOtp(otpCode);
       console.log("Newly created OTP:", newOtp);
       await sendMail({
@@ -134,14 +140,14 @@ export class RegisterUserUseCase {
     const isValid = await existingUser.comparePassword(userData.password);
     appAssert(isValid, UNAUTHORIZED, "Invalid Email or Password");
 
-    const newSession = IcreateSession(existingUser._id, Role.USER, userData.userAgent, oneYearFromNow());
+    const newSession = IcreateSession(existingUser._id as ObjectId, Role.USER, userData.userAgent, oneYearFromNow());
     const session = await this.sessionRepository.createSession(newSession);
 
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
       role: Role.USER,
     };
-    const userId = existingUser._id;
+    const userId = existingUser._id as ObjectId;
     const accessToken = signToken({
       ...sessionInfo,
       userId: userId,
@@ -227,9 +233,9 @@ export class RegisterUserUseCase {
     appAssert(user, NOT_FOUND, "User not found");
     appAssert(user.status !== "blocked", UNAUTHORIZED, "Your account is suspended. Please contact with our team");
     const fiveMinAgo = fiveMinutesAgo();
-    const count = await this.otpRepository.countVerificationCodes(user._id, OtpCodeTypes.PasswordReset, fiveMinAgo);
+    const count = await this.otpRepository.countVerificationCodes(user._id as ObjectId, OtpCodeTypes.PasswordReset, fiveMinAgo);
     appAssert(count <= 1, TOO_MANY_REQUESTS, "Too many requests. Please try again later.");
-    const otpCode = IcreateOtp(user._id, OtpCodeTypes.PasswordReset);
+    const otpCode = IcreateOtp(user._id as ObjectId, OtpCodeTypes.PasswordReset);
     const newOtp = await this.otpRepository.saveOtp(otpCode);
     console.log("new created Otp : ", newOtp);
     await sendMail({
@@ -286,8 +292,8 @@ export class RegisterUserUseCase {
       ? (user = await this.userRepository.findUserByEmail(email))
       : (user = await this.doctorRespository.findDoctorByEmail(email));
     appAssert(user, NOT_FOUND, "User not found");
-    await this.otpRepository.deleteOtpByUserId(user._id);
-    const otpCode = IcreateOtp(user._id, OtpCodeTypes.EmailVerification);
+    await this.otpRepository.deleteOtpByUserId(user._id as ObjectId);
+    const otpCode = IcreateOtp(user._id as ObjectId, OtpCodeTypes.EmailVerification);
     const newOtp = await this.otpRepository.saveOtp(otpCode);
     console.log(newOtp);
     await sendMail({
@@ -299,4 +305,67 @@ export class RegisterUserUseCase {
       user: user.omitPassword(),
     };
   }
+
+  async googleAuth(code: string) {
+    const googleResponse = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(googleResponse.tokens);
+
+    const userRes = await axios.get(
+      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleResponse.tokens.access_token}`
+    );
+    // console.log(userRes);
+    const { email, name, picture } = userRes.data;
+
+    let user = await this.userRepository.findUserByEmail(email);
+    console.log("User from database",user)
+
+    let isNewUser = false;
+
+    if (!user) {
+        isNewUser = true; 
+        user = await this.userRepository.createUser({
+          name,
+          email,
+          profilePicture: picture,
+          role: Role.USER,
+          provider: "google",
+          isVerfied: true,
+        });
+
+        const newSession = IcreateSession(user._id as ObjectId, Role.USER, "", oneYearFromNow());
+        await this.sessionRepository.createSession(newSession);
+
+        await this.walletRespository.createWallet({
+          userId: user._id as ObjectId,
+          role: "User",
+        });
+    }
+    const sessionInfo: RefreshTokenPayload = {
+        sessionId: new mongoose.Types.ObjectId(),
+        role: Role.USER,
+    };
+    const userId = user._id as ObjectId;
+    const accessToken = signToken({
+        ...sessionInfo,
+        userId: userId,
+        role: Role.USER,
+    });
+    const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
+
+    return {
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            profilePicture: user.profilePicture,
+            role: user.role,
+            isNewUser,
+
+        },
+        accessToken,
+        refreshToken,
+    };
+}
+
+
 }
