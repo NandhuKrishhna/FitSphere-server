@@ -31,3 +31,5 @@ export const MODEL_ID = getEnv("MODEL_ID");
 export const DeepSeek_Api_key = getEnv("DeepSeek_Api_key");
 export const USDA_FOODDATA_API_KEY = getEnv("USDA_FOODDATA_API_KEY");
 export const NGROK_AUTHTOKEN = getEnv("NGROK_AUTHTOKEN");
+export const GOOGLE_CLIENT_ID = getEnv("GOOGLE_CLIENT_ID");
+export const GOOGLE_CLIENT_SECRET = getEnv("GOOGLE_CLIENT_SECRET");
