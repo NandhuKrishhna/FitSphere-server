@@ -15,7 +15,7 @@ export const IcreateOtp = (userId: mongoose.Types.ObjectId, type: OtpCodeTypes) 
 //Session
 export function IcreateSession(
   userId: mongoose.Types.ObjectId,
-  role: Role,
+  role: "user" | "doctor" | "admin",
   userAgent: string | undefined,
   expiresAt: Date
 ) {
