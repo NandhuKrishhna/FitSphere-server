@@ -21,6 +21,7 @@ import {
 import { verfiyToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
+import { oauth2Client } from "../../../infrastructure/config/googleAuth";
 
 @Service()
 export class UserController {
@@ -159,4 +160,20 @@ export class UserController {
       message: "Authenticated",
     });
   });
+
+  googleAuthHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log("Google auth handler called");
+    const  code = req.query.code;
+    console.log("Code from google auth handler",code);
+    if (typeof code !== 'string') {
+      throw new Error('Invalid code query parameter');
+    }
+    const {accessToken,refreshToken , user} = await this.registerUserUseCase.googleAuth(code);
+    return setAuthCookies({ res, accessToken, refreshToken })
+    .status(OK)
+    .json({
+      message: "Google login successful",
+      response: { ...user, accessToken },
+    });
+  }); 
 }
