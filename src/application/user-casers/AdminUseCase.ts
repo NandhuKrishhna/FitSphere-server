@@ -100,7 +100,7 @@ export class AdminUseCase {
     appAssert(user, BAD_REQUEST, "User not found . Please try again");
     //TODO create a wallet here after approval for the doctor;
     await this.walletRespository.createWallet({
-      userId: user._id,
+      userId: user._id as ObjectId,
       role:"Doctor"
     });
     await this.notificationRepository.deleteNotification(id);
