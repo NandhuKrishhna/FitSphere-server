@@ -4,9 +4,10 @@ import { Service } from "typedi";
 import { Doctor } from "../../domain/entities/Doctors";
 import { DoctorDetails } from "../../domain/entities/DoctorDetails";
 import { DoctorDetailsDocument, DoctorDetailsModel } from "../models/doctor.details.model";
-import { DoctorModel } from "../models/DoctorModel";
+import { DoctorDocument, DoctorModel } from "../models/DoctorModel";
 import { DoctorProfile, DoctorwithDetails, UpdateDoctorParams } from "../../domain/types/doctorTypes";
 import bcrypt from "bcrypt";
+import { UserModel } from "../models/UserModel";
 interface MatchStage {
   isApproved: boolean;
   isVerified: boolean;
@@ -16,12 +17,12 @@ interface MatchStage {
 
 @Service(IDoctorRepositoryToken)
 export class DoctorRepository implements IDoctorRepository {
-  async findDoctorByEmail(email: string): Promise<Doctor | null> {
+  async findDoctorByEmail(email: string): Promise<DoctorDocument | null> {
     const doctor = await DoctorModel.findOne({ email });
     return doctor;
   }
 
-  async createDoctor(doctor: Doctor): Promise<Doctor> {
+  async createDoctor(doctor: DoctorDocument): Promise<DoctorDocument> {
     const result = await DoctorModel.create(doctor);
     return result;
   }
@@ -34,7 +35,7 @@ export class DoctorRepository implements IDoctorRepository {
     const result = await DoctorDetailsModel.findOne({ doctorId });
     return result;
   }
-  async updateUserById(id: mongoose.Types.ObjectId, updates: Partial<Doctor>): Promise<Doctor | null> {
+  async updateUserById(id: mongoose.Types.ObjectId, updates: Partial<DoctorDocument>): Promise<DoctorDocument | null> {
     const result = await DoctorModel.findByIdAndUpdate(id, { $set: updates }, { new: true });
     return result;
   }
@@ -42,9 +43,9 @@ export class DoctorRepository implements IDoctorRepository {
     await DoctorModel.deleteOne({ _id: id });
   }
 
-  async findDoctorByID(id: mongoose.Types.ObjectId): Promise<Doctor> {
+  async findDoctorByID(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null> {
     const doctor = await DoctorModel.findOne({ _id: id });
-    return doctor as Doctor;
+    return doctor;
   }
 
   async deleteDoctorById(id: mongoose.Types.ObjectId): Promise<void> {
@@ -206,9 +207,25 @@ export class DoctorRepository implements IDoctorRepository {
     ); 
     return result;
 }
- async updatePassword(userId: mongoose.Types.ObjectId, newPassword: string): Promise<void> {
+async updatePassword(userId: mongoose.Types.ObjectId, newPassword: string, role: string): Promise<void> {
+  try {
+    const Model = role === "user" ? (UserModel as mongoose.Model<any>) : (DoctorModel as mongoose.Model<any>);
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await DoctorModel.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
- }
+    const result = await Model.findByIdAndUpdate(
+      userId,
+      { $set: { password: hashedPassword } },
+      { new: true }
+    );
+    if (!result) {
+      throw new Error("User not found or password update failed");
+    }
+    console.log("Password updated successfully for:", userId.toString());
+  } catch (error) {
+    console.error("Error updating password:", error);
+    throw new Error("Failed to update password. Please try again.");
+  }
+}
+
+
 
 }
