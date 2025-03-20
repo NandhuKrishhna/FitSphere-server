@@ -1,7 +1,7 @@
 import { Inject, Service } from "typedi";
 import { DoctorUseCase } from "../../../application/user-casers/DoctorUseCase";
 import catchErrors from "../../../shared/utils/catchErrors";
-import { doctorRegisterSchema, verificationCodeSchema } from "../../validations/doctorSchema";
+import { doctorRegisterSchema, emailSchema, passwordSchema, verificationCodeSchema } from "../../validations/doctorSchema";
 import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
 import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
@@ -9,8 +9,6 @@ import { doctorDetailsSchema, doctorUpdateSchema } from "../../validations/docto
 import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
-import mongoose from "mongoose";
-import { SlotValidationSchema } from "../../validations/slot.schema";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import appAssert from "../../../shared/utils/appAssert";
 
@@ -110,13 +108,33 @@ export class DoctorController {
   });
 
   updatePasswordHandler = catchErrors(async (req: Request, res: Response) => {
-    const {userId} = req as AuthenticatedRequest;
+    const {userId , role} = req as AuthenticatedRequest;
+    console.log(req.body)
     appAssert(userId , BAD_REQUEST, "User not authenticated. Please login");
-    const {currentPassword , newPassword} = req.body;
-     await this.doctorUseCase.updatePassword({userId, currentPassword, newPassword});
+   const currentPassword = passwordSchema.parse(req.body.currentPassword);
+   const newPassword = passwordSchema.parse(req.body.newPassword);
+     await this.doctorUseCase.updatePassword({userId, currentPassword, newPassword , role});
     return res.status(OK).json({
       success: true,
       message: "Password updated successfully",
   });
 })
+
+// googleAuthHandler = catchErrors(async (req: Request, res: Response) => {
+//   console.log("Google auth handler called");
+//   const  code = req.query.code;
+//   console.log("Code from google auth handler",code);
+//   if (typeof code !== 'string') {
+//     throw new Error('Invalid code query parameter');
+//   }
+//   const {accessToken,refreshToken , user} = await this.doctorUseCase.googleAuth(code);
+//   return setAuthCookies({ res, accessToken, refreshToken })
+//   .status(OK)
+//   .json({
+//     message: "Google login successful",
+//     response: { ...user, accessToken },
+//   });
+// }); 
+
+
 }
