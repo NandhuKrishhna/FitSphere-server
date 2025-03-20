@@ -12,6 +12,6 @@ export const userDetailsSchema = z.object({
   targetWeight: z.number().min(10, "Target weight must be at least 10 kg").max(500, "Target weight must be realistic"),
   weeksToGoal: z.number().min(1, "Must be at least 1 week").max(52, "Cannot exceed 52 weeks"),
   targetDailyCalories: z.number().optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
 });
+
+export const updateUserDetailsSchema = userDetailsSchema.partial()
