@@ -4,7 +4,7 @@ import { Inject, Service } from "typedi";
 import { CaloriesUseCase } from "../../../application/user-casers/CaloriesUserCase";
 import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
-import { userDetailsSchema } from "../../validations/user.details.schema";
+import { updateUserDetailsSchema, userDetailsSchema } from "../../validations/user.details.schema";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import appAssert from "../../../shared/utils/appAssert";
 import logger from "../../../shared/utils/logger";
@@ -34,9 +34,9 @@ export class CaloriesController {
   });
 
   updateUserDetails = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
+    console.log("User details :",req.body);
     const { userId } = req as AuthenticatedRequest;
-    const data = userDetailsSchema.parse(req.body);
+    const data = updateUserDetailsSchema.parse(req.body);
     const response = await this.caloriesUseCase.updateUserDetails(userId, data);
     res.status(OK).json({
       success: true,
