@@ -4,14 +4,17 @@ import { AppController } from "../../controllers/Feat/AppController";
 import { ChatController } from "../../controllers/Feat/ChatController";
 import { PaymentController } from "../../controllers/Feat/PaymentController";
 import { DoctorFeatController } from "../../controllers/doctor/DoctorFeatController";
+import { DoctorController } from "../../controllers/doctor/DoctorController";
 
 const appRouter = Router();
 const appController = Container.get(AppController);
 const chatController = Container.get(ChatController);
 const paymentController = Container.get(PaymentController);
+
 //TODO create a new Common controller and move all the controller having same logic for user and doctor
 //* TEMPORARY
-const doctorController = Container.get(DoctorFeatController)
+const doctorController = Container.get(DoctorFeatController);
+const doctorAuthController = Container.get(DoctorController);
 appRouter.get("/doctors/all", appController.displayAllDoctorsHandler);
 appRouter.post("/update-profile", appController.updateProfileHandler);
 appRouter.post("/doctor/profile", appController.doctorDetailsHandler);
@@ -47,6 +50,8 @@ appRouter.get("/get-transaction-history", appController.fetchTransactionHandler)
 
 appRouter.patch("/edit-review", appController.editReviewHandler);
 appRouter.delete("/delete-review", appController.deleteReviewHandler);
+
+appRouter.patch("/update-password", doctorAuthController.updatePasswordHandler);
 
 // appRouter.post("/start-conversation", chatController.addUsersInSideBarHandler);
 
