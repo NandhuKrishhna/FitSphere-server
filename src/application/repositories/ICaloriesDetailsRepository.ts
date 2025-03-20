@@ -14,6 +14,7 @@ export interface ICaloriesDetailsRepository {
   deleteFoodLogByFoodId(userId: ObjectId, foodId: ObjectId, date: Date): Promise<void>;
   editFoodLog(userId: ObjectId, foodId: ObjectId, date: Date, updatedFoodItem: IFoodItem, mealType: string): Promise<void>;
   getWeightLogsByUserId(userId : ObjectId):Promise<IWeightLog[]|null>
+  updateUserDetails(userId: ObjectId, data: Partial<IUserDetails>): Promise<void>;
 }
 
 export const ICaloriesDetailsRepositoryToken = new Token<ICaloriesDetailsRepository>();
