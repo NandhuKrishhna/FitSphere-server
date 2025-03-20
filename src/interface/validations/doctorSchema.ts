@@ -8,7 +8,7 @@ const nameSchema = z
 export const emailSchema = z.string().email({ message: "Invalid email address" });
 export const passwordSchema = z
   .string()
-  .min(1, { message: "Password is required" })
+  .min(6, { message: "Password is required" })
   .max(30, { message: "Password must be at most 30 characters long" });
 
 export const userAgentSchema = z.string().optional();
