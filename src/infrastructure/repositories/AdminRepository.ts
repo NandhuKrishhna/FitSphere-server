@@ -5,7 +5,7 @@ import { AdminDocument, AdminModel } from "../models/adminModel";
 import { UserModel } from "../models/UserModel";
 import { User } from "../../domain/entities/User";
 import { Doctor } from "../../domain/entities/Doctors";
-import { DoctorModel } from "../models/DoctorModel";
+import { DoctorDocument, DoctorModel } from "../models/DoctorModel";
 import mongoose from "mongoose";
 import { LookUpDoctor } from "../../domain/types/doctorTypes";
 
@@ -30,7 +30,7 @@ export class AdminRepository implements IAdminRepository {
     await DoctorModel.findByIdAndUpdate(id, { $set: { isApproved: true } }, { new: true });
   }
 
-  async rejectRequest(id: mongoose.Types.ObjectId): Promise<Doctor | null> {
+  async rejectRequest(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null> {
     const response = await DoctorModel.findByIdAndUpdate(id, { $set: { isApproved: false } }, { new: true });
     return response;
   }
