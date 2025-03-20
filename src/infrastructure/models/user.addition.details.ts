@@ -11,8 +11,7 @@ export interface IUserDetails extends Document {
   targetWeight: number;
   weeksToGoal: number;
   targetDailyCalories: number;
-  createdAt: Date;
-  updatedAt: Date;
+
 }
 
 const userSchema = new Schema<IUserDetails>(
