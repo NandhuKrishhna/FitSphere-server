@@ -15,7 +15,7 @@ doctorFeatRouter.get("/get-slots", doctorFeatController.displayAllSlotsHandler);
 doctorFeatRouter.post("/cancel-slot", doctorFeatController.cancelSlotHandler);
 doctorFeatRouter.get("/get/all-appointments", doctorFeatController.getAllAppointmentsHandler);
 doctorFeatRouter.get("/get-all-chats", doctorFeatController.getUsersInSideBarHandler);
-doctorFeatRouter.post("/get-all-messages", chatController.getMessagesHandler);
+doctorFeatRouter.get("/get-all-messages", chatController.getMessagesHandler);
 doctorFeatRouter.post("/send-message", chatController.sendMessageHandler);
 doctorFeatRouter.post("/get-reviews", appController.fetchReviewsAndRatingHandler);
 doctorFeatRouter.post("/profile", appController.doctorDetailsHandler);

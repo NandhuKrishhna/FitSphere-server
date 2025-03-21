@@ -63,7 +63,6 @@ export class DoctorUseCase {
     const otpCode = IcreateOtp(doctor._id as ObjectId, OtpCodeTypes.EmailVerification);
     const newOtp = await this.otpRepository.saveOtp(otpCode);
     console.log("new created Otp : ", newOtp);
-    // send verification email
     await sendMail({
       to: doctor.email,
       ...getVerifyEmailTemplates(newOtp.code, newDoctor.name),
@@ -124,6 +123,7 @@ export class DoctorUseCase {
 
     const notification = await this.notificationRepository.createNotification({
       userId,
+      role: Role.ADMIN,
       type: NotificationType.DoctorRegistration,
       message,
       status: "pending",
