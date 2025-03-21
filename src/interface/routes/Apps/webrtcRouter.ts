@@ -6,5 +6,6 @@ const webrtcRouter = Router();
 const webrtcController = Container.get(WebRtcController);
 
 webrtcRouter.post("/meeting", webrtcController.videoMeetingHandler);
+webrtcRouter.post("/leave-meeting", webrtcController.leavingMeetAndUpdateStatus);
 
 export default webrtcRouter;
