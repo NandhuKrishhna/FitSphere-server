@@ -41,7 +41,7 @@ appRouter.get("/get-reviews/:doctorId", appController.fetchReviewsAndRatingHandl
 appRouter.get("/get-all-ratings", appController.getAllRatingsHandler);
 
 
-appRouter.post("/get-all-notification", appController.getNotificationsHandler);  
+appRouter.get("/get-all-notification", appController.getNotificationsHandler);  
 appRouter.post("/mark-as-read", appController.markAsReadNotificationHandler);  
 
 appRouter.get("/get-all-transactions", appController.getAllTransactionsHandler);

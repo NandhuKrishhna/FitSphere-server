@@ -226,7 +226,6 @@ export class AppController {
 
   fetchTransactionHandler = catchErrors(async (req: Request, res: Response) => {
     const {userId, role} = req as AuthenticatedRequest;
-  
     console.log(userId)
     const queryParams : TransactionQueryParams=  req.query;
     const response = await this.appUseCase.fetchTransactions(userId, queryParams , role);
