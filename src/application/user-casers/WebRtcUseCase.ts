@@ -46,4 +46,8 @@ export class WebRtcUseCase {
 
     return appointment;
   }
+
+  async leavingMeetAndUpdateStatus(meetingId: string){
+    await this.appointmentRepository.updateMeetingStatus(meetingId);
+  }
 }

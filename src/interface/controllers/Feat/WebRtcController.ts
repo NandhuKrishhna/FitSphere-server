@@ -23,4 +23,14 @@ export class WebRtcController {
       meetingId: appointment.meetingId,
     });
   });
+
+  leavingMeetAndUpdateStatus = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body)
+    const meetingId = req.body.meetingId;
+    const { userId } = req as AuthenticatedRequest;
+    const { role } = req as AuthenticatedRequest;
+    appAssert(meetingId, NOT_FOUND, "Meeting id is required. Or invalid meeting id");
+    await this.webRtcUseCase.leavingMeetAndUpdateStatus(meetingId,);
+    return res.status(OK).json({ success: true, message: "Successfully left the meeting" });
+  });
 }
