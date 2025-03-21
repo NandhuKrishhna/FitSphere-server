@@ -17,7 +17,7 @@ export class ChatController {
   //send message
   sendMessageHandler = catchErrors(async (req: Request, res: Response) => {
     console.log(req.body);
-    const { userId: senderId } = req as AuthenticatedRequest;
+    const { userId: senderId , role } = req as AuthenticatedRequest;
     const receiverId = stringToObjectId(req.body.receiverId);
     console.log("ReceiverId from sendMessage Handler", receiverId);
     const message = req.body.message;
@@ -27,6 +27,7 @@ export class ChatController {
       receiverId,
       message,
       image,
+      role
     });
 
     res.status(CREATED).json({
