@@ -12,7 +12,8 @@ export type SendMessageProps={
     senderId : Types.ObjectId,
     receiverId : Types.ObjectId,
     message : string,
-    image ?: string
+    image ?: string,
+    role?: string
 }
 
 export type ParticipantsType = {
