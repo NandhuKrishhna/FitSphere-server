@@ -120,3 +120,5 @@ export type DoctorInfoParams = {
   profilePicture: string;
   role: string;
 };
+
+
