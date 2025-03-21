@@ -13,10 +13,10 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 export class ChatUseCase {
   constructor(
     @Inject(IChatRepositoryToken) private chatRepository: IChatRepository,
-    @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository
+    @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository,
   ) {}
 
-  public async sendMessage({ senderId, receiverId, message , image }: SendMessageProps): Promise<any> {
+  public async sendMessage({ senderId, receiverId, message , image , role }: SendMessageProps): Promise<any> {
     appAssert(message?.trim() || image, BAD_REQUEST, "Message or image is required");
     const participants = [senderId, receiverId].sort((a, b) => a.toString().localeCompare(b.toString()));
     let conversation = await this.conversationRepository.getConversationByParticipants(participants);
