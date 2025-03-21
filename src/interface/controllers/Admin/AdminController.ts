@@ -7,8 +7,33 @@ import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthC
 import { OK } from "../../../shared/constants/http";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
-import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+export type UserQueryParams ={
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  search?: string;
+  isVerfied?: string;
+  isActive? :string;
+  isApproved? : string;
+  name?: string;
+  email?: string;
+  status? : string
+}
 
+export type DoctorQueryParams ={
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  search?: string;
+  isVerified?: string;
+  isActive? :string;
+  isApproved? : string;
+  name?: string;
+  email?: string;
+  status? : string
+}
 @Service()
 export class AdminController {
   constructor(@Inject() private adminUseCase: AdminUseCase) {}
@@ -29,14 +54,16 @@ export class AdminController {
   });
 
   getAllUsersHandler = catchErrors(async (req: Request, res: Response) => {
-    const users = await this.adminUseCase.getAllUsers();
+    const queryParams : UserQueryParams = req.query;
+    const users = await this.adminUseCase.getAllUsers(queryParams);
     return res.status(OK).json({
       success: true,
       users,
     });
   });
   getAllDoctorsHandler = catchErrors(async (req: Request, res: Response) => {
-    const doctors = await this.adminUseCase.getAllDoctors();
+    const queryParams : DoctorQueryParams = req.query;
+    const doctors = await this.adminUseCase.getAllDoctors(queryParams);
     return res.status(OK).json({
       success: true,
       doctors,
@@ -97,9 +124,9 @@ export class AdminController {
   });
 
   unblockUserHandler = catchErrors(async (req: Request, res: Response) => {
-    const { id } = req.body;
+    const { id ,role } = req.body;
     const objectId = stringToObjectId(id);
-    await this.adminUseCase.unblockUser(objectId);
+    await this.adminUseCase.unblockUser(objectId,role);
     return res.status(OK).json({
       success: true,
       message: "User unblocked successfully",
@@ -107,12 +134,19 @@ export class AdminController {
   });
 
   blockUserHandler = catchErrors(async (req: Request, res: Response) => {
-    const { id } = req.body;
+    const { id , role } = req.body;
+    console.log(req.body , id , role)
     const objectId = stringToObjectId(id);
-    await this.adminUseCase.blockUser(objectId);
+    await this.adminUseCase.blockUser(objectId, role);
     return res.status(OK).json({
       success: true,
       message: "User blocked successfully",
     });
   });
+
+
+
+   adminDashBoard = catchErrors(async (req: Request, res: Response) => {
+       
+   })
 }
