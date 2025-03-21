@@ -32,6 +32,7 @@ export interface IAppointmentRepository {
   findAllAppointmentByUserIdAndRole(userId: ObjectId, queryParams: AppointmentQueryParams, role: string): Promise<PaginatedAppointments>;
   findAppointmentByMeetingId(meetingId: string): Promise<AppointmentDocument | null>;
   findAllAppointments(userId: ObjectId): Promise<AppointmentDocument[]>;
+  updateMeetingStatus(meetingId: string):Promise<void>;
 }
 
 export const IAppointmentRepositoryToken = new Token<IAppointmentRepository>();

@@ -18,6 +18,7 @@ import { IcreateSession } from "../../shared/utils/builder";
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { NotificationType } from "../../shared/constants/verficationCodeTypes";
+import { DoctorQueryParams, UserQueryParams } from "../../interface/controllers/Admin/AdminController";
 
 @Service()
 export class AdminUseCase {
@@ -72,13 +73,13 @@ export class AdminUseCase {
     };
   }
 
-  async getAllUsers() {
-    const users = await this.adminRepository.getAllUsers();
+  async getAllUsers(queryParams:UserQueryParams) {
+    const users = await this.adminRepository.getAllUsers(queryParams);
     return users;
   }
 
-  async getAllDoctors() {
-    const doctors = await this.adminRepository.getAllDoctors();
+  async getAllDoctors(queryParams:DoctorQueryParams) {
+    const doctors = await this.adminRepository.getAllDoctors(queryParams);
     return doctors;
   }
 
@@ -128,17 +129,15 @@ export class AdminUseCase {
     return result;
   }
 
-  async unblockUser(id: mongoose.Types.ObjectId) {
+  async unblockUser(id: mongoose.Types.ObjectId ,role: string) {
     const user = await this.userRepository.findUserById(id);
-    appAssert(user?.status === "blocked", UNAUTHORIZED, "User is not blocked");
-    await this.adminRepository.unblockById(id);
+    await this.adminRepository.unblockById(id , role);
   }
 
-  async blockUser(id: mongoose.Types.ObjectId) {
+  async blockUser(id: mongoose.Types.ObjectId , role : string) {
     const user = await this.userRepository.findUserById(id);
-    appAssert(user?.status === "active", UNAUTHORIZED, "User is already blocked ");
-    const response = await this.adminRepository.blockById(id);
-    appAssert(response, BAD_REQUEST, "Error in blocking user");
+    const response = await this.adminRepository.blockById(id , role);
+    appAssert(response, BAD_REQUEST, "User was not found. Or error in blocking the user");
     if (response) {
       await this.sessionRepository.deleteMany(id);
     }

@@ -1,20 +1,22 @@
 import { Token } from "typedi";
 import { User } from "../../domain/entities/User";
-import { Admin } from "../../domain/entities/Admin";
 import { Doctor } from "../../domain/entities/Doctors";
 import mongoose from "mongoose";
 import { LookUpDoctor } from "../../domain/types/doctorTypes";
 import { DoctorDocument } from "../../infrastructure/models/DoctorModel";
+import { DoctorQueryParams, UserQueryParams } from "../../interface/controllers/Admin/AdminController";
+import { UserDocument } from "../../infrastructure/models/UserModel";
+import { PaginatedDoctors, PaginatedUsers } from "../../infrastructure/repositories/AdminRepository";
 
 export interface IAdminRepository {
     findAdminByEmail(email: string): Promise<any>;
-    getAllUsers(): Promise<User | null>;
-    getAllDoctors(): Promise<Doctor | null>;
+    getAllUsers(queryParams : UserQueryParams): Promise<PaginatedUsers  | null>;
+    getAllDoctors(queryParams: DoctorQueryParams): Promise<PaginatedDoctors | null>;
     approveRequest(id: mongoose.Types.ObjectId): Promise<void>;
     rejectRequest(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null>;
     doctorDetails() : Promise<LookUpDoctor | null>
-    unblockById(id : mongoose.Types.ObjectId): Promise<void>;
-    blockById(id : mongoose.Types.ObjectId): Promise<User | null>;
+    unblockById(id : mongoose.Types.ObjectId , role : string): Promise<void>;
+    blockById(id : mongoose.Types.ObjectId , role : string): Promise<UserDocument | DoctorDocument | null>;
 }
 
 export const IAdminRepositoryToken = new Token<IAdminRepository>();

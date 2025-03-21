@@ -307,4 +307,12 @@ export class AppointmentRepository implements IAppointmentRepository {
     console.log("Aggregated Data:", details);
     return details;
   }
+
+  async updateMeetingStatus(meetingId: string): Promise<void> {
+    await AppointmentModel.findOneAndUpdate(
+      { meetingId: meetingId }, 
+      { $set: { status: "completed", meetingId: "" } }
+    );
+  }
+  
 }
