@@ -82,6 +82,7 @@ export class PaymentController {
   // TODO move the wallet logic to sepereate wallet controller
   walletPaymentHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
+    console.log(req.body)
     const { usecase, type, doctorId, slotId, amount, patientId } = req.body;
     const response = await this.paymentUseCase.walletPayment({
       userId,
