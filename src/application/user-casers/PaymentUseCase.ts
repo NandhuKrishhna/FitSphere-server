@@ -408,7 +408,7 @@ export class PaymentUseCase {
         to: doctorId,
         toModel: "Doctor",
         amount: Number(amount), 
-        type: "credit",
+        type: "debit",
         method: "wallet",
         paymentType: "slot_booking",
         status: "success",
