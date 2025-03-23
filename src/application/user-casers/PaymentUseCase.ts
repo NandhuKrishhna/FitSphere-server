@@ -23,10 +23,17 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 import { v4 as uuidv4 } from "uuid";
 import Role from "../../shared/constants/UserRole";
 import { getReceiverSocketId, io } from "../../infrastructure/config/socket.io";
+import { formatDate, formatToIndianTime } from "../../shared/utils/timeConvertor";
+import { emitNotification } from "../../shared/utils/emitNotification";
+
+
+
+
 type VerifyPaymentParams = {
   userId: ObjectId;
   doctorId: ObjectId;
   razorpay_order_id: string;
+  doctorName: string
 };
 @Service()
 export class PaymentUseCase {
@@ -41,7 +48,7 @@ export class PaymentUseCase {
     @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
     @Inject(IPremiumSubscriptionRepositoryToken) private premiumSubscriptionRepository: IPremiumSubscriptionRepository,
     @Inject(ITransactionRepositoryToken) private transactionRepository: ITransactionRepository
-  ) {}
+  ) { }
 
   async userAppointment({ doctorId, patientId, slotId, amount }: BookAppointmentParams) {
     const patient = await this.userRepository.findUserById(patientId);
@@ -57,14 +64,14 @@ export class PaymentUseCase {
     console.log("Current UTC Time:", currentTime);
     const slotStartTime = new Date(existingSlot.startTime);
     console.log("Slot Start Time (from DB):", slotStartTime);
-    const istOffset = 5.5 * 60 * 60 * 1000; 
+    const istOffset = 5.5 * 60 * 60 * 1000;
     const istCurrentTime = new Date(currentTime.getTime() + istOffset);
     console.log("IST Current Time:", istCurrentTime);
     console.log("Comparing IST Time with Slot Start Time:");
     console.log(`IST Time: ${istCurrentTime}, Slot Start Time: ${slotStartTime}`);
     console.log("Is Slot Start Time > IST Current Time?", slotStartTime > istCurrentTime);
     appAssert(slotStartTime > istCurrentTime, BAD_REQUEST, "Slot is not available. Please try another slot.");
-    const shortPatientId = patientId.toString().slice(-6); 
+    const shortPatientId = patientId.toString().slice(-6);
     const receiptId = `rct_${shortPatientId}_${Date.now().toString()}`;
 
     const razorpayOrder = await razorpayInstance.orders.create({
@@ -111,12 +118,12 @@ export class PaymentUseCase {
     };
   }
 
-  async verifyPayment({ userId, razorpay_order_id, doctorId, }: VerifyPaymentParams) {
+  async verifyPayment({ userId, razorpay_order_id, doctorId, doctorName }: VerifyPaymentParams) {
     const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
     const receiptId = orderInfo.receipt
     console.log("Order Info:", orderInfo);
     appAssert(orderInfo, BAD_REQUEST, "Unable to fetch order details. Please try again later.");
-    
+
     if (orderInfo.status === "paid") {
       const payments = await razorpayInstance.orders.fetchPayments(razorpay_order_id);
       console.log("Payment Details:", payments);
@@ -136,10 +143,10 @@ export class PaymentUseCase {
       );
       appAssert(appointment, BAD_REQUEST, "Appointment details are missing. Please try again.");
       const updatedUserTransaction = await this.transactionRepository.updateTransaction(
-        { paymentGatewayId: receiptId},
+        { paymentGatewayId: receiptId },
         {
           status: "success",
-          paymentGatewayId: payments.items[0]?.id || razorpay_order_id, 
+          paymentGatewayId: payments.items[0]?.id || razorpay_order_id,
         }
       );
       appAssert(updatedUserTransaction, BAD_REQUEST, "Failed to update user transaction.");
@@ -148,32 +155,36 @@ export class PaymentUseCase {
         fromModel: "User",
         to: doctorId,
         toModel: "Doctor",
-        amount: Number(orderInfo.amount) / 100, 
+        amount: Number(orderInfo.amount) / 100,
         type: "credit",
         method: "razorpay",
         paymentType: "slot_booking",
         status: "success",
         bookingId: appointment._id as string,
-        paymentGatewayId: payments.items[0]?.id || razorpay_order_id, 
+        paymentGatewayId: payments.items[0]?.id || razorpay_order_id,
         relatedTransactionId: updatedUserTransaction.transactionId,
       });
+      const userDetails = await this.userRepository.findUserById(userId);
+      const updatedSlotDetails = await this.slotRespository.updateSlotById(appointment?.slotId, appointment?.patientId);
 
-      await this.slotRespository.updateSlotById(appointment?.slotId, appointment?.patientId);
       await this.walletRepository.increaseBalance({
-        userId : doctorId,
-        role :"Doctor",
-        amount : Number(orderInfo.amount) / 100,
-        description : "Slot Booking",
-        relatedTransactionId : doctorTransaction._id as string
+        userId: doctorId,
+        role: "Doctor",
+        amount: Number(orderInfo.amount) / 100,
+        description: "Slot Booking",
+        relatedTransactionId: doctorTransaction._id as string
 
-      })  
+      })
       try {
         const [doctorNotification, patientNotification] = await Promise.all([
           this.notificationRepository.createNotification({
             userId: appointment?.doctorId,
-            role:Role.DOCTOR,
+            role: Role.DOCTOR,
             type: NotificationType.Appointment,
-            message: "Your appointment has been scheduled",
+            message: `A new appointment with ${userDetails?.name}
+             has been scheduled on ${formatDate(updatedSlotDetails?.date?.toISOString()!)}
+             at ${formatToIndianTime(updatedSlotDetails?.startTime?.toISOString()!)}
+              - ${formatToIndianTime(updatedSlotDetails?.endTime?.toISOString()!)}`,
             metadata: {
               meetingId: appointment?.meetingId,
               appointMentId: appointment?._id,
@@ -181,9 +192,12 @@ export class PaymentUseCase {
           }),
           this.notificationRepository.createNotification({
             userId: appointment?.patientId,
-            role:Role.USER,
+            role: Role.USER,
             type: NotificationType.Appointment,
-            message: "Your appointment has been scheduled",
+            message: `Your appointment with ${doctorName}
+             has been scheduled on ${formatDate(updatedSlotDetails?.date?.toISOString()!)}
+             at ${formatToIndianTime(updatedSlotDetails?.startTime?.toISOString()!)}
+              - ${formatToIndianTime(updatedSlotDetails?.endTime?.toISOString()!)}`,
             metadata: {
               meetingId: appointment?.meetingId,
               appointMentId: appointment?._id,
@@ -192,144 +206,150 @@ export class PaymentUseCase {
         ]);
         const doctorSocketId = getReceiverSocketId(appointment?.doctorId.toString());
         const patientSocketId = getReceiverSocketId(appointment?.patientId.toString());
-      
-        if (doctorSocketId) {
-          io.to(doctorSocketId).emit("new-notification", {
-            message: doctorNotification.message,
-            metadata: doctorNotification.metadata,
-          });
-        }
-      
-        if (patientSocketId) {
-          io.to(patientSocketId).emit("new-notification", {
-            message: patientNotification.message,
-            metadata: patientNotification.metadata,
-          });
-        }
-        console.log("Doctor notification:", doctorNotification);
-        console.log("Patient notification:", patientNotification);
+
+        emitNotification(doctorSocketId, doctorNotification.message);
+        emitNotification(patientSocketId, patientNotification.message);
+
       } catch (error) {
         console.error("Notification creation failed:", error);
       }
-       
+
       return { appointment, message: "Payment verified and appointment confirmed" };
     }
     throw new Error("Payment not completed.");
   }
+
+
+
+
   async cancelAppointment(appointmentId: mongoose.Types.ObjectId) {
-    console.log("<<<<<<<<<<<<<<<<<<<Cancel Appointment>>>>>>>>>>>>>>>>>>>");
+
     const details = await this.appointmentRepository.cancelAppointment(appointmentId);
     appAssert(details, BAD_REQUEST, "Unable to cancel appointment. Please try few minutes later.");
     await this.slotRespository.cancelSlotById(details.slotId);
     // Decreasing from the Doctor and Increasing to the Patient
     await this.walletRepository.decreaseBalance({
-      userId : details.doctorId,
-      role :"Doctor",
-      amount : details.amount,
-      description : "Appointment cancellation refund",
+      userId: details.doctorId,
+      role: "Doctor",
+      amount: details.amount,
+      description: "Appointment cancellation refund",
     })
     await this.walletRepository.increaseBalance({
-      userId : details.patientId,
-      role :"User",
-      amount : details.amount,
-      description : "Appointment cancellation refund",
+      userId: details.patientId,
+      role: "User",
+      amount: details.amount,
+      description: "Appointment cancellation refund",
     });
-      await this.transactionRepository.createTransaction({
+    await this.transactionRepository.createTransaction({
       from: details.doctorId,
       fromModel: "Doctor",
       to: details.patientId,
       toModel: "User",
-      amount: Number(details.amount), 
+      amount: Number(details.amount),
       type: "debit",
       method: "wallet",
       paymentType: "cancel_appointment",
       status: "success",
-      bookingId: details._id as string, 
+      bookingId: details._id as string,
 
     });
 
-        await this.transactionRepository.createTransaction({
-        from: details.doctorId,
-        fromModel: "Doctor",
-        to: details.patientId,
-        toModel: "User",
-        amount: Number(details.amount), 
-        type: "credit",
-        method: "wallet",
-        paymentType: "cancel_appointment",
-        status: "success",
-        bookingId: details._id  as string, 
+    await this.transactionRepository.createTransaction({
+      from: details.doctorId,
+      fromModel: "Doctor",
+      to: details.patientId,
+      toModel: "User",
+      amount: Number(details.amount),
+      type: "credit",
+      method: "wallet",
+      paymentType: "cancel_appointment",
+      status: "success",
+      bookingId: details._id as string,
     });
-    
+    const doctorDetails = await this.doctorRespository.findDoctorByID(details.doctorId);
+    const userDetails = await this.userRepository.findUserById(details.patientId);
+    const doctorSocketId = getReceiverSocketId(details?.doctorId.toString());
+    const patientSocketId = getReceiverSocketId(details?.patientId.toString());
+    const doctorMessage = `Your appointment with ${userDetails?.name} at
+                           ${formatDate(details?.date?.toISOString()!)} has been cancelled.`;
+
+    const patientMessage = `Your appointment with ${doctorDetails?.name} has been cancelled.`;
+    emitNotification(doctorSocketId, doctorMessage);
+    emitNotification(patientSocketId, patientMessage);
+
     return details;
   }
+
+
+
+
   async abortPayment(orderId: string) {
     logger.info("Aborting payment for order ID:", orderId);
     try {
-        const orderInfo = await razorpayInstance.orders.fetch(orderId);
-        const receiptId = orderInfo.receipt;
-        logger.info("Order info fetched:", orderInfo);
+      const orderInfo = await razorpayInstance.orders.fetch(orderId);
+      const receiptId = orderInfo.receipt;
+      logger.info("Order info fetched:", orderInfo);
 
-        let additionalDetails = {
-            orderId: orderId,
-            paymentMethod: "none",
+      let additionalDetails = {
+        orderId: orderId,
+        paymentMethod: "none",
+        paymentThrough: "Razorpay",
+        description: "Payment cancelled or failed",
+        bank: "",
+        meetingId: "",
+      };
+
+      let payments: any = null;
+
+      try {
+        payments = await razorpayInstance.orders.fetchPayments(orderId);
+        logger.info("Payment Details:", payments);
+        if (payments?.items?.length > 0) {
+          additionalDetails = {
+            orderId: payments.items[0]?.order_id || orderId,
+            paymentMethod: payments.items[0]?.method || "none",
             paymentThrough: "Razorpay",
-            description: "Payment cancelled or failed",
-            bank: "",
+            description: payments.items[0]?.description || "Payment cancelled or failed",
+            bank: payments.items[0]?.bank || "",
             meetingId: "",
-        };
-
-        let payments: any = null;  
-
-        try {
-            payments = await razorpayInstance.orders.fetchPayments(orderId);
-            logger.info("Payment Details:", payments);
-            if (payments?.items?.length > 0) {
-                additionalDetails = {
-                    orderId: payments.items[0]?.order_id || orderId,
-                    paymentMethod: payments.items[0]?.method || "none",
-                    paymentThrough: "Razorpay",
-                    description: payments.items[0]?.description || "Payment cancelled or failed",
-                    bank: payments.items[0]?.bank || "",
-                    meetingId: "",
-                };
-            }
-        } catch (paymentError) {
-            logger.warn("Failed to fetch payment details:", paymentError);
-        };
-        logger.info("Using additional details:", additionalDetails);
-        const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId!, additionalDetails, "failed");
-        console.log(appointment);
-
-        if (appointment) {
-            await this.notificationRepository.createNotification({
-                userId: appointment.patientId,
-                role: Role.USER,
-                type: NotificationType.Appointment,
-                message: "Your payment was cancelled or failed",
-                status: "pending",
-            });
-            const response = await this.transactionRepository.updateTransaction(
-                { paymentGatewayId: receiptId },  
-                {
-                    status: "failed",
-                    type: "failed",
-                    paymentGatewayId: payments?.items[0]?.id || receiptId, 
-                }
-            );
-
-            console.log("Created from the abort payment:", response);
+          };
         }
-        return { success: true, message: "Payment failure recorded successfully" };
+      } catch (paymentError) {
+        logger.warn("Failed to fetch payment details:", paymentError);
+      };
+      logger.info("Using additional details:", additionalDetails);
+      const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId!, additionalDetails, "failed");
+      console.log(appointment);
+
+      if (appointment) {
+        await this.notificationRepository.createNotification({
+          userId: appointment.patientId,
+          role: Role.USER,
+          type: NotificationType.Appointment,
+          message: "Your payment was cancelled or failed",
+          status: "pending",
+        });
+        const response = await this.transactionRepository.updateTransaction(
+          { paymentGatewayId: receiptId },
+          {
+            status: "failed",
+            type: "failed",
+            paymentGatewayId: payments?.items[0]?.id || receiptId,
+          }
+        );
+
+        console.log("Created from the abort payment:", response);
+      }
+      return { success: true, message: "Payment failure recorded successfully" };
     } catch (error) {
-        logger.error(`Failed to abort payment for order ${orderId}:`, error);
-        return {
-            success: false,
-            message: "Payment failed",
-            note: "Error details logged on server",
-        };
+      logger.error(`Failed to abort payment for order ${orderId}:`, error);
+      return {
+        success: false,
+        message: "Payment failed",
+        note: "Error details logged on server",
+      };
     }
-}
+  }
 
   // /**
   //  // TODO razorpay and wallet payment integration 
@@ -385,60 +405,63 @@ export class PaymentUseCase {
         paymentMethod: "wallet",
         paymentThrough: "wallet",
         description: "Slot booking",
-        meetingId:uuidv4(),
+        meetingId: uuidv4(),
       });
       const doctorTransaction = await this.transactionRepository.createTransaction({
         from: userId,
         fromModel: "User",
         to: doctorId,
         toModel: "Doctor",
-        amount: Number(amount), 
+        amount: Number(amount),
         type: "credit",
         method: "wallet",
         paymentType: "slot_booking",
         status: "success",
-        bookingId: newAppointmentDetails._id as string, 
+        bookingId: newAppointmentDetails._id as string,
         relatedTransactionId: wallet._id as string,
       });
       console.log("Doctor Transaction created:", doctorTransaction);
-        //user transaction
-        const userTransaction = await this.transactionRepository.createTransaction({
+      //user transaction
+      const userTransaction = await this.transactionRepository.createTransaction({
         from: userId,
         fromModel: "User",
         to: doctorId,
         toModel: "Doctor",
-        amount: Number(amount), 
+        amount: Number(amount),
         type: "debit",
         method: "wallet",
         paymentType: "slot_booking",
         status: "success",
-        bookingId: newAppointmentDetails._id as string, 
+        bookingId: newAppointmentDetails._id as string,
         relatedTransactionId: wallet._id as string,
       });
 
-      await this.slotRespository.updateSlotById(slotId!, patientId!);
+      const updatedSlotDetails = await this.slotRespository.updateSlotById(slotId!, patientId!);
       await this.walletRepository.increaseBalance({
-        userId : doctorId!,
-        role :"Doctor",
-        amount : Number(amount),
-        description : "Slot Booking",
-        relatedTransactionId : doctorTransaction._id as string
+        userId: doctorId!,
+        role: "Doctor",
+        amount: Number(amount),
+        description: "Slot Booking",
+        relatedTransactionId: doctorTransaction._id as string
       });
       await this.walletRepository.decreaseBalance({
-        userId : patientId!,
-        role :"User",
-        amount : Number(amount),
-        description : "Slot Booking",
-        relatedTransactionId : userTransaction._id as string
+        userId: patientId!,
+        role: "User",
+        amount: Number(amount),
+        description: "Slot Booking",
+        relatedTransactionId: userTransaction._id as string
       });
-      
+
       try {
         const [doctorNotification, patientNotification] = await Promise.all([
           this.notificationRepository.createNotification({
-            userId:doctorId,
-            role:Role.DOCTOR,
+            userId: doctorId,
+            role: Role.DOCTOR,
             type: NotificationType.Appointment,
-            message: "Your appointment has been scheduled",
+            message: `A new appointment with ${patient?.name}
+             has been scheduled on ${formatDate(updatedSlotDetails?.date?.toISOString()!)}
+             at ${formatToIndianTime(updatedSlotDetails?.startTime?.toISOString()!)}
+              - ${formatToIndianTime(updatedSlotDetails?.endTime?.toISOString()!)}`,
             metadata: {
               meetingId: newAppointmentDetails?.meetingId,
               appointMentId: newAppointmentDetails?._id,
@@ -446,20 +469,26 @@ export class PaymentUseCase {
           }),
           this.notificationRepository.createNotification({
             userId: patientId,
-            role:Role.USER,
+            role: Role.USER,
             type: NotificationType.Appointment,
-            message: "Your appointment has been scheduled",
+            message: `Your appointment with ${doctor?.name}
+             has been scheduled on ${formatDate(updatedSlotDetails?.date?.toISOString()!)}
+             at ${formatToIndianTime(updatedSlotDetails?.startTime?.toISOString()!)}
+              - ${formatToIndianTime(updatedSlotDetails?.endTime?.toISOString()!)}`,
             metadata: {
               meetingId: newAppointmentDetails?.meetingId,
               appointMentId: newAppointmentDetails?._id,
             },
           }),
         ]);
-        console.log("Doctor notification:", doctorNotification);
-        console.log("Patient notification:", patientNotification);
+        const doctorSocketId = getReceiverSocketId(doctorId);
+        const patientSocketId = getReceiverSocketId(patientId);
+        emitNotification(doctorSocketId, doctorNotification.message);
+        emitNotification(patientSocketId, patientNotification.message);
       } catch (error) {
         console.error("Notification creation failed:", error);
       }
+
 
       return {
         newAppointmentDetails,

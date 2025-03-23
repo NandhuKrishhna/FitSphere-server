@@ -10,7 +10,7 @@ import logger from "../../../shared/utils/logger";
 
 @Service()
 export class PaymentController {
-  constructor(@Inject() private paymentUseCase: PaymentUseCase) {}
+  constructor(@Inject() private paymentUseCase: PaymentUseCase) { }
 
   bookAppointment = catchErrors(async (req: Request, res: Response) => {
     console.log("From book appointment handler", req.body);
@@ -31,10 +31,12 @@ export class PaymentController {
 
   verifyPaymentHandler = catchErrors(async (req: Request, res: Response) => {
     const razorpay_order_id = req.body.razorpay_order_id;
+    const doctorName = req.body.doctorName;
+    console.log("DoctorName from verify payment handler", doctorName);
     const { userId } = req as AuthenticatedRequest;
     const doctorId = stringToObjectId(req.body.doctorId);
     appAssert(razorpay_order_id, BAD_REQUEST, "Missing");
-    await this.paymentUseCase.verifyPayment({ userId, razorpay_order_id, doctorId });
+    await this.paymentUseCase.verifyPayment({ userId, razorpay_order_id, doctorId, doctorName });
     res.status(OK).json({
       success: true,
       message: "Payment verified successfully",
@@ -44,7 +46,6 @@ export class PaymentController {
 
   cancelAppointmentHandler = catchErrors(async (req: Request, res: Response) => {
     const appointmentId = stringToObjectId(req.body.appointmentId);
-    logger.info(req.body)
     const response = await this.paymentUseCase.cancelAppointment(appointmentId);
     res.status(OK).json({
       success: true,
@@ -104,6 +105,6 @@ export class PaymentController {
       response,
     });
   });
-  
-  
+
+
 }
