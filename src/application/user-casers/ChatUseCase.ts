@@ -8,15 +8,21 @@ import mongoose from "mongoose";
 import { getReceiverSocketId, io } from "../../infrastructure/config/socket.io";
 import cloudinary from "../../infrastructure/config/cloudinary";
 import { ObjectId } from "../../infrastructure/models/UserModel";
+import Role from "../../shared/constants/UserRole";
+import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
+import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
+import { profile } from "console";
 
 @Service()
 export class ChatUseCase {
   constructor(
     @Inject(IChatRepositoryToken) private chatRepository: IChatRepository,
     @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository,
-  ) {}
+    @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
+    @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
+  ) { }
 
-  public async sendMessage({ senderId, receiverId, message , image , role }: SendMessageProps): Promise<any> {
+  public async sendMessage({ senderId, receiverId, message, image, role }: SendMessageProps): Promise<any> {
     appAssert(message?.trim() || image, BAD_REQUEST, "Message or image is required");
     const participants = [senderId, receiverId].sort((a, b) => a.toString().localeCompare(b.toString()));
     let conversation = await this.conversationRepository.getConversationByParticipants(participants);
@@ -32,12 +38,22 @@ export class ChatUseCase {
       conversationId: conversation._id,
       senderId,
       receiverId,
-      message: message?.trim() || "", 
-      image : imageUrl
+      message: message?.trim() || "",
+      image: imageUrl
     });
+    const user = role === Role.USER
+      ? await this.userRepository.findUserById(senderId)
+      : await this.doctorRepository.findDoctorByID(senderId);
+    console.log("User detials: ", user)
     const receiverSocketid = getReceiverSocketId(receiverId);
     if (receiverSocketid) {
-      io.to(receiverSocketid).emit("newMessage", newMessage);
+      io.to(receiverSocketid).emit("newMessage", newMessage.message);
+      io.to(receiverSocketid).emit("newMessageNotification", {
+        data: {
+          name: user?.name,
+          profilePicture: user?.profilePicture
+        }
+      });
     }
     await this.conversationRepository.updateLastMessage(conversation._id, message);
 
@@ -61,10 +77,10 @@ export class ChatUseCase {
     const users = await this.conversationRepository.getUsers(userId, role);
     return users;
   }
-  public async createConversation(senderId : ObjectId , receiverId : ObjectId): Promise<void> {
+  public async createConversation(senderId: ObjectId, receiverId: ObjectId): Promise<void> {
     const participants = [senderId, receiverId].sort((a, b) => a.toString().localeCompare(b.toString()));
     const conversation = await this.conversationRepository.getConversationByParticipants(participants);
-    if(conversation) return
+    if (conversation) return
     await this.conversationRepository.addUserForSidebar(participants);
 
   }
