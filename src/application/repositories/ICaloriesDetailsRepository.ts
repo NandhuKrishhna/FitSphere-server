@@ -1,10 +1,11 @@
 import { Token } from "typedi";
 import { IUserDetails } from "../../infrastructure/models/user.addition.details";
 import mongoose from "mongoose";
-import { TUserDetails } from "../../domain/types/calories.Types";
+
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { ICalorieIntake, IFoodItem } from "../../infrastructure/models/caloriesIntakeModel";
 import { IWeightLog } from "../../infrastructure/models/weightLog.model";
+import { TUserDetails } from "../../domain/types/calories.Types";
 
 export interface ICaloriesDetailsRepository {
   createCaloriesDetails(userId: mongoose.Types.ObjectId, data: TUserDetails): Promise<IUserDetails>;

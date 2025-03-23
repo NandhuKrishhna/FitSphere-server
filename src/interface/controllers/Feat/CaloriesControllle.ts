@@ -32,7 +32,16 @@ export class CaloriesController {
       resposse,
     });
   });
-
+  addUserHealthDetails = catchErrors(async (req: Request, res: Response) => {
+    const { userId } = req as AuthenticatedRequest;
+    const data = userDetailsSchema.parse(req.body);
+    const response = await this.caloriesUseCase.addUserHealthDetails(userId, data);
+    res.status(OK).json({
+      success: true,
+      message: "User Health Details Added Successfully",
+      response,
+    });
+  })
   updateUserDetails = catchErrors(async (req: Request, res: Response) => {
     console.log("User details :",req.body);
     const { userId } = req as AuthenticatedRequest;

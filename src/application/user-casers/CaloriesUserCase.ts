@@ -4,7 +4,6 @@ import { BAD_REQUEST } from "../../shared/constants/http";
 import { Inject, Service } from "typedi";
 import { getRecipeByIngredientsUrl, getRecipeInformationUrl } from "../../shared/utils/SponnerApi";
 import { DeepSeek_Api_key, USDA_FOODDATA_API_KEY } from "../../shared/constants/env";
-import mongoose from "mongoose";
 import {
   ICaloriesDetailsRepository,
   ICaloriesDetailsRepositoryToken,
@@ -34,6 +33,12 @@ export class CaloriesUseCase {
     const sponnerApiUrl = getRecipeInformationUrl(recipeId);
     const respones = await axios.get(sponnerApiUrl);
     return respones.data;
+  }
+
+  public async addUserHealthDetails(userId: ObjectId, data: TUserDetails) {
+    appAssert(userId, BAD_REQUEST, "Invalid userId");
+    appAssert(data, BAD_REQUEST, "Invalid data");
+    return await this.caloriesDetailsRepository.createCaloriesDetails(userId, data);
   }
 
   public async updateUserDetails(userId: ObjectId, data: Partial<IUserDetails>) {
