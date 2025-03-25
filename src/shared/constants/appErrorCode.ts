@@ -10,6 +10,9 @@ const enum AppErrorCode {
     InvalidRefreshToken = "InvalidRefreshToken",
     MissingPassword = "MissingPassword",
     InsufficientPermission = "InsufficientPermission",
+    UserNotFound = "UserNotFound",
+    AccountSuspended = "AccountSuspended",
+    AccountNotApproved = "AccountNotApproved",
 
 }
 
