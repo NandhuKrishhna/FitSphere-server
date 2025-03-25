@@ -19,10 +19,12 @@ import Role from "./shared/constants/UserRole";
 import caloriesRouter from "./interface/routes/Apps/calories.router";
 import doctorFeatRouter from "./interface/routes/doctor/doctorFeatRoutes";
 import webrtcRouter from "./interface/routes/Apps/webrtcRouter";
-import notificationRouter from "./interface/routes/Apps/notificatation.router";
 import morgan from "morgan";
 import logger from "./shared/utils/logger";
 import { setupCalorieIntakeCron } from "./application/services/cronJobs";
+import commonRouter from "./interface/routes/Apps/common.routes";
+import notificationRouter from "./interface/routes/Apps/notification.routes";
+
 
 const morganFormat = ":method :url :status :response-time ms";
 app.use(
@@ -62,18 +64,16 @@ app.get("/health", (req: Request, res: Response) => {
 app.use("/api/auth", authRouter);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/admin", adminRouter);
-//TODO remove the user from this route added because to test purpose only...for code reusability for now called some user api routes
-app.use("/api/app", authenticate, authorizeRoles([Role.USER,Role.DOCTOR,Role.ADMIN]), appRouter);
+app.use("/api/app", authenticate, authorizeRoles([Role.USER]), appRouter);
 app.use("/api/app", authenticate, authorizeRoles([Role.USER]), caloriesRouter);
-app.use("/api/doctor", authenticate, authorizeRoles([Role.DOCTOR,Role.USER]), doctorFeatRouter);
-app.use("/api/notification", authenticate, authorizeRoles([Role.USER, Role.DOCTOR, Role.ADMIN]), notificationRouter);
-//webrtc  route
+app.use("/api/doctor", authenticate, authorizeRoles([Role.DOCTOR]), doctorFeatRouter);
 app.use("/api", authenticate, authorizeRoles([Role.USER, Role.DOCTOR]), webrtcRouter);
-
+app.use("/api/app", authenticate, authorizeRoles([Role.DOCTOR, Role.USER]), commonRouter);
+app.use("/api/notification", authenticate, authorizeRoles([Role.USER, Role.DOCTOR, Role.ADMIN]), notificationRouter);
 app.use(errorHandler);
 
 server.listen(PORT, async () => {
   await connectToDatabase();
   setupCalorieIntakeCron();
-  logger.info(`👍🏽 Server running at http://localhost:${PORT} in ${NODE_ENV} mode`);
+  logger.info(`Server running at http://localhost:${PORT} in ${NODE_ENV} mode`);
 });
