@@ -38,7 +38,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     additionalDetails: AdditonDetails,
     status: "pending" | "completed" | "failed"
   ): Promise<AppointmentDocument | null> {
-    console.log("Receipt ID from the updatedPaymentStatus:__________",id)
+    console.log("Receipt ID from the updatedPaymentStatus:__________", id)
     const updateFields: Partial<AppointmentDocument> = {
       paymentStatus: status,
       orderId: additionalDetails.orderId,
@@ -56,67 +56,10 @@ export class AppointmentRepository implements IAppointmentRepository {
       updateFields,
       { new: true }
     );
-  
-    return response;
-  }
-  
 
-  async findDetailsByPatientId(userId: mongoose.Types.ObjectId): Promise<any> {
-    const response = await AppointmentModel.aggregate([
-      {
-        $match: {
-          patientId: new mongoose.Types.ObjectId(userId),
-        },
-      },
-      {
-        $lookup: {
-          from: "slots",
-          localField: "slotId",
-          foreignField: "_id",
-          as: "slot",
-        },
-      },
-      {
-        $lookup: {
-          from: "doctors",
-          localField: "doctorId",
-          foreignField: "_id",
-          as: "doctor",
-        },
-      },
-      {
-        $unwind: {
-          path: "$slot",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $unwind: {
-          path: "$doctor",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          consultationType: 1,
-          date: 1,
-          status: 1,
-          orderId: 1,
-          paymentMethod: 1,
-          paymentThrough: 1,
-          amount: 1,
-          paymentStatus: 1,
-          meetingId: 1,
-          "slot.startTime": 1,
-          "slot.endTime": 1,
-          "doctor.name": 1,
-          "doctor.profilePicture": 1,
-        },
-      },
-    ]);
     return response;
   }
+
 
   async cancelAppointment(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null> {
     const response = await AppointmentModel.findOneAndUpdate(
@@ -144,21 +87,18 @@ export class AppointmentRepository implements IAppointmentRepository {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       throw new Error("Invalid user ID");
     }
-  
+
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 10;
     const skip = (pageNum - 1) * limitNum;
-  
-    // Role-based filtering
     const matchCondition =
       role === "user"
         ? { patientId: new mongoose.Types.ObjectId(userId) }
         : { doctorId: new mongoose.Types.ObjectId(userId) };
-  
+
     const pipeline: any[] = [
       { $match: matchCondition },
-  
-      // Lookup slot details
+
       {
         $lookup: {
           from: "slots",
@@ -168,8 +108,7 @@ export class AppointmentRepository implements IAppointmentRepository {
         },
       },
       { $unwind: { path: "$slot", preserveNullAndEmptyArrays: true } },
-  
-      // Lookup user/doctor details based on role
+
       {
         $lookup: {
           from: role === "user" ? "doctors" : "users",
@@ -179,8 +118,6 @@ export class AppointmentRepository implements IAppointmentRepository {
         },
       },
       { $unwind: { path: "$otherUser", preserveNullAndEmptyArrays: true } },
-  
-      // Apply filters
       {
         $match: {
           ...(status && { status }),
@@ -189,8 +126,6 @@ export class AppointmentRepository implements IAppointmentRepository {
         },
       },
     ];
-  
-    // Search filter (if search term exists)
     if (search) {
       pipeline.push({
         $match: {
@@ -203,12 +138,12 @@ export class AppointmentRepository implements IAppointmentRepository {
         },
       });
     }
-  
+
     // Sorting
     pipeline.push({
       $sort: { [sortBy]: sortOrder === "asc" ? 1 : -1 },
     });
-  
+
     // Pagination and projection
     pipeline.push({
       $facet: {
@@ -227,17 +162,17 @@ export class AppointmentRepository implements IAppointmentRepository {
               paymentMethod: 1,
               paymentThrough: 1,
               slot: { startTime: 1, endTime: 1 },
-              otherUser: { name: 1, email: 1, profilePicture: 1 }, // Dynamic field for doctor/patient
+              otherUser: { name: 1, email: 1, profilePicture: 1 },
             },
           },
         ],
         total: [{ $count: "total" }],
       },
     });
-  
+
     // Execute aggregation pipeline
     const [result] = await AppointmentModel.aggregate(pipeline);
-  
+
     return {
       data: result.data,
       meta: {
@@ -248,8 +183,8 @@ export class AppointmentRepository implements IAppointmentRepository {
       },
     };
   }
-  
-  
+
+
 
   async findAppointmentByMeetingId(meetingId: string): Promise<AppointmentDocument | null> {
     const response = await AppointmentModel.findOne({ meetingId: meetingId }).exec();
@@ -257,11 +192,11 @@ export class AppointmentRepository implements IAppointmentRepository {
   }
 
   async findAllAppointments(userId: ObjectId): Promise<AppointmentDocument[]> {
-    console.log("DoctorId", userId); 
+    console.log("DoctorId", userId);
     const details = await AppointmentModel.aggregate([
       {
         $match: {
-          doctorId: new mongoose.Types.ObjectId(userId), 
+          doctorId: new mongoose.Types.ObjectId(userId),
         },
       },
       {
@@ -289,7 +224,7 @@ export class AppointmentRepository implements IAppointmentRepository {
       {
         $unwind: {
           path: "$slotDetails",
-          preserveNullAndEmptyArrays: true, 
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -310,9 +245,9 @@ export class AppointmentRepository implements IAppointmentRepository {
 
   async updateMeetingStatus(meetingId: string): Promise<void> {
     await AppointmentModel.findOneAndUpdate(
-      { meetingId: meetingId }, 
+      { meetingId: meetingId },
       { $set: { status: "completed", meetingId: "" } }
     );
   }
-  
+
 }

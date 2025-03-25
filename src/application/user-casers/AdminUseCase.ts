@@ -19,6 +19,8 @@ import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWall
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { NotificationType } from "../../shared/constants/verficationCodeTypes";
 import { DoctorQueryParams, UserQueryParams } from "../../interface/controllers/Admin/AdminController";
+import { getReceiverSocketId } from "../../infrastructure/config/socket.io";
+import { emitNotification, suspendNotification } from "../../shared/utils/emitNotification";
 
 @Service()
 export class AdminUseCase {
@@ -29,7 +31,7 @@ export class AdminUseCase {
     @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
     @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
     @Inject(IWalletRepositoryToken) private walletRespository: IWalletRepository
-  ) {}
+  ) { }
 
   // method for admin login
   async adminLogin(adminData: LoginUserParams) {
@@ -73,12 +75,12 @@ export class AdminUseCase {
     };
   }
 
-  async getAllUsers(queryParams:UserQueryParams) {
+  async getAllUsers(queryParams: UserQueryParams) {
     const users = await this.adminRepository.getAllUsers(queryParams);
     return users;
   }
 
-  async getAllDoctors(queryParams:DoctorQueryParams) {
+  async getAllDoctors(queryParams: DoctorQueryParams) {
     const doctors = await this.adminRepository.getAllDoctors(queryParams);
     return doctors;
   }
@@ -102,7 +104,7 @@ export class AdminUseCase {
     //TODO create a wallet here after approval for the doctor;
     await this.walletRespository.createWallet({
       userId: user._id as ObjectId,
-      role:"Doctor"
+      role: "Doctor"
     });
     await this.notificationRepository.deleteNotification(id);
     await sendMail({
@@ -129,17 +131,20 @@ export class AdminUseCase {
     return result;
   }
 
-  async unblockUser(id: mongoose.Types.ObjectId ,role: string) {
+  async unblockUser(id: mongoose.Types.ObjectId, role: string) {
     const user = await this.userRepository.findUserById(id);
-    await this.adminRepository.unblockById(id , role);
+    await this.adminRepository.unblockById(id, role);
+
   }
 
-  async blockUser(id: mongoose.Types.ObjectId , role : string) {
+  async blockUser(id: mongoose.Types.ObjectId, role: string) {
     const user = await this.userRepository.findUserById(id);
-    const response = await this.adminRepository.blockById(id , role);
+    const response = await this.adminRepository.blockById(id, role);
     appAssert(response, BAD_REQUEST, "User was not found. Or error in blocking the user");
     if (response) {
       await this.sessionRepository.deleteMany(id);
     }
+    const userSocketId = getReceiverSocketId(user?._id);
+    suspendNotification(userSocketId, "Your account has been suspended. Please contact with our team");
   }
 }

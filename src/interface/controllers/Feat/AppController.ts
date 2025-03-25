@@ -8,7 +8,7 @@ import { stringToObjectId } from "../../../shared/utils/bcrypt";
 
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 //TODO remove all type from here to seperate files::
-export type TransactionQueryParams ={
+export type TransactionQueryParams = {
   page?: string;
   limit?: string;
   sortBy?: string;
@@ -32,7 +32,7 @@ export type WalletTransactionQuery = {
 
 @Service()
 export class AppController {
-  constructor(@Inject() private appUseCase: AppUseCase) {}
+  constructor(@Inject() private appUseCase: AppUseCase) { }
 
   displayAllDoctorsHandler = catchErrors(async (req: Request, res: Response) => {
     const page = req.query.page ? parseInt(req.query.page as string) - 1 : 0;
@@ -104,22 +104,12 @@ export class AppController {
       slots,
     });
   });
-  // TODO remove this one created common for user and doctor in doctorFeatController
-  getAppointmentHandlers = catchErrors(async (req: Request, res: Response) => {
-    const {userId} = req as AuthenticatedRequest;
-    const response = await this.appUseCase.displaySlotWithDoctorDetails(userId);
-    res.status(OK).json({
-      success: true,
-      message: "Slot details fetched successfully",
-      response,
-    });
-  });
 
   getWalletHandler = catchErrors(async (req: Request, res: Response) => {
     const queryParams: WalletTransactionQuery = req.query as WalletTransactionQuery;
     const userId = stringToObjectId(req.params.userId);
-    const {role}  = req as AuthenticatedRequest
-    const response = await this.appUseCase.getWalletDetails(userId, role , queryParams);
+    const { role } = req as AuthenticatedRequest
+    const response = await this.appUseCase.getWalletDetails(userId, role, queryParams);
     res.status(OK).json({
       success: true,
       message: "Wallet details fetched successfully",
@@ -128,8 +118,8 @@ export class AppController {
   });
 
   getNotificationsHandler = catchErrors(async (req: Request, res: Response) => {
-    const {userId,role} = req as AuthenticatedRequest;
-    const allNotifications = await this.appUseCase.getNotifications(userId ,role);
+    const { userId, role } = req as AuthenticatedRequest;
+    const allNotifications = await this.appUseCase.getNotifications(userId, role);
     res.status(OK).json({
       success: true,
       message: "Notifications fetched successfully",
@@ -177,10 +167,10 @@ export class AppController {
   });
 
   markAsReadNotificationHandler = catchErrors(async (req: Request, res: Response) => {
-    const {userId}  = req as AuthenticatedRequest;
+    const { userId } = req as AuthenticatedRequest;
     const notificationId = stringToObjectId(req.body.notificationId);
     appAssert(notificationId, BAD_REQUEST, "No Notificaiton was found");
-    await this.appUseCase.markAsReadNotification( notificationId);
+    await this.appUseCase.markAsReadNotification(notificationId);
     res.status(OK).json({
       success: true,
       message: "Notification marked as read successfully",
@@ -188,8 +178,8 @@ export class AppController {
   });
 
   getAllTransactionsHandler = catchErrors(async (req: Request, res: Response) => {
-    const {userId}  = req as AuthenticatedRequest;
-    const transactions = await this.appUseCase.getTransactions( userId);
+    const { userId } = req as AuthenticatedRequest;
+    const transactions = await this.appUseCase.getTransactions(userId);
     res.status(OK).json({
       success: true,
       message: "Transactions fetched successfully",
@@ -199,11 +189,11 @@ export class AppController {
 
   editReviewHandler = catchErrors(async (req: Request, res: Response) => {
     console.log(req.body)
-    const {userId}  = req as AuthenticatedRequest;
+    const { userId } = req as AuthenticatedRequest;
     const { rating, reviewText } = req.body;
     const doctorId = stringToObjectId(req.body.doctorId);
     const reviewId = stringToObjectId(req.body.reviewId);
-    const response = await this.appUseCase.editReview({ userId, doctorId, rating, reviewText , reviewId});
+    const response = await this.appUseCase.editReview({ userId, doctorId, rating, reviewText, reviewId });
     res.status(OK).json({
       success: true,
       message: "Review and rating edited successfully",
@@ -212,26 +202,26 @@ export class AppController {
   })
 
   deleteReviewHandler = catchErrors(async (req: Request, res: Response) => {
-    const {userId} = req as AuthenticatedRequest;
+    const { userId } = req as AuthenticatedRequest;
     const doctorId = stringToObjectId(req.body.doctorId);
     const reviewId = stringToObjectId(req.body.reviewId);
-    const response = await this.appUseCase.deleteReview(doctorId, reviewId , userId );
+    const response = await this.appUseCase.deleteReview(doctorId, reviewId, userId);
     res.status(OK).json({
       success: true,
       message: "Review deleted successfully",
       response,
     })
   })
-   
+
 
   fetchTransactionHandler = catchErrors(async (req: Request, res: Response) => {
-    const {userId, role} = req as AuthenticatedRequest;
+    const { userId, role } = req as AuthenticatedRequest;
     console.log(userId)
-    const queryParams : TransactionQueryParams=  req.query;
-    const response = await this.appUseCase.fetchTransactions(userId, queryParams , role);
+    const queryParams: TransactionQueryParams = req.query;
+    const response = await this.appUseCase.fetchTransactions(userId, queryParams, role);
     res.status(OK).json({
-      success : true,
-      message :"Transactions fetched successfully",
+      success: true,
+      message: "Transactions fetched successfully",
       ...response
     })
   })
