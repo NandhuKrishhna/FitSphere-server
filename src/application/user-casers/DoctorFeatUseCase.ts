@@ -9,7 +9,6 @@ import { IAppointmentRepository, IAppointmentRepositoryToken } from "../reposito
 import { IConversationRepository, IConversationRepositoryToken } from "../repositories/IConversationRepository";
 import { ConsultationType, IcreateSlot } from "../../shared/utils/doctorHelper";
 import { ObjectId } from "../../infrastructure/models/UserModel";
-import { QueryParams } from "../../interface/controllers/doctor/DoctorFeatController";
 import { AppointmentQueryParams, PaginatedAppointments } from "../../domain/types/appointment.types";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 
@@ -20,7 +19,7 @@ export class DoctorFeatUseCase {
     @Inject(IAppointmentRepositoryToken) private appointmentRepository: IAppointmentRepository,
     @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository,
     @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository
-  ) {}
+  ) { }
 
   async addSlots(doctorId: mongoose.Types.ObjectId, payload: SlotType) {
     console.log(`Doctor Id: ${doctorId} and slots: ${JSON.stringify(payload)}`);
@@ -52,18 +51,18 @@ export class DoctorFeatUseCase {
     await this.slotRepository.deleteSlot(doctorId, slotId);
   }
 
-  async getAllAppointment(userId: ObjectId, queryParams: AppointmentQueryParams, role : string): Promise<PaginatedAppointments> {
+  async getAllAppointment(userId: ObjectId, queryParams: AppointmentQueryParams, role: string): Promise<PaginatedAppointments> {
     appAssert(userId, BAD_REQUEST, "Doctor Id is required");
 
-    return this.appointmentRepository.findAllAppointmentByUserIdAndRole(userId, queryParams ,role);
+    return this.appointmentRepository.findAllAppointmentByUserIdAndRole(userId, queryParams, role);
   }
 
-  async getAllUsers(userId: mongoose.Types.ObjectId, role: string): Promise<any> {
+  async getAllUsers(userId: mongoose.Types.ObjectId, role: string) {
     const users = await this.conversationRepository.getUsers(userId, role);
     return users;
   }
 
-  async getDoctorDetails({ userId }: { userId: ObjectId }): Promise<any> {
+  async getDoctorDetails({ userId }: { userId: ObjectId }) {
     const doctorDetails = await this.doctorRepository.findDoctorDetails(userId);
   }
 

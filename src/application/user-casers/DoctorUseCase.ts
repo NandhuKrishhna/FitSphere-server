@@ -12,7 +12,6 @@ import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISe
 import { AccessTokenPayload, RefreshTokenPayload, refreshTokenSignOptions, signToken } from "../../shared/utils/jwt";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 import { DoctorDetailsParams, DoctorInfoParams, RegisterDoctorParams } from "../../domain/types/doctorTypes";
-import { Doctor } from "../../domain/entities/Doctors";
 import { NotificationType, OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verficationCodeTypes";
 import { getVerifyEmailTemplates } from "../../shared/utils/emialTemplates";
 import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../repositories/IOtpReposirtory";
@@ -23,17 +22,11 @@ import { LoginUserParams } from "../../domain/types/userTypes";
 import Role from "../../shared/constants/UserRole";
 import { IcreateOtp, IcreateSession } from "../../shared/utils/builder";
 import { IcreateDoctorDetails } from "../../shared/utils/doctorHelper";
-import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
+import { updatePasswordParams } from "../../domain/types/doctorUseCase.types";
 
 
-export type updatePasswordParams = {
-  userId : mongoose.Types.ObjectId;
-  currentPassword: string;
-  newPassword: string;
-  role : string;
-};
 
 @Service()
 export class DoctorUseCase {
@@ -45,7 +38,7 @@ export class DoctorUseCase {
     @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
     @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
 
-  ) {}
+  ) { }
 
   async registerDoctor(details: RegisterDoctorParams) {
     const existingDoctor = await this.doctorRepository.findDoctorByEmail(details.email);
@@ -72,33 +65,25 @@ export class DoctorUseCase {
     };
   }
   // register as doctor;
-  async registerAsDoctor({
-    userId,
-    details,
-    doctorInfo,
-  }: {
+  async registerAsDoctor({ userId, details, doctorInfo }: {
     userId: mongoose.Types.ObjectId;
     details: DoctorDetailsParams;
     doctorInfo: DoctorInfoParams;
   }) {
-    console.log("DoctorId from registerAsDoctor handler : ", userId);
-    console.log("DoctorDetails from registerAsDoctor handler : ", details);
+
     const existingDoctor = await this.doctorRepository.findDoctorDetails(userId);
     appAssert(!existingDoctor, CONFLICT, "Email already exists");
     const doctor = await this.doctorRepository.findDoctorByID(userId);
-    console.log("Doctor:", doctor);
     let doctorName;
     if (doctor) {
       doctorName = doctor.name;
     }
-    // console.log(doctor);
     // upload image to cloudinary>>>>>
     const uploadResponse = details.certificate
       ? await cloudinary.uploader.upload(details.certificate, {
-          resource_type: "auto",
-        })
+        resource_type: "auto",
+      })
       : null;
-    console.log(uploadResponse);
     const doctorDetails = IcreateDoctorDetails(
       userId,
       details.experience!,
@@ -186,7 +171,7 @@ export class DoctorUseCase {
     const userId = existingDoctor._id as ObjectId;
     const accessToken = signToken({
       ...sessionInfo,
-      userId: userId ,
+      userId: userId,
       role: Role.DOCTOR,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
@@ -202,29 +187,29 @@ export class DoctorUseCase {
     await this.sessionRepository.findByIdAndDelete(payload.sessionId);
   }
 
-  async updateDoctorDetails(userId: mongoose.Types.ObjectId, details:DoctorDetailsParams ) {
-    appAssert(userId , BAD_REQUEST , "Invalid userId. Please login again.");
+  async updateDoctorDetails(userId: mongoose.Types.ObjectId, details: DoctorDetailsParams) {
+    appAssert(userId, BAD_REQUEST, "Invalid userId. Please login again.");
     const doctorDetails = await this.doctorRepository.findDoctorByID(userId);
-    appAssert(doctorDetails , NOT_FOUND , "User not found");
-    return await this.doctorRepository.updateDoctorDetailsByDocId(userId , details);
+    appAssert(doctorDetails, NOT_FOUND, "User not found");
+    return await this.doctorRepository.updateDoctorDetailsByDocId(userId, details);
   }
 
-  async updatePassword({userId, currentPassword, newPassword ,role}:updatePasswordParams){
-      appAssert(currentPassword, BAD_REQUEST, "Current password is required");
-      appAssert(newPassword, BAD_REQUEST, "New password is required");
-    
-      const isExistingUser = role === Role.DOCTOR 
-        ? await this.doctorRepository.findDoctorByID(userId)
-        : await this.userRepository.findUserById(userId);
-    
-      appAssert(isExistingUser, NOT_FOUND, "User not found");
-    
-      const isValidPassword = await isExistingUser.comparePassword(currentPassword);
-      appAssert(isValidPassword, BAD_REQUEST, "Current password is incorrect");
-    
-      const isSamePassword = await isExistingUser.comparePassword(newPassword);
-      appAssert(!isSamePassword, BAD_REQUEST, "New password cannot be the same as the current password");
-    return await this.doctorRepository.updatePassword(userId , newPassword , role);
+  async updatePassword({ userId, currentPassword, newPassword, role }: updatePasswordParams) {
+    appAssert(currentPassword, BAD_REQUEST, "Current password is required");
+    appAssert(newPassword, BAD_REQUEST, "New password is required");
+
+    const isExistingUser = role === Role.DOCTOR
+      ? await this.doctorRepository.findDoctorByID(userId)
+      : await this.userRepository.findUserById(userId);
+
+    appAssert(isExistingUser, NOT_FOUND, "User not found");
+
+    const isValidPassword = await isExistingUser.comparePassword(currentPassword);
+    appAssert(isValidPassword, BAD_REQUEST, "Current password is incorrect");
+
+    const isSamePassword = await isExistingUser.comparePassword(newPassword);
+    appAssert(!isSamePassword, BAD_REQUEST, "New password cannot be the same as the current password");
+    return await this.doctorRepository.updatePassword(userId, newPassword, role);
   }
 
   // async googleAuth(code : string){
