@@ -4,7 +4,7 @@ import "dotenv/config";
 import cors from "cors";
 import connectToDatabase from "./infrastructure/database/MongoDBClient";
 import express, { Request, Response } from "express";
-import { NODE_ENV, PORT } from "./shared/constants/env";
+import { APP_ORIGIN, NODE_ENV, PORT } from "./shared/constants/env";
 import cookieParser from "cookie-parser";
 import { OK } from "./shared/constants/http";
 import errorHandler from "./interface/middleware/auth/errorHandler";
@@ -48,7 +48,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: APP_ORIGIN,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -57,10 +57,6 @@ app.use(
 
 app.options("*", cors());
 
-app.get("/health", (req: Request, res: Response) => {
-  return res.status(OK).json({ status: "healthy" });
-});
-
 app.use("/api/auth", authRouter);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/admin", adminRouter);
@@ -68,7 +64,7 @@ app.use("/api/app", authenticate, authorizeRoles([Role.USER]), appRouter);
 app.use("/api/app", authenticate, authorizeRoles([Role.USER]), caloriesRouter);
 app.use("/api/doctor", authenticate, authorizeRoles([Role.DOCTOR]), doctorFeatRouter);
 app.use("/api", authenticate, authorizeRoles([Role.USER, Role.DOCTOR]), webrtcRouter);
-app.use("/api/app", authenticate, authorizeRoles([Role.DOCTOR, Role.USER]), commonRouter);
+app.use("/api/app-common", authenticate, authorizeRoles([Role.USER, Role.DOCTOR]), commonRouter);
 app.use("/api/notification", authenticate, authorizeRoles([Role.USER, Role.DOCTOR, Role.ADMIN]), notificationRouter);
 app.use(errorHandler);
 
