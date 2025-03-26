@@ -18,9 +18,9 @@ import { IcreateSession } from "../../shared/utils/builder";
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { NotificationType } from "../../shared/constants/verficationCodeTypes";
-import { DoctorQueryParams, UserQueryParams } from "../../interface/controllers/Admin/AdminController";
 import { getReceiverSocketId } from "../../infrastructure/config/socket.io";
 import { emitNotification, suspendNotification } from "../../shared/utils/emitNotification";
+import { DoctorQueryParams, UserQueryParams } from "../../domain/types/queryParams.types";
 
 @Service()
 export class AdminUseCase {
@@ -147,4 +147,5 @@ export class AdminUseCase {
     const userSocketId = getReceiverSocketId(user?._id);
     suspendNotification(userSocketId, "Your account has been suspended. Please contact with our team");
   }
+
 }

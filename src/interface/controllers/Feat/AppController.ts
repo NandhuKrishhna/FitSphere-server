@@ -7,28 +7,9 @@ import { AppUseCase } from "../../../application/user-casers/AppUseCase";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+import { NotificationQueryParams, TransactionQueryParams, WalletTransactionQuery } from "../../../domain/types/queryParams.types";
 //TODO remove all type from here to seperate files::
-export type TransactionQueryParams = {
-  page?: string;
-  limit?: string;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  search?: string;
-  doctorName?: string;
-  status?: string;
-  method?: string;
-  type?: string;
-}
 
-export type WalletTransactionQuery = {
-  page?: string;
-  limit?: string;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  search?: string;
-  status?: string;
-  description?: string;
-}
 
 @Service()
 export class AppController {
@@ -119,7 +100,8 @@ export class AppController {
 
   getNotificationsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId, role } = req as AuthenticatedRequest;
-    const allNotifications = await this.appUseCase.getNotifications(userId, role);
+    const queryParams: NotificationQueryParams = req.query;
+    const allNotifications = await this.appUseCase.getNotifications(userId, role, queryParams);
     res.status(OK).json({
       success: true,
       message: "Notifications fetched successfully",
@@ -141,8 +123,6 @@ export class AppController {
   });
 
   fetchReviewsAndRatingHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log("Hello world")
-    console.log(req.body)
     const doctorId = stringToObjectId(req.params.doctorId as string);
     appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
     const { reviews, rating } = await this.appUseCase.fetchReviewsAndRating(doctorId);
@@ -188,7 +168,6 @@ export class AppController {
   })
 
   editReviewHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body)
     const { userId } = req as AuthenticatedRequest;
     const { rating, reviewText } = req.body;
     const doctorId = stringToObjectId(req.body.doctorId);
@@ -216,7 +195,6 @@ export class AppController {
 
   fetchTransactionHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId, role } = req as AuthenticatedRequest;
-    console.log(userId)
     const queryParams: TransactionQueryParams = req.query;
     const response = await this.appUseCase.fetchTransactions(userId, queryParams, role);
     res.status(OK).json({

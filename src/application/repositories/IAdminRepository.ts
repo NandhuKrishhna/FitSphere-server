@@ -4,10 +4,10 @@ import { Doctor } from "../../domain/entities/Doctors";
 import mongoose from "mongoose";
 import { LookUpDoctor } from "../../domain/types/doctorTypes";
 import { DoctorDocument } from "../../infrastructure/models/DoctorModel";
-import { DoctorQueryParams, UserQueryParams } from "../../interface/controllers/Admin/AdminController";
 import { UserDocument } from "../../infrastructure/models/UserModel";
 import { PaginatedDoctors, PaginatedUsers } from "../../infrastructure/repositories/AdminRepository";
 import { AdminDocument } from "../../infrastructure/models/adminModel";
+import { DoctorQueryParams, UserQueryParams } from "../../domain/types/queryParams.types";
 
 export interface IAdminRepository {
     findAdminByEmail(email: string): Promise<AdminDocument | null>;
