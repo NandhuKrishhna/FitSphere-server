@@ -6,24 +6,34 @@ import {
 import ConversationModel, { IConversation } from "../models/conversationModel";
 import { Service } from "typedi";
 import Role from "../../shared/constants/UserRole";
+import { QueryResult } from "../../domain/types/conversation.types";
+
+export type GetUserType = {
+  _id: string;
+  name: string;
+  profilePicture: string;
+  lastMessage: string;
+  updatedAt: string;
+}
 
 @Service(IConversationRepositoryToken)
 export class ConversationRepository implements IConversationRepository {
-  async createConversation(participants: Types.ObjectId[]): Promise<IConversation> {
+  async createConversation(participants: string[]): Promise<IConversation> {
     const conversation = new ConversationModel({ participants });
     return await conversation.save();
   }
 
-  async getConversationByParticipants(participants: Types.ObjectId[]): Promise<IConversation | null> {
+  async getConversationByParticipants(participants: string[]): Promise<IConversation | null> {
     return await ConversationModel.findOne({
-      participants: { $all: participants },
-    });
+      participants: { $all: participants, $size: participants.length },
+    }).lean();
   }
+
 
   async updateLastMessage(conversationId: Types.ObjectId, message: string): Promise<IConversation | null> {
     return await ConversationModel.findOneAndUpdate({ _id: conversationId }, { lastMessage: message }, { new: true });
   }
-  async getUsers(userId: Types.ObjectId, role: string): Promise<any> {
+  async getUsers(userId: Types.ObjectId, role: string): Promise<QueryResult> {
     const result = await ConversationModel.aggregate([
       {
         $match: {
@@ -60,18 +70,14 @@ export class ConversationRepository implements IConversationRepository {
           "doctorDetails._id": 1,
           "doctorDetails.name": 1,
           "doctorDetails.profilePicture": 1,
-          lastMessage: 1,
-          _id: 1,
-          updatedAt: 1,
+          lastMessage: { $ifNull: ["$lastMessage", ""] }
         },
       },
     ]);
-    // console.log("Query Result:", result);
     return result;
   }
 
-  //addign user for the sidebar;
-  async addUserForSidebar(participants: Types.ObjectId[]): Promise<IConversation> {
+  async addUserForSidebar(participants: string[]): Promise<IConversation> {
     const existingConversation = await ConversationModel.findOne({ participants });
 
     if (existingConversation) {
@@ -79,23 +85,5 @@ export class ConversationRepository implements IConversationRepository {
     }
     const newConversation = await ConversationModel.create({ participants });
     return newConversation;
-  }
-
-  async findAllMessages(senderId: Types.ObjectId): Promise<any> {
-    const result = await ConversationModel.aggregate([
-      {
-        $match: {
-          participants: { $in: [senderId] },
-        },
-      },
-      {
-        $project: {
-          doctorDetails: { $ifNull: ["$doctorDetails", {}] },
-          lastMessage: 1,
-          _id: 1,
-        },
-      },
-    ]);
-    return result;
-  }
+  };
 }
