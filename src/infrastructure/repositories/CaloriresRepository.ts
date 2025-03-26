@@ -78,17 +78,14 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
     foodId: mongoose.Types.ObjectId,
     date: Date
   ): Promise<void> {
-    console.log(date, foodId, userId);
 
     const targetDate = date ? new Date(date) : new Date();
     targetDate.setUTCHours(0, 0, 0, 0);
 
     // Check if the food log exists before deletion
     const existingLog = await CalorieIntakeModel.findOne({ userId, date: targetDate });
-    console.log("Before Deletion:", existingLog);
 
     if (!existingLog) {
-      console.log("No food log found for this user and date.");
       return;
     }
 
@@ -107,10 +104,7 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
       { new: true }
     );
 
-    console.log("After Deletion:", updatedDoc);
-
     if (!updatedDoc) {
-      console.log("Food item not found or not deleted.");
       return;
     }
 
@@ -175,29 +169,26 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
     if (!mealArray) {
       throw new Error(`Invalid meal type: ${mealType}`);
     }
-    console.log("Existing food IDs in meal:", mealArray.map((item) => item._id?.toString()));
-  
+
     const foodIndex = mealArray.findIndex((food) => food._id?.toString() === foodId.toString());
-    
+
     if (foodIndex === -1) {
       throw new Error(`Food item not found in the meal. FoodId: ${foodId}, MealType: ${mealType}`);
     }
     mealArray[foodIndex] = { ...mealArray[foodIndex], ...updatedFoodItem };
-  
+
     const updatedLog = await calorieIntake.save();
   }
-  
-  async getWeightLogsByUserId(userId:ObjectId):Promise<IWeightLog[] | null>{
-    return await WeightLogModel.find({userId:userId}).lean()
+
+  async getWeightLogsByUserId(userId: ObjectId): Promise<IWeightLog[] | null> {
+    return await WeightLogModel.find({ userId: userId }).lean()
   }
   async updateUserDetails(userId: ObjectId, data: Partial<IUserDetails>): Promise<void> {
-    console.log("Incoming Data:", data);
     const updatedUser = await UserDetailsModel.findOneAndUpdate(
       { userId: new mongoose.Types.ObjectId(userId) },
-      { $set: data }, 
+      { $set: data },
       { new: true, runValidators: true }
     );
-    console.log("Updated User:", updatedUser);
-}
-  
+  }
+
 }
