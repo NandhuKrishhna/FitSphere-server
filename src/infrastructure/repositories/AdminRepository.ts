@@ -8,7 +8,7 @@ import { Doctor } from "../../domain/entities/Doctors";
 import { DoctorDocument, DoctorModel } from "../models/DoctorModel";
 import mongoose from "mongoose";
 import { LookUpDoctor } from "../../domain/types/doctorTypes";
-import { DoctorQueryParams, UserQueryParams } from "../../interface/controllers/Admin/AdminController";
+import { DoctorQueryParams, UserQueryParams } from "../../domain/types/queryParams.types";
 export type PaginatedUsers = {
   users: UserDocument[];
   totalUsers: number;
@@ -39,50 +39,50 @@ export class AdminRepository implements IAdminRepository {
 
   async getAllUsers(queryParams: UserQueryParams): Promise<PaginatedUsers | null> {
     const { page = "1", limit = "5", sortBy = "createdAt", sortOrder = "desc", search, email, name, isVerfied, isActive, status } = queryParams;
-    
+
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
     const sortDirection = sortOrder === "asc" ? 1 : -1;
-    
+
     const filter: any = {};
-    
+
     if (email) {
       filter.email = email;
     }
     if (name) {
       filter.name = { $regex: name, $options: "i" };
     }
-    
+
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } }
       ];
     }
-    
+
     if (isVerfied !== undefined) {
       filter.isVerfied = isVerfied === "true";
     }
-    
+
     if (isActive !== undefined) {
       filter.isActive = isActive === "true";
     }
-    
+
     if (status) {
       filter.status = status;
     }
-    
+
     const users = await UserModel.find(filter)
       .select("-password -__v -createdAt -updatedAt")
       .sort({ [sortBy]: sortDirection })
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize);
-  
+
     const totalUsers = await UserModel.countDocuments();
     const verifiedUsers = await UserModel.countDocuments({ isVerfied: true });
     const activeUsers = await UserModel.countDocuments({ isActive: true });
     const blockedUsers = await UserModel.countDocuments({ status: "blocked" });
-  
+
     return {
       users,
       totalUsers,
@@ -95,61 +95,73 @@ export class AdminRepository implements IAdminRepository {
   }
 
   async getAllDoctors(queryParams: DoctorQueryParams): Promise<PaginatedDoctors | null> {
-    const { page = "1", limit = "10", sortBy = "createdAt", sortOrder = "desc", search, email,  name , status,  isApproved, isVerified, isActive } = queryParams;
-    
+    const {
+      page = "1",
+      limit = "10",
+      sortBy = "createdAt",
+      sortOrder = "desc",
+      search,
+      email,
+      name,
+      status,
+      isApproved,
+      isVerified,
+      isActive
+    } = queryParams;
+
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
     const sortDirection = sortOrder === "asc" ? 1 : -1;
-    
+
     const filter: any = {};
-  
+
     if (email) {
       filter.email = email;
     }
-    if(name){
+    if (name) {
       filter.name = name
     }
-  
+
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } }
       ];
     }
-    
+
     if (isVerified !== undefined) {
       filter.isVerfied = isVerified === "true";
     }
-    
+
     if (isActive !== undefined) {
       filter.isActive = isActive === "true";
     }
-    
+
     if (isApproved !== undefined) {
       filter.isApproved = isApproved === "true";
     }
-    
-    if(status){
+
+    if (status) {
       filter.status = status;
     }
-    
-  
-  
-    
-  
+
+
+
+
+
     const doctors = await DoctorModel.find(filter)
       .select("-password -__v -createdAt -updatedAt")
       .sort({ [sortBy]: sortDirection })
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize);
-  
+
     const totalDoctors = await DoctorModel.countDocuments(filter);
     const verifiedDoctors = await DoctorModel.countDocuments({ isVerfied: true });
     const activeDoctors = await DoctorModel.countDocuments({ isActive: true });
     const blockedDoctors = await DoctorModel.countDocuments({ status: "blocked" });
     const pendingDoctors = await DoctorModel.countDocuments({ isApproved: false });
     const approvedDoctors = await DoctorModel.countDocuments({ isApproved: true });
-  
+
     return {
       doctors,
       totalDoctors,
@@ -162,7 +174,7 @@ export class AdminRepository implements IAdminRepository {
       totalPages: Math.ceil(totalDoctors / pageSize),
     };
   }
-  
+
 
 
   async approveRequest(id: mongoose.Types.ObjectId): Promise<void> {
@@ -204,11 +216,11 @@ export class AdminRepository implements IAdminRepository {
     }
   }
 
-  async unblockById(id: mongoose.Types.ObjectId , role : string): Promise<void> {
-    if(role === "user"){
-      await UserModel.findOneAndUpdate({ _id: id }, { $set: { status: "active" } },{new : true});
-    }else{
-      await DoctorModel.findOneAndUpdate({ _id: id }, { $set: { status: "active" } },{new : true});
+  async unblockById(id: mongoose.Types.ObjectId, role: string): Promise<void> {
+    if (role === "user") {
+      await UserModel.findOneAndUpdate({ _id: id }, { $set: { status: "active" } }, { new: true });
+    } else {
+      await DoctorModel.findOneAndUpdate({ _id: id }, { $set: { status: "active" } }, { new: true });
     }
   }
 
@@ -230,5 +242,5 @@ export class AdminRepository implements IAdminRepository {
       );
     }
   }
-  
+
 }

@@ -4,44 +4,21 @@ import { loginSchema } from "../../validations/userSchema";
 import { Inject, Service } from "typedi";
 import { AdminUseCase } from "../../../application/user-casers/AdminUseCase";
 import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
-import { OK } from "../../../shared/constants/http";
+import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
 import { verfiyToken } from "../../../shared/utils/jwt";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
-export type UserQueryParams ={
-  page?: string;
-  limit?: string;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  search?: string;
-  isVerfied?: string;
-  isActive? :string;
-  isApproved? : string;
-  name?: string;
-  email?: string;
-  status? : string
-}
+import { DoctorQueryParams, UserQueryParams } from "../../../domain/types/queryParams.types";
+import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+import premiumSubscriptionSchema, { editPremiumSubscriptionSchema } from "../../validations/premiumSubscriptionSchema";
+import appAssert from "../../../shared/utils/appAssert";
 
-export type DoctorQueryParams ={
-  page?: string;
-  limit?: string;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  search?: string;
-  isVerified?: string;
-  isActive? :string;
-  isApproved? : string;
-  name?: string;
-  email?: string;
-  status? : string
-}
 @Service()
 export class AdminController {
-  constructor(@Inject() private adminUseCase: AdminUseCase) {}
+  constructor(@Inject() private adminUseCase: AdminUseCase) { }
 
   loginHandler = catchErrors(async (req: Request, res: Response) => {
     const doctor = loginSchema.parse({ ...req.body, userAgent: req.headers["user-agent"] });
     const { user, accessToken, refreshToken } = await this.adminUseCase.adminLogin(doctor);
-    console.log(user);
     setAuthCookies({ res, accessToken, refreshToken });
     return res.status(OK).json({
       success: true,
@@ -54,7 +31,7 @@ export class AdminController {
   });
 
   getAllUsersHandler = catchErrors(async (req: Request, res: Response) => {
-    const queryParams : UserQueryParams = req.query;
+    const queryParams: UserQueryParams = req.query;
     const users = await this.adminUseCase.getAllUsers(queryParams);
     return res.status(OK).json({
       success: true,
@@ -62,7 +39,7 @@ export class AdminController {
     });
   });
   getAllDoctorsHandler = catchErrors(async (req: Request, res: Response) => {
-    const queryParams : DoctorQueryParams = req.query;
+    const queryParams: DoctorQueryParams = req.query;
     const doctors = await this.adminUseCase.getAllDoctors(queryParams);
     return res.status(OK).json({
       success: true,
@@ -91,9 +68,7 @@ export class AdminController {
 
   approveRequestHandler = catchErrors(async (req: Request, res: Response) => {
     const { id } = req.body;
-    console.log(`Approving request for doctor ID: ${id}`);
     const updatedDoctor = await this.adminUseCase.approveRequest(id);
-    console.log(`Updated Doctor:`, updatedDoctor);
     return res.status(OK).json({
       success: true,
       message: "Request Approved",
@@ -103,9 +78,7 @@ export class AdminController {
 
   rejectRequestHandler = catchErrors(async (req: Request, res: Response) => {
     const { id, reason } = req.body;
-    console.log(`Rejecting request for doctor ID: ${id}`);
     const updatedDoctor = await this.adminUseCase.rejectRequest(id, reason);
-    console.log(`Updated Doctor:`, updatedDoctor);
     return res.status(OK).json({
       success: true,
       message: "Request Rejected",
@@ -115,7 +88,6 @@ export class AdminController {
 
   getAllDoctorWithDetails = catchErrors(async (req: Request, res: Response) => {
     const doctorsWithDetails = await this.adminUseCase.findAllDoctorsDetails();
-    console.log(doctorsWithDetails);
     res.status(OK).json({
       success: true,
       message: "Doctor Details  fetch successfully ",
@@ -124,9 +96,9 @@ export class AdminController {
   });
 
   unblockUserHandler = catchErrors(async (req: Request, res: Response) => {
-    const { id ,role } = req.body;
+    const { id, role } = req.body;
     const objectId = stringToObjectId(id);
-    await this.adminUseCase.unblockUser(objectId,role);
+    await this.adminUseCase.unblockUser(objectId, role);
     return res.status(OK).json({
       success: true,
       message: "User unblocked successfully",
@@ -134,8 +106,7 @@ export class AdminController {
   });
 
   blockUserHandler = catchErrors(async (req: Request, res: Response) => {
-    const { id , role } = req.body;
-    console.log(req.body , id , role)
+    const { id, role } = req.body;
     const objectId = stringToObjectId(id);
     await this.adminUseCase.blockUser(objectId, role);
     return res.status(OK).json({
@@ -145,8 +116,69 @@ export class AdminController {
   });
 
 
+  addingPremiumSubscription = catchErrors(async (req: Request, res: Response) => {
+    const { userId } = req as AuthenticatedRequest;
+    const { type, price, features, planName } = premiumSubscriptionSchema.parse({ ...req.body });
+    const response = await this.adminUseCase.addingPremiumSubscription({
+      userId,
+      type,
+      price,
+      features,
+      planName
+    });
+    return res.status(CREATED).json({
+      success: true,
+      message: "Premium subscription added successfully",
+      response,
+    });
+  });
 
-   adminDashBoard = catchErrors(async (req: Request, res: Response) => {
-       
-   })
+  editPremiumSubscription = catchErrors(async (req: Request, res: Response) => {
+    console.log("REQ_BODY", req.body)
+    const { type, price, features, planName } = premiumSubscriptionSchema.parse({ ...req.body });
+    const subscriptionId = stringToObjectId(req.body.id);
+    appAssert(subscriptionId, BAD_REQUEST, "Invalid subscription id")
+    const response = await this.adminUseCase.editPremiumSubscription({
+      type,
+      price,
+      features,
+      planName
+    }, subscriptionId)
+    return res.status(OK).json({
+      success: true,
+      message: "Premium subscription edited successfully",
+      response
+    })
+  });
+
+  deletePremiumSubscription = catchErrors(async (req: Request, res: Response) => {
+    console.log("REQ_PARAMS", req.params);
+    const { id } = req.params;
+    const subcriptionId = stringToObjectId(id);
+    await this.adminUseCase.deletePremiumSubscription(subcriptionId);
+    return res.status(OK).json({
+      success: true,
+      message: "Premium subscription deleted successfully",
+
+    })
+  })
+
+  getAllPremiumSubscription = catchErrors(async (req: Request, res: Response) => {
+    const response = await this.adminUseCase.getAllPremiumSubscription();
+    return res.status(OK).json({
+      success: true,
+      response
+    })
+  })
+
+  adminDasBoardHandler = catchErrors(async (req: Request, res: Response) => {
+    const response = await this.adminUseCase.adminDashboard();
+    return res.status(OK).json({
+      success: true,
+      ...response
+    })
+  })
 }
+
+
+

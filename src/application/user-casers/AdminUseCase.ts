@@ -21,7 +21,14 @@ import { NotificationType } from "../../shared/constants/verficationCodeTypes";
 import { getReceiverSocketId } from "../../infrastructure/config/socket.io";
 import { emitNotification, suspendNotification } from "../../shared/utils/emitNotification";
 import { DoctorQueryParams, UserQueryParams } from "../../domain/types/queryParams.types";
-
+import { IPremiumSubscriptionRepository, IPremiumSubscriptionRepositoryToken } from "../repositories/IPremiumSubscription";
+export type SubcriptionParams = {
+  userId?: ObjectId,
+  type: string,
+  price: number,
+  features: string[]
+  planName: string
+}
 @Service()
 export class AdminUseCase {
   constructor(
@@ -30,7 +37,8 @@ export class AdminUseCase {
     @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
     @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
     @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
-    @Inject(IWalletRepositoryToken) private walletRespository: IWalletRepository
+    @Inject(IWalletRepositoryToken) private walletRespository: IWalletRepository,
+    @Inject(IPremiumSubscriptionRepositoryToken) private premiumSubscriptionRepository: IPremiumSubscriptionRepository,
   ) { }
 
   // method for admin login
@@ -147,5 +155,37 @@ export class AdminUseCase {
     const userSocketId = getReceiverSocketId(user?._id);
     suspendNotification(userSocketId, "Your account has been suspended. Please contact with our team");
   }
+  async addingPremiumSubscription({ userId, type, price, features, planName }: SubcriptionParams) {
+    return await this.premiumSubscriptionRepository.createSubscription({
+      type,
+      price,
+      features,
+      planName
+    })
+  }
 
+  async editPremiumSubscription({ type, price, features, planName }: SubcriptionParams, subscriptionId: mongoose.Types.ObjectId) {
+    return await this.premiumSubscriptionRepository.editPremiumSubscription(subscriptionId, {
+      type,
+      price,
+      features,
+      planName
+    })
+  }
+
+  async deletePremiumSubscription(subscriptionId: ObjectId) {
+    await this.premiumSubscriptionRepository.deletePremiumSubscription(subscriptionId);
+  }
+
+  async getAllPremiumSubscription() {
+    return await this.premiumSubscriptionRepository.getAllPremiumSubscription();
+  }
+  async adminDashboard() {
+    const userDetails = await this.userRepository.userDetails();
+    const doctorDetails = await this.doctorRepository.getDoctorStatistics();
+    return {
+      doctorDetails,
+      userDetails
+    }
+  }
 }
