@@ -5,19 +5,14 @@ export const enum PremiumType {
   ETERPRISE = "enterprise",
 }
 export interface IPremiumSubscription extends Document {
-  userId: mongoose.Types.ObjectId;
-  type: "basic" | "premium" | "enterprise";
+  type: string;
   planName: string;
   price: number;
-  currency: string;
-  startDate: Date;
-  endDate: Date;
-  status: "active" | "expired" | "cancelled" | "not_active";
+  features: string[];
 }
 
 const PremiumSubscriptionSchema = new Schema<IPremiumSubscription>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     type: {
       type: String,
       enum: ["basic", "premium", "enterprise"],
@@ -25,14 +20,7 @@ const PremiumSubscriptionSchema = new Schema<IPremiumSubscription>(
     },
     planName: { type: String, required: true },
     price: { type: Number, required: true },
-    currency: { type: String, required: true, default: "INR" },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    status: {
-      type: String,
-      enum: ["active", "expired", "cancelled", "not_active"],
-      default: "not_active",
-    },
+    features: { type: [String], required: true },
   },
   { timestamps: true }
 );
