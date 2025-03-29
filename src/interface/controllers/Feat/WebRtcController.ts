@@ -8,10 +8,9 @@ import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import logger from "../../../shared/utils/logger";
 @Service()
 export class WebRtcController {
-  constructor(@Inject() private webRtcUseCase: WebRtcUseCase) {}
+  constructor(@Inject() private webRtcUseCase: WebRtcUseCase) { }
 
   videoMeetingHandler = catchErrors(async (req: Request, res: Response) => {
-    logger.info("From video meeting handler", req.body);
     const meetingId = req.body.meetingId;
     const { userId } = req as AuthenticatedRequest;
     const { role } = req as AuthenticatedRequest;
@@ -25,7 +24,6 @@ export class WebRtcController {
   });
 
   leavingMeetAndUpdateStatus = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body)
     const meetingId = req.body.meetingId;
     const { userId } = req as AuthenticatedRequest;
     const { role } = req as AuthenticatedRequest;

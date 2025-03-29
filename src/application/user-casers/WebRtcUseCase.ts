@@ -11,12 +11,10 @@ export class WebRtcUseCase {
   constructor(
     @Inject(IAppointmentRepositoryToken) private appointmentRepository: IAppointmentRepository,
     @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository
-  ) {}
+  ) { }
 
   async videoMeeting(meetingId: string, userId: ObjectId, role: string): Promise<AppointmentDocument> {
-    console.log(userId, role);
     const appointment = await this.appointmentRepository.findAppointmentByMeetingId(meetingId);
-    console.log("Appointment", appointment);
     appAssert(appointment, NOT_FOUND, "Invalid meeting ID");
     if (role === "user") {
       appAssert(appointment.patientId.equals(userId), UNAUTHORIZED, "You are not authorized to join this meeting");
@@ -27,16 +25,12 @@ export class WebRtcUseCase {
     }
     appAssert(appointment.paymentStatus === "completed", BAD_REQUEST, "Payment is not completed for this appointment");
     const slotDetails = await this.slotRepository.findSlotById(appointment.slotId);
-    console.log(slotDetails);
     appAssert(slotDetails, NOT_FOUND, "Slot details not found");
     const currentTime = new Date();
     const currentISTTime = new Date(currentTime.getTime() + 5.5 * 60 * 60 * 1000);
-    console.log("Current IST Time:", currentISTTime);
 
     const slotStartTime = new Date(slotDetails.startTime);
     const slotEndTime = new Date(slotDetails.endTime);
-    console.log("Slot Start Time:", slotStartTime);
-    console.log("Slot End Time:", slotEndTime);
 
     appAssert(
       currentISTTime >= slotStartTime && currentISTTime <= slotEndTime,
@@ -47,7 +41,8 @@ export class WebRtcUseCase {
     return appointment;
   }
 
-  async leavingMeetAndUpdateStatus(meetingId: string){
+  async leavingMeetAndUpdateStatus(meetingId: string) {
+    appAssert(meetingId, NOT_FOUND, "Meeting id is required. Or invalid meeting id");
     await this.appointmentRepository.updateMeetingStatus(meetingId);
   }
 }
