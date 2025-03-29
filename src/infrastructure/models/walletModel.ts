@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface WalletDocument extends Document {
   userId: mongoose.Types.ObjectId;
-  role: "User" | "Doctor";
+  role: "User" | "Doctor" | "Admin";
   balance: number;
   currency: string;
   status: "active" | "inactive" | "suspended";
@@ -11,7 +11,7 @@ export interface WalletDocument extends Document {
 const WalletSchema = new Schema<WalletDocument>(
   {
     userId: { type: Schema.Types.ObjectId, required: true, refPath: "role" },
-    role: { type: String, enum: ["User", "Doctor"], required: true },
+    role: { type: String, enum: ["User", "Doctor", "Admin"], required: true },
     balance: { type: Number, required: true, default: 0 },
     currency: { type: String, required: true, default: "INR" },
     status: { type: String, enum: ["active", "inactive", "suspended"], default: "active" },
