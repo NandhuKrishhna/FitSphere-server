@@ -38,7 +38,7 @@ const errorHandler: ErrorRequestHandler = (error, req: Request, res: Response, n
     error: {
       name: error.name,
       message: error.message,
-      stack: process.env.NODE_ENV !== "production" ? error.stack : undefined, // Hide stack trace in production
+      stack: process.env.NODE_ENV !== "production" ? error.stack : undefined,
     },
   };
 

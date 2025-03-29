@@ -22,6 +22,7 @@ import { ITransactionRepository, ITransactionRepositoryToken } from "../reposito
 import { getReceiverSocketId } from "../../infrastructure/config/socket.io";
 import { emitNotification } from "../../shared/utils/emitNotification";
 import { NotificationQueryParams, TransactionQueryParams, WalletTransactionQuery } from "../../domain/types/queryParams.types";
+import { IUserSubscriptionRepository, IUserSubscriptionRepositoryToken } from "../repositories/IUserSubscriptionRepository";
 
 export type WalletParams = {
   userId: ObjectId;
@@ -50,6 +51,7 @@ export class AppUseCase {
     @Inject(IReviewsRepositoryToken) private reviewsRepository: IReviewsRepository,
     @Inject(IRatingRepositoryToken) private ratingRepository: IRatingRepository,
     @Inject(ITransactionRepositoryToken) private transactionRepository: ITransactionRepository,
+    @Inject(IUserSubscriptionRepositoryToken) private userSubscriptionRepository: IUserSubscriptionRepository
 
   ) { }
   async displayAllDoctors({
@@ -140,7 +142,6 @@ export class AppUseCase {
   }
 
   async fetchReviewsAndRating(doctorId: ObjectId) {
-    console.log("DoctorId", doctorId)
     const reviews = await this.reviewsRepository.findAllReviewsByDoctorId(doctorId);
     const rating = await this.ratingRepository.findRatingByDoctorId(doctorId);
 
@@ -177,6 +178,11 @@ export class AppUseCase {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
     return this.transactionRepository.fetchAllTransactionById(userId, queryParams, role);
 
+  }
+
+  async getSubscriptionDetails(userId: mongoose.Types.ObjectId) {
+    const details = await this.userSubscriptionRepository.getSubscriptionDetails(userId);
+    return details;
   }
 
 }

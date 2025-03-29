@@ -35,6 +35,8 @@ import { ReviewsRepository } from "../repositories/ReviewsRepository";
 import { IRatingRepositoryToken } from "../../application/repositories/IRatingsRepository";
 import { RatingsRepository } from "../repositories/RatingsRepository";
 import WalletRepository from "../repositories/WalletRepository";
+import { IUserSubscriptionRepositoryToken } from "../../application/repositories/IUserSubscriptionRepository";
+import { UserSubscriptionRepository } from "../repositories/UserSubscription";
 
 Container.set(IUserRepositoryToken, new UserRepository());
 Container.set(IVerficaitonCodeRepositoryToken, new VerificationCodeRepository());
@@ -53,3 +55,4 @@ Container.set(IPremiumSubscriptionRepositoryToken, new PremiumSubscriptionReposi
 Container.set(ITransactionRepositoryToken, new TransactionRepository());
 Container.set(IReviewsRepositoryToken, new ReviewsRepository());
 Container.set(IRatingRepositoryToken, new RatingsRepository());
+Container.set(IUserSubscriptionRepositoryToken, new UserSubscriptionRepository());

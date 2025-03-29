@@ -11,7 +11,6 @@ export class OtpRepository implements IOptverificationRepository {
     return result as Otp;
   }
   async findOtpById(code: string, userId: Types.ObjectId, type: string): Promise<Otp | null> {
-    console.log("Querying OTP with:", { code, userId, type });
 
     const otpEntry = await OtpVerficationModel.findOne({
       code: code,
@@ -20,7 +19,6 @@ export class OtpRepository implements IOptverificationRepository {
       expiresAt: { $gt: new Date() },
     });
 
-    console.log("Found OTP entry:", otpEntry);
     return otpEntry as Otp;
   }
 

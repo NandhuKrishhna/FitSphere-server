@@ -7,7 +7,7 @@ export interface DoctorDocument extends Document {
   email: string;
   password: string;
   isActive: boolean;
-  provider : string;
+  provider: string;
   role: "user" | "doctor";
   isVerified: boolean;
   isApproved: boolean;
@@ -40,7 +40,7 @@ const DoctorSchema: Schema = new Schema<DoctorDocument>(
     },
     provider: {
       type: String,
-      enum: ["email", "google"], 
+      enum: ["email", "google"],
       default: "email",
     },
     isActive: {
@@ -50,7 +50,7 @@ const DoctorSchema: Schema = new Schema<DoctorDocument>(
     role: {
       type: String,
       enum: ["user", "doctor"],
-      default: "user",
+      default: "doctor",
     },
     isVerified: {
       type: Boolean,
@@ -67,7 +67,7 @@ const DoctorSchema: Schema = new Schema<DoctorDocument>(
     },
     profilePicture: {
       type: String,
-      default: "",
+      default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
     },
   },
   {

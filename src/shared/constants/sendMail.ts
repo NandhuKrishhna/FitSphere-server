@@ -1,23 +1,28 @@
-import resend from "../../application/services/Resend"
-import { EMAIL_SENDER, NODE_ENV } from "./env";
 
+import { NODEMAILER_PASSWORD, SENDER_EMAIL } from "./env";
+import nodemailer from "nodemailer"
 
 type Params = {
-    to : string;
-    subject : string;
-    text : string;
-    html : string;
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
 }
-const getFromEmail = () => 
-    NODE_ENV === "development" ? "onboading@resend.dev" : EMAIL_SENDER;
 
-const getToEmail = (to : string)  =>
-    NODE_ENV === "development" ? "delivered@resend.dev" : to
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: SENDER_EMAIL,
+        pass: NODEMAILER_PASSWORD
+    },
+});
 
-export const sendMail = async({to , subject  , text , html}: Params) :Promise<any> =>{
-    await resend.emails.send({
-        from:getFromEmail(),
-        to:getToEmail(to), 
+
+
+export const sendMail = async ({ to, subject, text, html }: Params): Promise<any> => {
+    const response = await transporter.sendMail({
+        from: SENDER_EMAIL,
+        to,
         subject,
         text,
         html,

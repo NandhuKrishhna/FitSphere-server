@@ -6,13 +6,13 @@ import {
 } from "../../application/repositories/IAppointmentRepository";
 import mongoose, { PipelineStage } from "mongoose";
 import { AppointmentDocument, AppointmentModel } from "../models/appointmentModel";
-import { AppointmentProps } from "../../domain/types/Slot";
 import { ObjectId } from "../models/UserModel";
-import { QueryParams } from "../../interface/controllers/doctor/DoctorFeatController";
 import { AppointmentQueryParams, PaginatedAppointments } from "../../domain/types/appointment.types";
 
 @Service(IAppointmentRepositoryToken)
 export class AppointmentRepository implements IAppointmentRepository {
+
+
   async findOverlappingAppointment(
     doctorId: mongoose.Types.ObjectId,
     startTime: Date,
@@ -38,7 +38,7 @@ export class AppointmentRepository implements IAppointmentRepository {
     additionalDetails: AdditonDetails,
     status: "pending" | "completed" | "failed"
   ): Promise<AppointmentDocument | null> {
-    console.log("Receipt ID from the updatedPaymentStatus:__________", id)
+
     const updateFields: Partial<AppointmentDocument> = {
       paymentStatus: status,
       orderId: additionalDetails.orderId,
@@ -192,7 +192,6 @@ export class AppointmentRepository implements IAppointmentRepository {
   }
 
   async findAllAppointments(userId: ObjectId): Promise<AppointmentDocument[]> {
-    console.log("DoctorId", userId);
     const details = await AppointmentModel.aggregate([
       {
         $match: {
@@ -239,7 +238,6 @@ export class AppointmentRepository implements IAppointmentRepository {
       },
     ]);
 
-    console.log("Aggregated Data:", details);
     return details;
   }
 

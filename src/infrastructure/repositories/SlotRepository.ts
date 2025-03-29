@@ -30,7 +30,6 @@ export class SlotRepository implements ISlotRepository {
   }
 
   async createSlot(slot: SlotDocument): Promise<SlotDocument> {
-    console.log("Slot data from Slot Repositoty : ", slot);
     return await SlotModel.create(slot);
   }
 
@@ -38,7 +37,6 @@ export class SlotRepository implements ISlotRepository {
     const currentDateUTC = new Date();
     const currentDateIST = new Date(currentDateUTC.getTime() + 5.5 * 60 * 60 * 1000);
     const todayDateIST = currentDateIST.toISOString().split("T")[0];
-    console.log("Today's Date (IST):", todayDateIST);
     const slots = await SlotModel.find({
       doctorId,
       date: { $gte: new Date(todayDateIST) },

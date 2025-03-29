@@ -15,7 +15,6 @@ authRouter.post("/forgot-password", userController.sendPasswordResetHandler);
 authRouter.post("/verify/reset-password/otp", userController.verifyResetPasswordCode);
 authRouter.post("/reset/new-password", userController.resetPasswordHandler);
 authRouter.post("/resend-otp", userController.resendPasswordHandler);
-authRouter.get("/check-auth", userController.checkAuthHandler);
 authRouter.get("/google", userController.googleAuthHandler);
 
 export default authRouter;

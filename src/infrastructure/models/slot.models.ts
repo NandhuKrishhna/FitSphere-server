@@ -48,12 +48,6 @@ SlotSchema.statics.updateExpiredSlots = async function () {
     },
     { status: "expired" }
   );
-
-  console.log(
-    `[${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}] Updated expired slots: ${
-      result.modifiedCount
-    }`
-  );
 };
 
 SlotSchema.statics.deleteExpiredSlots = async function () {
@@ -67,18 +61,11 @@ SlotSchema.statics.deleteExpiredSlots = async function () {
     status: "expired",
     endTime: { $lt: startOfTodayIST },
   });
-
-  console.log(
-    `[${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}] Deleted expired slots: ${
-      result.deletedCount
-    }`
-  );
 };
 
 setInterval(async () => {
   try {
     await SlotModel.updateExpiredSlots();
-    console.log("Expired slots updated successfully.");
   } catch (error) {
     console.error("Error updating expired slots:", error);
   }
