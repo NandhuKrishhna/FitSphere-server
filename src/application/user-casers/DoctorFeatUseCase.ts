@@ -22,7 +22,6 @@ export class DoctorFeatUseCase {
   ) { }
 
   async addSlots(doctorId: mongoose.Types.ObjectId, payload: SlotType) {
-    console.log(`Doctor Id: ${doctorId} and slots: ${JSON.stringify(payload)}`);
     const existingSlots = await this.slotRepository.findSlotDetails(
       doctorId,
       payload.startTime,
@@ -36,7 +35,6 @@ export class DoctorFeatUseCase {
     const newSlot = IcreateSlot(doctorId, startTime, endTime, payload.date, type);
 
     const newSlotDetails = await this.slotRepository.createSlot(newSlot);
-    console.log("New Slots : ", newSlotDetails);
     return newSlotDetails;
   }
 
@@ -69,8 +67,6 @@ export class DoctorFeatUseCase {
   async profilePageDetails(userId: ObjectId) {
     const appointments = await this.appointmentRepository.findAllAppointments(userId);
     const slots = await this.slotRepository.findAllSlots(userId);
-    console.log("Appointments", appointments);
-    console.log("Slots", slots);
     return {
       appointments,
       slots,

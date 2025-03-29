@@ -11,24 +11,15 @@ import { DoctorFeatUseCase } from "../../../application/user-casers/DoctorFeatUs
 import { AppointmentQueryParams } from "../../../domain/types/appointment.types";
 import appAssert from "../../../shared/utils/appAssert";
 import { json } from "stream/consumers";
-export interface QueryParams {
-  page?: string;
-  limit?: string;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  search?: string;
-  status?: string;
-  consultationType?: string;
-  paymentStatus?: string;
-}
+
 @Service()
 export class DoctorFeatController {
-  constructor(@Inject() private doctorFeatUseCase: DoctorFeatUseCase) {}
+  constructor(@Inject() private doctorFeatUseCase: DoctorFeatUseCase) { }
 
   slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const { slots } = req.body;
-    console.log(req.body);
+
     if (Array.isArray(slots) && slots.length > 0) {
       const createdSlots = [];
 
@@ -57,7 +48,6 @@ export class DoctorFeatController {
         date: convertToISTWithOffset(date, 5.5),
         consultationType,
       };
-      console.log("After converting to Indian Time  : ", payload);
       const response = await this.doctorFeatUseCase.addSlots(userId, payload);
       return res.status(OK).json({
         success: true,
@@ -76,7 +66,7 @@ export class DoctorFeatController {
     });
   });
   cancelSlotHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log("Req body : ", req.body);
+
     const slotId = stringToObjectId(req.body.slotId);
     const { userId } = req as AuthenticatedRequest;
     await this.doctorFeatUseCase.cancelSlot(userId, slotId);
@@ -87,7 +77,7 @@ export class DoctorFeatController {
   });
 
   getAllAppointmentsHandler = catchErrors(async (req: Request, res: Response) => {
-    const {userId, role} = req as AuthenticatedRequest;
+    const { userId, role } = req as AuthenticatedRequest;
     const queryParams: AppointmentQueryParams = req.query;
     const response = await this.doctorFeatUseCase.getAllAppointment(userId, queryParams, role);
     return res.status(OK).json({
@@ -100,7 +90,7 @@ export class DoctorFeatController {
     const { userId } = req as AuthenticatedRequest;
     const { role } = req as AuthenticatedRequest;
     const users = await this.doctorFeatUseCase.getAllUsers(userId, role);
-    console.log(users);
+
     res.status(OK).json({
       success: true,
       message: "Users fetched successfully",
@@ -119,7 +109,6 @@ export class DoctorFeatController {
   });
   profilePageDetailsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
-    console.log("called profilePageDetails handler");
     appAssert(userId, BAD_REQUEST, "Missing DoctorId. Try Again or Please Login");
     const profilePageDetails = await this.doctorFeatUseCase.profilePageDetails(userId);
     return res.status(OK).json({
