@@ -1,6 +1,5 @@
 import { Token } from "typedi";
 import { RatingParams } from "../../domain/types/reviewsAndrating";
-import { IReview } from "../../infrastructure/models/ReviewModel";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { IRating } from "../../infrastructure/models/RatingsModel";
 

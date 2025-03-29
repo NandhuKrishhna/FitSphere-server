@@ -10,7 +10,7 @@ export class ReviewsRepository implements IReviewsRepository {
     return await ReviewModel.create({ userId, doctorId, rating, reviewText });
   }
 
-  async findAllReviewsByDoctorId(doctorId: ObjectId ): Promise<IReview[]> {
+  async findAllReviewsByDoctorId(doctorId: ObjectId): Promise<IReview[]> {
     return await ReviewModel.aggregate([
       {
         $match: { doctorId },
@@ -25,6 +25,9 @@ export class ReviewsRepository implements IReviewsRepository {
       },
       {
         $unwind: "$userDetails",
+      },
+      {
+        $sort: { createdAt: -1 },
       },
       {
         $project: {
@@ -42,11 +45,11 @@ export class ReviewsRepository implements IReviewsRepository {
     ]);
   }
 
-   async updateReview({ userId, doctorId, rating, reviewText ,reviewId}: ReviewsAndRatingParams): Promise<void> {
-     await ReviewModel.updateOne({ userId, doctorId , _id:reviewId }, { rating, reviewText });
+  async updateReview({ userId, doctorId, rating, reviewText, reviewId }: ReviewsAndRatingParams): Promise<void> {
+    await ReviewModel.updateOne({ userId, doctorId, _id: reviewId }, { rating, reviewText });
   }
 
-  async deleteReview(doctorId: ObjectId, reviewId: ObjectId , userId : ObjectId): Promise<void> {
+  async deleteReview(doctorId: ObjectId, reviewId: ObjectId, userId: ObjectId): Promise<void> {
     await ReviewModel.deleteOne({ userId, doctorId, _id: reviewId });
   }
 }
