@@ -14,15 +14,36 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 import { USDA_FOODDATA_API_URL } from "../../shared/constants/url";
 import { IFoodItem } from "../../infrastructure/models/caloriesIntakeModel";
 import { IUserDetails } from "../../infrastructure/models/user.addition.details";
+
+interface INutrient {
+  nutrientName: string;
+  value: number;
+}
+
+interface IFood {
+  description: string;
+  foodNutrients: INutrient[];
+}
+
+interface INutrientValues {
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
+}
+
+interface IFoodItems extends INutrientValues {
+  name: string;
+  quantity: string;
+}
 @Service()
 export class CaloriesUseCase {
-  constructor(@Inject(ICaloriesDetailsRepositoryToken) private caloriesDetailsRepository: ICaloriesDetailsRepository) {}
+  constructor(@Inject(ICaloriesDetailsRepositoryToken) private caloriesDetailsRepository: ICaloriesDetailsRepository) { }
 
   public async searchFood(ingredients: string) {
     appAssert(ingredients, BAD_REQUEST, "Invalid ingredients");
     const sponnerApiUrl = getRecipeByIngredientsUrl(ingredients);
     // const sponnerApiUrl = `https://www.themealdb.com/api/json/v1/1/search.php?s=${ingredients}`;
-    console.log(sponnerApiUrl);
     const response = await axios.get(sponnerApiUrl);
     return response.data;
   }
@@ -38,8 +59,13 @@ export class CaloriesUseCase {
   public async addUserHealthDetails(userId: ObjectId, data: TUserDetails) {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
     appAssert(data, BAD_REQUEST, "Invalid data");
-    return await this.caloriesDetailsRepository.createCaloriesDetails(userId, data);
+    const targetDailyCalories = calculateTargetCalories(data);
+    return await this.caloriesDetailsRepository.createCaloriesDetails(userId, {
+      ...data,
+      targetDailyCalories
+    });
   }
+
 
   public async updateUserDetails(userId: ObjectId, data: Partial<IUserDetails>) {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
@@ -49,12 +75,11 @@ export class CaloriesUseCase {
       ...existingUser?.toObject(),
       ...data,
     } as TUserDetails;
-    console.log(updatedData)
     updatedData.targetDailyCalories = calculateTargetCalories(updatedData);
-  
+
     await this.caloriesDetailsRepository.updateUserDetails(userId, updatedData);
   }
-  
+
 
   public async getUserHealthDetails(userId: ObjectId) {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
@@ -62,8 +87,6 @@ export class CaloriesUseCase {
   }
 
   async addMeal(userId: ObjectId, mealType: string, foodItems: IFoodItem) {
-    console.log("Meal Type:", mealType);
-    console.log("FoodItems:", foodItems);
     appAssert(foodItems, BAD_REQUEST, "Invalid foodItems");
     appAssert(mealType, BAD_REQUEST, "Invalid mealType");
     await this.caloriesDetailsRepository.addMeal(userId, foodItems, mealType);
@@ -91,9 +114,8 @@ export class CaloriesUseCase {
         api_key: USDA_FOODDATA_API_KEY,
       },
     });
-
-    const foods = response.data.foods.map((food: any) => {
-      const nutrients = food.foodNutrients.reduce((acc: any, nutrient: any) => {
+    const foods = response.data.foods.map((food: IFood) => {
+      const nutrients: INutrientValues = food.foodNutrients.reduce((acc: INutrientValues, nutrient: INutrient) => {
         if (nutrient.nutrientName.includes("Energy")) {
           acc.calories = quantity ? Math.round((nutrient.value / 100) * quantity) : Math.round(nutrient.value);
         }
@@ -107,26 +129,25 @@ export class CaloriesUseCase {
           acc.fats = quantity ? Math.round((nutrient.value / 100) * quantity) : Math.round(nutrient.value);
         }
         return acc;
-      }, {} as IFoodItem);
-    
+      }, {} as INutrientValues);
+
       return {
         name: food.description,
         quantity: quantity ? `${quantity}g` : "Default Serving",
         ...nutrients,
-      };
+      } as IFoodItem;
     });
-    
 
     return foods;
   }
 
-   async editFood(userId :ObjectId, foodId :ObjectId, date :Date, updatedFoodItem :IFoodItem, mealType:string){
+  async editFood(userId: ObjectId, foodId: ObjectId, date: Date, updatedFoodItem: IFoodItem, mealType: string) {
     appAssert(userId, BAD_REQUEST, "Please Login to delete food log");
     appAssert(foodId, BAD_REQUEST, "Something went wrong. Please try again");
     await this.caloriesDetailsRepository.editFoodLog(userId, foodId, date, updatedFoodItem, mealType);
-   }
+  }
 
-   async getWeightLogs(userId : ObjectId){
-     return await this.caloriesDetailsRepository.getWeightLogsByUserId(userId);
-   }
+  async getWeightLogs(userId: ObjectId) {
+    return await this.caloriesDetailsRepository.getWeightLogsByUserId(userId);
+  }
 }

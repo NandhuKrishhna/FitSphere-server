@@ -14,7 +14,7 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
   async createCaloriesDetails(userId: mongoose.Types.ObjectId, data: IUserDetails): Promise<IUserDetails> {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
-    let calorieIntake = await CalorieIntakeModel.findOne({ userId, date: today });
+    let calorieIntake = await CalorieIntakeModel.findOne({ userId });
     if (!calorieIntake) {
       calorieIntake = new CalorieIntakeModel({
         userId,
