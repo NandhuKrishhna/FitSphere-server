@@ -33,14 +33,38 @@ export class UserRepository implements IUserRepository {
   }
 
   async updateProfile(userId: mongoose.Types.ObjectId, profilePic: string): Promise<UserDocument | null> {
-    // console.log(profilePic,"Profile picture from repository");
+
     const result = await UserModel.findOneAndUpdate(
       { _id: userId },
       { profilePicture: profilePic },
       { new: true, fields: "_id name email profilePicture role" }
     );
-    // console.log(result?.profilePicture,"Profile picture from repository");
-    // console.log(result);
     return result;
   }
+
+  async userDetails() {
+    const stats = await UserModel.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalUsers: { $sum: 1 },
+          blockedUsers: { $sum: { $cond: [{ $eq: ["$status", "blocked"] }, 1, 0] } },
+          activeUsers: { $sum: { $cond: [{ $eq: ["$status", "active"] }, 1, 0] } },
+          verifiedUsers: { $sum: { $cond: [{ $eq: ["$isVerfied", true] }, 1, 0] } },
+          premiumUsers: { $sum: { $cond: [{ $eq: ["$isPremium", true] }, 1, 0] } },
+          normalUsers: { $sum: { $cond: [{ $eq: ["$role", "user"] }, 1, 0] } }
+        }
+      }
+    ]);
+
+    return stats.length > 0 ? stats[0] : {
+      totalUsers: 0,
+      blockedUsers: 0,
+      activeUsers: 0,
+      verifiedUsers: 0,
+      premiumUsers: 0,
+      normalUsers: 0
+    };
+  }
+
 }

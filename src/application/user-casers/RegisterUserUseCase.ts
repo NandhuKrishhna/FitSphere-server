@@ -1,5 +1,4 @@
 import { Inject, Service } from "typedi";
-import { User } from "../../domain/entities/User";
 import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
 import { LoginUserParams, RegisterUserParams, ResetPasswordParams } from "../../domain/types/userTypes";
 import {
@@ -32,12 +31,10 @@ import Role from "../../shared/constants/UserRole";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 import { oauth2Client } from "../../infrastructure/config/googleAuth";
 import axios from "axios";
-import { ObjectId, UserModel } from "../../infrastructure/models/UserModel";
+import { ObjectId, } from "../../infrastructure/models/UserModel";
+import { GOOGLE_USER_INFO_URL } from "../../shared/constants/contants";
+import { IUserSubscriptionRepository, IUserSubscriptionRepositoryToken } from "../repositories/IUserSubscriptionRepository";
 
-export type TokenPayload = {
-  sessionId: mongoose.Types.ObjectId;
-  userId: mongoose.Types.ObjectId;
-};
 @Service()
 export class RegisterUserUseCase {
   constructor(
@@ -46,10 +43,11 @@ export class RegisterUserUseCase {
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
     @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
     @Inject(IWalletRepositoryToken) private walletRespository: IWalletRepository,
-    @Inject(IDoctorRepositoryToken) private doctorRespository: IDoctorRepository
-  ) {}
+    @Inject(IDoctorRepositoryToken) private doctorRespository: IDoctorRepository,
+    @Inject(IUserSubscriptionRepositoryToken) private userSubscriptionRepository: IUserSubscriptionRepository
+  ) { }
 
-  async registerUser(userData: RegisterUserParams): Promise<any> {
+  async registerUser(userData: RegisterUserParams) {
     const existingUser = await this.userRepository.findUserByEmail(userData.email);
     appAssert(!existingUser, CONFLICT, "Email already in use");
     const user = await this.userRepository.createUser({
@@ -63,7 +61,6 @@ export class RegisterUserUseCase {
 
     const otpCode = IcreateOtp(user._id as ObjectId, OtpCodeTypes.EmailVerification);
     const newOtp = await this.otpRepository.saveOtp(otpCode);
-    console.log("new created Otp : ", newOtp);
     await sendMail({
       to: user.email,
       ...getVerifyEmailTemplates(newOtp.code, user.name),
@@ -73,8 +70,8 @@ export class RegisterUserUseCase {
     const session = await this.sessionRepository.createSession(newSession);
 
     await this.walletRespository.createWallet({
-      userId : user._id as ObjectId,
-      role :"User",
+      userId: user._id as ObjectId,
+      role: "User",
     })
 
     const sessionInfo: RefreshTokenPayload = {
@@ -107,8 +104,10 @@ export class RegisterUserUseCase {
     appAssert(validCode, NOT_FOUND, "Invalid code or expired . Please try again");
     appAssert(validCode.expiresAt > new Date(), BAD_REQUEST, "OTP has expired");
 
+
     const updatedUser = await this.userRepository.updateUserById(validCode.userId, { isVerfied: true });
     appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
+    await this.userSubscriptionRepository.createDefaultSubscription(updatedUser._id as ObjectId);
 
     await this.otpRepository.deleteOtp(validCode._id);
 
@@ -129,7 +128,6 @@ export class RegisterUserUseCase {
     if (!existingUser.isVerfied) {
       const otpCode = IcreateOtp(existingUser._id as ObjectId, OtpCodeTypes.EmailVerification);
       const newOtp = await this.otpRepository.saveOtp(otpCode);
-      console.log("Newly created OTP:", newOtp);
       await sendMail({
         to: existingUser.email,
         ...getVerifyEmailTemplates(newOtp.code, existingUser.name),
@@ -189,12 +187,12 @@ export class RegisterUserUseCase {
 
     const newRefreshToken = sessionNeedsRefresh
       ? signToken(
-          {
-            sessionId: session._id!,
-            role: payload.role,
-          },
-          refreshTokenSignOptions
-        )
+        {
+          sessionId: session._id!,
+          role: payload.role,
+        },
+        refreshTokenSignOptions
+      )
       : refreshToken;
     const accessToken = signToken({
       userId: session.userId,
@@ -237,7 +235,6 @@ export class RegisterUserUseCase {
     appAssert(count <= 1, TOO_MANY_REQUESTS, "Too many requests. Please try again later.");
     const otpCode = IcreateOtp(user._id as ObjectId, OtpCodeTypes.PasswordReset);
     const newOtp = await this.otpRepository.saveOtp(otpCode);
-    console.log("new created Otp : ", newOtp);
     await sendMail({
       to: user.email,
       ...getResetPasswordEmailTemplates(newOtp.code, user.name),
@@ -295,7 +292,6 @@ export class RegisterUserUseCase {
     await this.otpRepository.deleteOtpByUserId(user._id as ObjectId);
     const otpCode = IcreateOtp(user._id as ObjectId, OtpCodeTypes.EmailVerification);
     const newOtp = await this.otpRepository.saveOtp(otpCode);
-    console.log(newOtp);
     await sendMail({
       to: user.email,
       ...getVerifyEmailTemplates(newOtp.code, user.name),
@@ -310,62 +306,57 @@ export class RegisterUserUseCase {
     const googleResponse = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(googleResponse.tokens);
 
-    const userRes = await axios.get(
-      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleResponse.tokens.access_token}`
-    );
-    // console.log(userRes);
+    const userRes = await axios.get(`${GOOGLE_USER_INFO_URL}&access_token=${googleResponse.tokens.access_token}`);
     const { email, name, picture } = userRes.data;
 
     let user = await this.userRepository.findUserByEmail(email);
-    console.log("User from database",user)
-
     let isNewUser = false;
 
     if (!user) {
-        isNewUser = true; 
-        user = await this.userRepository.createUser({
-          name,
-          email,
-          profilePicture: picture,
-          role: Role.USER,
-          provider: "google",
-          isVerfied: true,
-        });
+      isNewUser = true;
+      user = await this.userRepository.createUser({
+        name,
+        email,
+        profilePicture: picture,
+        role: Role.USER,
+        provider: "google",
+        isVerfied: true,
+      });
 
-        const newSession = IcreateSession(user._id as ObjectId, Role.USER, "", oneYearFromNow());
-        await this.sessionRepository.createSession(newSession);
+      const newSession = IcreateSession(user._id as ObjectId, Role.USER, "", oneYearFromNow());
+      await this.sessionRepository.createSession(newSession);
 
-        await this.walletRespository.createWallet({
-          userId: user._id as ObjectId,
-          role: "User",
-        });
+      await this.walletRespository.createWallet({
+        userId: user._id as ObjectId,
+        role: "User",
+      });
+      await this.userSubscriptionRepository.createDefaultSubscription(user._id as ObjectId);
     }
     const sessionInfo: RefreshTokenPayload = {
-        sessionId: new mongoose.Types.ObjectId(),
-        role: Role.USER,
+      sessionId: new mongoose.Types.ObjectId(),
+      role: Role.USER,
     };
     const userId = user._id as ObjectId;
     const accessToken = signToken({
-        ...sessionInfo,
-        userId: userId,
-        role: Role.USER,
+      ...sessionInfo,
+      userId: userId,
+      role: Role.USER,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
 
     return {
-        user: {
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            profilePicture: user.profilePicture,
-            role: user.role,
-            isNewUser,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        role: user.role,
+        isNewUser,
 
-        },
-        accessToken,
-        refreshToken,
+      },
+      accessToken,
+      refreshToken,
     };
-}
-
+  }
 
 }

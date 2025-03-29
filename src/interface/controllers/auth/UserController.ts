@@ -25,7 +25,7 @@ import { oauth2Client } from "../../../infrastructure/config/googleAuth";
 
 @Service()
 export class UserController {
-  constructor(@Inject() private registerUserUseCase: RegisterUserUseCase) {}
+  constructor(@Inject() private registerUserUseCase: RegisterUserUseCase) { }
 
   registerHandler = catchErrors(async (req: Request, res: Response) => {
     const request = userRegisterSchema.parse({
@@ -43,7 +43,6 @@ export class UserController {
   });
   // verfiy Otp;
   otpVerifyHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log("From the otpVerifyHandler", req.body);
     const userId = stringToObjectId(req.body.userId);
     const { code } = otpVerificationSchema.parse(req.body);
     await this.registerUserUseCase.verifyOtp(code, userId);
@@ -81,7 +80,6 @@ export class UserController {
 
   refreshHandler = catchErrors(async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken as string | undefined;
-    console.log(refreshToken, "From refresh handler");
     appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token, please log in again");
     const { accessToken, newRefreshToken } = await this.registerUserUseCase.setRefreshToken(refreshToken);
     if (newRefreshToken) {
@@ -105,8 +103,6 @@ export class UserController {
   // handler for user forgot password [user enter the email for getting the reset otp]
   sendPasswordResetHandler = catchErrors(async (req: Request, res: Response) => {
     const role = req.body.role;
-    console.log("Role :", role);
-    console.log(req.body);
     const email = emailSchema.parse(req.body?.data?.email);
     const { user } = await this.registerUserUseCase.sendPasswordResetEmail(email, role);
     return res.status(OK).json({
@@ -129,23 +125,18 @@ export class UserController {
   });
   // this handler set a new password for the user
   resetPasswordHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
     const role = req.body.role;
-    console.log("UserRole : ", role);
     const userId = stringToObjectId(req.body.userId);
     const request = resetPasswordSchema.parse(req.body);
-    console.log("Incoming request: ", request);
     await this.registerUserUseCase.resetPassword({ userId, role, ...request });
 
     return clearTempAuthCookies(res).status(OK).json({
       message: "Password reset successful",
     });
   });
-  // handler for resend the otp for setting new  password to the user
+  // handler for resend the otp for setting new password to the user
   resendPasswordHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
     const role = req.body.role;
-    console.log(role);
     const email = emailSchema.parse(req.body.email);
     const { user } = await this.registerUserUseCase.resendVerificaitonCode(email, role);
     return res.status(OK).json({
@@ -153,27 +144,19 @@ export class UserController {
     });
   });
 
-  //auth check
-  checkAuthHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log("check auth handler called");
-    res.status(OK).json({
-      message: "Authenticated",
-    });
-  });
 
   googleAuthHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log("Google auth handler called");
-    const  code = req.query.code;
-    console.log("Code from google auth handler",code);
+    const code = req.query.code;
     if (typeof code !== 'string') {
       throw new Error('Invalid code query parameter');
     }
-    const {accessToken,refreshToken , user} = await this.registerUserUseCase.googleAuth(code);
+    const { accessToken, refreshToken, user } = await this.registerUserUseCase.googleAuth(code);
     return setAuthCookies({ res, accessToken, refreshToken })
-    .status(OK)
-    .json({
-      message: "Google login successful",
-      response: { ...user, accessToken },
-    });
-  }); 
+      .status(OK)
+      .json({
+        message: "Google login successful",
+        response: { ...user, accessToken },
+      });
+  });
+
 }
