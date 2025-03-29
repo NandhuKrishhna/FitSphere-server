@@ -3,23 +3,22 @@ import { ChatUseCase } from "../../../application/user-casers/ChatUseCase";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { Request, Response } from "express";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
-import { CREATED, OK } from "../../../shared/constants/http";
+import { CREATED, NOT_FOUND, OK } from "../../../shared/constants/http";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+import logger from "../../../shared/utils/logger";
 export type GetMessagesQueryParams = {
   receiverId: string;
-  page? : string
-  limit? : string
+  page?: string
+  limit?: string
 }
 @Service()
 export class ChatController {
-  constructor(@Inject() private chatUseCase: ChatUseCase) {}
+  constructor(@Inject() private chatUseCase: ChatUseCase) { }
 
   //send message
   sendMessageHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
-    const { userId: senderId , role } = req as AuthenticatedRequest;
+    const { userId: senderId, role } = req as AuthenticatedRequest;
     const receiverId = stringToObjectId(req.body.receiverId);
-    console.log("ReceiverId from sendMessage Handler", receiverId);
     const message = req.body.message;
     const image = req.body.image;
     const newMessage = await this.chatUseCase.sendMessage({
@@ -39,9 +38,8 @@ export class ChatController {
 
   //get messages
   getMessagesHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log("REQUERY",req.query);
     const receiverId = stringToObjectId(req.query.receiverId as string);
-    const  { userId: senderId } = req as AuthenticatedRequest;
+    const { userId: senderId } = req as AuthenticatedRequest;
     const { messages, conversationId } = await this.chatUseCase.getMessages({
       senderId,
       receiverId,
@@ -75,7 +73,28 @@ export class ChatController {
     res.status(CREATED).json({
       success: true,
       message: "Conversation created successfully",
-  
+
     });
   });
+
+  getConversationHandler = catchErrors(async (req: Request, res: Response) => {
+    const { userId: senderId } = req as AuthenticatedRequest;
+    const receiverId = stringToObjectId(req.query.receiverId as string);
+
+    const conversation = await this.chatUseCase.getConversation(senderId, receiverId);
+
+    if (conversation) {
+      return res.status(OK).json({
+        success: true,
+        message: "Conversation found successfully",
+        conversation,
+      });
+    }
+
+    return res.status(NOT_FOUND).json({
+      success: false,
+      message: "No conversation was found",
+    });
+  });
+
 }

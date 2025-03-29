@@ -11,7 +11,7 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 import Role from "../../shared/constants/UserRole";
 import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
-import { profile } from "console";
+import { IConversation } from "../../infrastructure/models/conversationModel";
 
 @Service()
 export class ChatUseCase {
@@ -22,9 +22,9 @@ export class ChatUseCase {
     @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
   ) { }
 
-  public async sendMessage({ senderId, receiverId, message, image, role }: SendMessageProps): Promise<any> {
+  public async sendMessage({ senderId, receiverId, message, image, role }: SendMessageProps) {
     appAssert(message?.trim() || image, BAD_REQUEST, "Message or image is required");
-    const participants = [senderId, receiverId].sort((a, b) => a.toString().localeCompare(b.toString()));
+    const participants = [senderId.toString(), receiverId.toString()].sort();;
     let conversation = await this.conversationRepository.getConversationByParticipants(participants);
     if (!conversation) {
       conversation = await this.conversationRepository.createConversation(participants);
@@ -44,7 +44,6 @@ export class ChatUseCase {
     const user = role === Role.USER
       ? await this.userRepository.findUserById(senderId)
       : await this.doctorRepository.findDoctorByID(senderId);
-    console.log("User detials: ", user)
     const receiverSocketid = getReceiverSocketId(receiverId);
     if (receiverSocketid) {
       io.to(receiverSocketid).emit("newMessage", newMessage.message);
@@ -56,16 +55,13 @@ export class ChatUseCase {
       });
     }
     await this.conversationRepository.updateLastMessage(conversation._id, message);
-
     return newMessage;
   }
 
-  public async getMessages({ senderId, receiverId }: ParticipantsType): Promise<any> {
-    const participants = [senderId, receiverId].sort((a, b) => a.toString().localeCompare(b.toString()));
+  public async getMessages({ senderId, receiverId }: ParticipantsType) {
+    const participants = [senderId.toString(), receiverId.toString()].sort();;
     let conversation = await this.conversationRepository.getConversationByParticipants(participants);
-    if (!conversation) {
-      conversation = await this.conversationRepository.addUserForSidebar(participants);
-    }
+    appAssert(conversation, NOT_FOUND, "Conversation not found");
     const messages = await this.chatRepository.getMessagesByConversationId(conversation._id);
     return {
       messages,
@@ -73,15 +69,28 @@ export class ChatUseCase {
     };
   }
 
-  public async getAllUsers(userId: mongoose.Types.ObjectId, role: string): Promise<any> {
+  public async getAllUsers(userId: mongoose.Types.ObjectId, role: string) {
     const users = await this.conversationRepository.getUsers(userId, role);
     return users;
   }
-  public async createConversation(senderId: ObjectId, receiverId: ObjectId): Promise<void> {
-    const participants = [senderId, receiverId].sort((a, b) => a.toString().localeCompare(b.toString()));
-    const conversation = await this.conversationRepository.getConversationByParticipants(participants);
-    if (conversation) return
-    await this.conversationRepository.addUserForSidebar(participants);
 
+  public async createConversation(senderId: ObjectId, receiverId: ObjectId): Promise<void> {
+    appAssert(senderId, NOT_FOUND, "Sender ID is required");
+    appAssert(receiverId, NOT_FOUND, "Receiver ID is required");
+    const participants = [senderId.toString(), receiverId.toString()].sort();;
+    const conversation = await this.conversationRepository.getConversationByParticipants(participants);
+
+    if (conversation) return;
+
+    await this.conversationRepository.addUserForSidebar(participants);
+  }
+
+
+  public async getConversation(senderId: ObjectId, receiverId: ObjectId): Promise<IConversation | null> {
+    appAssert(senderId, NOT_FOUND, "Sender ID is required");
+    appAssert(receiverId, NOT_FOUND, "Receiver ID is required");
+    const participants = [senderId, receiverId].map(id => id.toString()).sort();
+    const conversation = await this.conversationRepository.getConversationByParticipants(participants);
+    return conversation;
   }
 }
