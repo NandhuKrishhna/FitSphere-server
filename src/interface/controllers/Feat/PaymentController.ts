@@ -7,13 +7,13 @@ import appAssert from "../../../shared/utils/appAssert";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import logger from "../../../shared/utils/logger";
+import mongoose, { isValidObjectId } from "mongoose";
 
 @Service()
 export class PaymentController {
   constructor(@Inject() private paymentUseCase: PaymentUseCase) { }
 
   bookAppointment = catchErrors(async (req: Request, res: Response) => {
-    console.log("From book appointment handler", req.body);
     const { slotId, amount, doctorId, patientId } = req.body;
     const { newAppointmentDetails, order } = await this.paymentUseCase.userAppointment({
       slotId,
@@ -30,19 +30,34 @@ export class PaymentController {
   });
 
   verifyPaymentHandler = catchErrors(async (req: Request, res: Response) => {
-    const razorpay_order_id = req.body.razorpay_order_id;
-    const doctorName = req.body.doctorName;
-    console.log("DoctorName from verify payment handler", doctorName);
+    logger.info("Req body from the verify payment handler:", req.body);
+
+    const { razorpay_order_id, doctorName, paymentType, doctorId } = req.body;
+    const subscriptionId = req.body.subscriptionId
+      ? new mongoose.Types.ObjectId(req.body.subscriptionId)
+      : undefined;
+
+
+    appAssert(paymentType, BAD_REQUEST, "Payment Type is Missing.");
+    appAssert(razorpay_order_id, BAD_REQUEST, "Missing Razorpay Order ID.");
+
     const { userId } = req as AuthenticatedRequest;
-    const doctorId = stringToObjectId(req.body.doctorId);
-    appAssert(razorpay_order_id, BAD_REQUEST, "Missing");
-    await this.paymentUseCase.verifyPayment({ userId, razorpay_order_id, doctorId, doctorName });
+
+    await this.paymentUseCase.verifyPayment({
+      doctorId,
+      userId,
+      razorpay_order_id,
+      doctorName,
+      paymentType,
+      subscriptionId
+    });
+
     res.status(OK).json({
       success: true,
       message: "Payment verified successfully",
-      // newAppointmntDetails
     });
   });
+
 
   cancelAppointmentHandler = catchErrors(async (req: Request, res: Response) => {
     const appointmentId = stringToObjectId(req.body.appointmentId);
@@ -56,7 +71,6 @@ export class PaymentController {
 
 
   abortPaymentHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
     const orderId = req.body.orderId;
     appAssert(orderId, BAD_REQUEST, "Missing");
     const response = await this.paymentUseCase.abortPayment(orderId);
@@ -67,23 +81,19 @@ export class PaymentController {
     });
   });
 
-  // premiumSubscriptionHandler = catchErrors(async (req: Request, res: Response) => {
-  //   const { type } = req.body;
-  //   const { userId } = req as AuthenticatedRequest;
-  //   const response = await this.paymentUseCase.buyPremiumSubscription({ type, userId });
-  //   res.status(CREATED).json({
-  //     success: true,
-  //     message: "",
-  //     response,
-  //   });
-  // });
+  premiumSubscriptionHandler = catchErrors(async (req: Request, res: Response) => {
+    const subscriptionId = stringToObjectId(req.body.subscriptionId);
+    const { userId } = req as AuthenticatedRequest;
+    const response = await this.paymentUseCase.buyPremiumSubscription({ subscriptionId, userId });
+    res.status(CREATED).json({
+      success: true,
+      response,
+    });
+  });
 
 
-
-  // TODO move the wallet logic to sepereate wallet controller
   walletPaymentHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
-    console.log(req.body)
     const { usecase, type, doctorId, slotId, amount, patientId } = req.body;
     const response = await this.paymentUseCase.walletPayment({
       userId,
@@ -98,7 +108,6 @@ export class PaymentController {
     usecase === "slot_booking"
       ? (message = "Slot booked successfully")
       : (message = "Subscription purchased successfully");
-    //TODO dynamic message based on the usecase
     res.status(OK).json({
       success: true,
       message: message,

@@ -1,6 +1,6 @@
 import { Inject, Service } from "typedi";
 import appAssert from "../../shared/utils/appAssert";
-import { BAD_REQUEST } from "../../shared/constants/http";
+import { BAD_REQUEST, NOT_FOUND } from "../../shared/constants/http";
 import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 import { BookAppointmentParams } from "../../domain/types/appTypes";
@@ -18,23 +18,24 @@ import { ITransactionRepository, ITransactionRepositoryToken } from "../reposito
 import { NotificationType } from "../../shared/constants/verficationCodeTypes";
 import logger from "../../shared/utils/logger";
 import { WalletParams } from "./AppUseCase";
-import mongoose from "mongoose";
-import { ObjectId } from "../../infrastructure/models/UserModel";
+import mongoose, { isValidObjectId } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 import Role from "../../shared/constants/UserRole";
 import { getReceiverSocketId, io } from "../../infrastructure/config/socket.io";
 import { formatDate, formatToIndianTime } from "../../shared/utils/timeConvertor";
 import { emitNotification } from "../../shared/utils/emitNotification";
+import { VerifyPaymentParams } from "../../domain/types/paymentParams.types";
+import { IRazorpayPaymentsResponse } from "../../domain/types/razorypay";
+import { ObjectId } from "../../infrastructure/models/UserModel";
+import { IUserSubscriptionRepository, IUserSubscriptionRepositoryToken } from "../repositories/IUserSubscriptionRepository";
+import { SlotPaymentService } from "../services/handleSlotBookingPayment";
+import { SubscriptionPayment } from "../services/handleSubscriptionPayment";
 
+export type BuyPremiumSubscriptionParams = {
+  subscriptionId: ObjectId,
+  userId: ObjectId
+}
 
-
-
-type VerifyPaymentParams = {
-  userId: ObjectId;
-  doctorId: ObjectId;
-  razorpay_order_id: string;
-  doctorName: string
-};
 @Service()
 export class PaymentUseCase {
   constructor(
@@ -47,7 +48,10 @@ export class PaymentUseCase {
     @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository,
     @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
     @Inject(IPremiumSubscriptionRepositoryToken) private premiumSubscriptionRepository: IPremiumSubscriptionRepository,
-    @Inject(ITransactionRepositoryToken) private transactionRepository: ITransactionRepository
+    @Inject(ITransactionRepositoryToken) private transactionRepository: ITransactionRepository,
+    @Inject(IUserSubscriptionRepositoryToken) private userSubscriptionRepository: IUserSubscriptionRepository,
+    @Inject(() => SlotPaymentService) private slotPaymentService: SlotPaymentService,
+    @Inject(() => SubscriptionPayment) private subscriptionService: SubscriptionPayment
   ) { }
 
   async userAppointment({ doctorId, patientId, slotId, amount }: BookAppointmentParams) {
@@ -60,20 +64,12 @@ export class PaymentUseCase {
     appAssert(!existingSlot.patientId, BAD_REQUEST, "Slot is already booked. Please try another slot.");
     appAssert(existingSlot.status === "available", BAD_REQUEST, "Slot is not available. Please try another slot.");
     const currentTime = new Date();
-    //TODO remove console.logs
-    console.log("Current UTC Time:", currentTime);
     const slotStartTime = new Date(existingSlot.startTime);
-    console.log("Slot Start Time (from DB):", slotStartTime);
     const istOffset = 5.5 * 60 * 60 * 1000;
     const istCurrentTime = new Date(currentTime.getTime() + istOffset);
-    console.log("IST Current Time:", istCurrentTime);
-    console.log("Comparing IST Time with Slot Start Time:");
-    console.log(`IST Time: ${istCurrentTime}, Slot Start Time: ${slotStartTime}`);
-    console.log("Is Slot Start Time > IST Current Time?", slotStartTime > istCurrentTime);
     appAssert(slotStartTime > istCurrentTime, BAD_REQUEST, "Slot is not available. Please try another slot.");
     const shortPatientId = patientId.toString().slice(-6);
     const receiptId = `rct_${shortPatientId}_${Date.now().toString()}`;
-
     const razorpayOrder = await razorpayInstance.orders.create({
       amount: amount * 100,
       currency: CURRENCY,
@@ -118,15 +114,23 @@ export class PaymentUseCase {
     };
   }
 
-  async verifyPayment({ userId, razorpay_order_id, doctorId, doctorName }: VerifyPaymentParams) {
+  async verifyPayment({
+    userId,
+    razorpay_order_id,
+    doctorId,
+    doctorName,
+    paymentType,
+    subscriptionId
+  }: VerifyPaymentParams) {
+
     const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
     const receiptId = orderInfo.receipt
-    console.log("Order Info:", orderInfo);
     appAssert(orderInfo, BAD_REQUEST, "Unable to fetch order details. Please try again later.");
-
-    if (orderInfo.status === "paid") {
+    appAssert(receiptId, BAD_REQUEST, "Unable to fetch order details. Please try again later.");
+    let response;
+    //* Slot Payment
+    if (orderInfo.status === "paid" && paymentType === "slot_booking") {
       const payments = await razorpayInstance.orders.fetchPayments(razorpay_order_id);
-      console.log("Payment Details:", payments);
       const additionalDetails = {
         orderId: payments.items[0]?.order_id,
         paymentMethod: payments.items[0]?.method,
@@ -135,88 +139,31 @@ export class PaymentUseCase {
         bank: payments.items[0]?.bank,
         meetingId: uuidv4(),
       };
-
-      const appointment = await this.appointmentRepository.updatePaymentStatus(
+      response = await this.slotPaymentService.handleSlotBookingPayment(
+        userId,
+        doctorId!,
+        doctorName!,
         receiptId!,
         additionalDetails,
-        "completed"
-      );
-      appAssert(appointment, BAD_REQUEST, "Appointment details are missing. Please try again.");
-      const updatedUserTransaction = await this.transactionRepository.updateTransaction(
-        { paymentGatewayId: receiptId },
-        {
-          status: "success",
-          paymentGatewayId: payments.items[0]?.id || razorpay_order_id,
-        }
-      );
-      appAssert(updatedUserTransaction, BAD_REQUEST, "Failed to update user transaction.");
-      const doctorTransaction = await this.transactionRepository.createTransaction({
-        from: userId,
-        fromModel: "User",
-        to: doctorId,
-        toModel: "Doctor",
-        amount: Number(orderInfo.amount) / 100,
-        type: "credit",
-        method: "razorpay",
-        paymentType: "slot_booking",
-        status: "success",
-        bookingId: appointment._id as string,
-        paymentGatewayId: payments.items[0]?.id || razorpay_order_id,
-        relatedTransactionId: updatedUserTransaction.transactionId,
-      });
-      const userDetails = await this.userRepository.findUserById(userId);
-      const updatedSlotDetails = await this.slotRespository.updateSlotById(appointment?.slotId, appointment?.patientId);
+        razorpay_order_id,
+        orderInfo.amount
+      )
 
-      await this.walletRepository.increaseBalance({
-        userId: doctorId,
-        role: "Doctor",
-        amount: Number(orderInfo.amount) / 100,
-        description: "Slot Booking",
-        relatedTransactionId: doctorTransaction._id as string
-
-      })
-      try {
-        const [doctorNotification, patientNotification] = await Promise.all([
-          this.notificationRepository.createNotification({
-            userId: appointment?.doctorId,
-            role: Role.DOCTOR,
-            type: NotificationType.Appointment,
-            message: `A new appointment with ${userDetails?.name}
-             has been scheduled on ${formatDate(updatedSlotDetails?.date?.toISOString()!)}
-             at ${formatToIndianTime(updatedSlotDetails?.startTime?.toISOString()!)}
-              - ${formatToIndianTime(updatedSlotDetails?.endTime?.toISOString()!)}`,
-            metadata: {
-              meetingId: appointment?.meetingId,
-              appointMentId: appointment?._id,
-            },
-          }),
-          this.notificationRepository.createNotification({
-            userId: appointment?.patientId,
-            role: Role.USER,
-            type: NotificationType.Appointment,
-            message: `Your appointment with ${doctorName}
-             has been scheduled on ${formatDate(updatedSlotDetails?.date?.toISOString()!)}
-             at ${formatToIndianTime(updatedSlotDetails?.startTime?.toISOString()!)}
-              - ${formatToIndianTime(updatedSlotDetails?.endTime?.toISOString()!)}`,
-            metadata: {
-              meetingId: appointment?.meetingId,
-              appointMentId: appointment?._id,
-            },
-          }),
-        ]);
-        const doctorSocketId = getReceiverSocketId(appointment?.doctorId.toString());
-        const patientSocketId = getReceiverSocketId(appointment?.patientId.toString());
-
-        emitNotification(doctorSocketId, doctorNotification.message);
-        emitNotification(patientSocketId, patientNotification.message);
-
-      } catch (error) {
-        console.error("Notification creation failed:", error);
-      }
-
-      return { appointment, message: "Payment verified and appointment confirmed" };
     }
-    throw new Error("Payment not completed.");
+    if (orderInfo.status === "paid" && paymentType === "subscription") {
+      appAssert(subscriptionId, NOT_FOUND, "Subscription Id not found. Please try after some time.")
+      const payments = await razorpayInstance.orders.fetchPayments(razorpay_order_id);
+      response = await this.subscriptionService.handleSubscriptionPayment({
+        userId,
+        subscriptionId,
+        razorpay_order_id,
+        orderinfo_amount: orderInfo.amount,
+        receiptId
+      })
+    }
+
+
+    return response;
   }
 
 
@@ -270,6 +217,7 @@ export class PaymentUseCase {
     const userDetails = await this.userRepository.findUserById(details.patientId);
     const doctorSocketId = getReceiverSocketId(details?.doctorId.toString());
     const patientSocketId = getReceiverSocketId(details?.patientId.toString());
+
     const doctorMessage = `Your appointment with ${userDetails?.name} at
                            ${formatDate(details?.date?.toISOString()!)} has been cancelled.`;
 
@@ -284,11 +232,9 @@ export class PaymentUseCase {
 
 
   async abortPayment(orderId: string) {
-    logger.info("Aborting payment for order ID:", orderId);
     try {
       const orderInfo = await razorpayInstance.orders.fetch(orderId);
       const receiptId = orderInfo.receipt;
-      logger.info("Order info fetched:", orderInfo);
 
       let additionalDetails = {
         orderId: orderId,
@@ -299,11 +245,10 @@ export class PaymentUseCase {
         meetingId: "",
       };
 
-      let payments: any = null;
+      let payments: IRazorpayPaymentsResponse | null = null;
 
       try {
-        payments = await razorpayInstance.orders.fetchPayments(orderId);
-        logger.info("Payment Details:", payments);
+        payments = await razorpayInstance.orders.fetchPayments(orderId) as IRazorpayPaymentsResponse;
         if (payments?.items?.length > 0) {
           additionalDetails = {
             orderId: payments.items[0]?.order_id || orderId,
@@ -315,11 +260,9 @@ export class PaymentUseCase {
           };
         }
       } catch (paymentError) {
-        logger.warn("Failed to fetch payment details:", paymentError);
+
       };
-      logger.info("Using additional details:", additionalDetails);
       const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId!, additionalDetails, "failed");
-      console.log(appointment);
 
       if (appointment) {
         await this.notificationRepository.createNotification({
@@ -338,11 +281,9 @@ export class PaymentUseCase {
           }
         );
 
-        console.log("Created from the abort payment:", response);
       }
       return { success: true, message: "Payment failure recorded successfully" };
     } catch (error) {
-      logger.error(`Failed to abort payment for order ${orderId}:`, error);
       return {
         success: false,
         message: "Payment failed",
@@ -351,35 +292,14 @@ export class PaymentUseCase {
     }
   }
 
-  // /**
-  //  // TODO razorpay and wallet payment integration 
-  //  */
-  // async buyPremiumSubscription({ type, userId }: { type: string; userId: ObjectId }) {
-  //   const user = await this.userRepository.findUserById(userId);
-  //   appAssert(user, BAD_REQUEST, "User not found. Please try Again");
-  //   appAssert(!user.isPremium, CONFLICT, "You are already have a subcription");
-  //   const subscriptionPrices: Record<string, number> = {
-  //     basic: 199,
-  //     premium: 499,
-  //     enterprice: 999,
-  //   };
-  //   const price = subscriptionPrices[type];
-  //   const razorpay = await razorpayInstance.orders.create({
-  //     amount: price * 100,
-  //     currency: CURRENCY,
-  //     receipt: user._id.toString(),
-  //     payment_capture: true,
-  //   });
-  // }
 
   async walletPayment({ usecase, type, userId, doctorId, patientId, amount, slotId }: WalletParams) {
     if (usecase === "slot_booking") {
       const patient = await this.userRepository.findUserById(patientId!);
       appAssert(patient, BAD_REQUEST, "Patient not found. Please try again.");
       const wallet = await this.walletRepository.findWalletById(userId, "User");
-      //TODO instead of relying on amount from frontend check the fee of the doctor;
       appAssert(wallet, BAD_REQUEST, "Wallet not found. Please try again");
-      appAssert(wallet.balance >= amount, BAD_REQUEST, "Insufficient balance. Please add money to wallet.");
+      appAssert(wallet.balance > amount, BAD_REQUEST, "Insufficient balance.Please choose another payment method.");
       const doctor = await this.doctorRespository.findDoctorByID(doctorId!);
       appAssert(doctor, BAD_REQUEST, "Doctor not found. Please try again.");
       const existingSlot = await this.slotRespository.findSlotById(slotId!);
@@ -420,7 +340,6 @@ export class PaymentUseCase {
         bookingId: newAppointmentDetails._id as string,
         relatedTransactionId: wallet._id as string,
       });
-      console.log("Doctor Transaction created:", doctorTransaction);
       //user transaction
       const userTransaction = await this.transactionRepository.createTransaction({
         from: userId,
@@ -537,7 +456,50 @@ export class PaymentUseCase {
     //   });
     //   await this.userRepository.updateUserById(userId, { isPremium: true });
     // }
-    // TODO create notification for user
   }
+
+
+  async buyPremiumSubscription({ subscriptionId, userId }: BuyPremiumSubscriptionParams) {
+
+    appAssert(subscriptionId, BAD_REQUEST, "Subscription not found. Please try again.");
+    const subscriptionDetails = await this.premiumSubscriptionRepository.getSubscriptionById(subscriptionId);
+    logger.info("Premium Subscription : ", subscriptionDetails);
+    appAssert(subscriptionDetails, BAD_REQUEST, "Subscription not found. Please try again.");
+    const userDetails = await this.userRepository.findUserById(userId);
+    appAssert(userDetails, BAD_REQUEST, "User not found. Please try again.");
+
+
+    const shortPatientId = userDetails.toString().slice(-6);
+    const receiptId = `rct_${shortPatientId}_${Date.now().toString()}`;
+    const razorpayOrder = await razorpayInstance.orders.create({
+      amount: subscriptionDetails.price * 100,
+      currency: CURRENCY,
+      receipt: receiptId,
+      payment_capture: true,
+    })
+
+    const transaction = await this.transactionRepository.createTransaction({
+      from: userId,
+      fromModel: "User",
+      amount: subscriptionDetails.price,
+      type: "debit",
+      method: "razorpay",
+      paymentType: "subscription",
+      status: "pending",
+      paymentGatewayId: razorpayOrder.receipt,
+    })
+
+    return {
+      order: {
+        id: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        subscriptionId: subscriptionDetails._id,
+      },
+
+    }
+
+  }
+
 }
 
