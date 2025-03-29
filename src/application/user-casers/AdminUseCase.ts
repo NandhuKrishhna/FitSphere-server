@@ -44,7 +44,6 @@ export class AdminUseCase {
   // method for admin login
   async adminLogin(adminData: LoginUserParams) {
     const existingUser = await this.adminRepository.findAdminByEmail(adminData.email);
-    console.log("Admin Info", existingUser);
     appAssert(existingUser, UNAUTHORIZED, "Invalid email or user does not exist");
     const isValid = await existingUser.comparePassword(adminData.password);
     appAssert(isValid, UNAUTHORIZED, "Invalid email or password!");
@@ -62,13 +61,6 @@ export class AdminUseCase {
       role: session.role,
     });
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
-    console.log("Returning User Data:", {
-      _id: existingUser._id,
-      name: existingUser.name,
-      email: existingUser.email,
-      profilePicture: existingUser.profilePicture,
-      role: existingUser.role,
-    });
 
     return {
       user: {
@@ -107,9 +99,7 @@ export class AdminUseCase {
   async approveRequest(id: mongoose.Types.ObjectId) {
     await this.adminRepository.approveRequest(id);
     const user = await this.doctorRepository.findDoctorByID(id);
-    console.log("User after approved", user);
     appAssert(user, BAD_REQUEST, "User not found . Please try again");
-    //TODO create a wallet here after approval for the doctor;
     await this.walletRespository.createWallet({
       userId: user._id as ObjectId,
       role: "Doctor"
@@ -127,7 +117,6 @@ export class AdminUseCase {
     await this.doctorRepository.deleteDoctorById(id);
     await this.doctorRepository.deleteDoctorDetails(id);
     await this.notificationRepository.deleteNotification(id);
-    console.log("Reason for rejecting the request", reason);
     await sendMail({
       to: response.email,
       ...getRejectionEmailTemplate(response.name, reason),
@@ -180,12 +169,15 @@ export class AdminUseCase {
   async getAllPremiumSubscription() {
     return await this.premiumSubscriptionRepository.getAllPremiumSubscription();
   }
-  async adminDashboard() {
+  async adminDashboard(userId: ObjectId) {
     const userDetails = await this.userRepository.userDetails();
     const doctorDetails = await this.doctorRepository.getDoctorStatistics();
+    const walletDetails = await this.walletRespository.findWalletById(userId, "Admin")
     return {
       doctorDetails,
-      userDetails
+      userDetails,
+      walletDetails
     }
   }
+
 }

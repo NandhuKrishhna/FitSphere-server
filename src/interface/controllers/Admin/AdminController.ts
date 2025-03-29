@@ -134,7 +134,6 @@ export class AdminController {
   });
 
   editPremiumSubscription = catchErrors(async (req: Request, res: Response) => {
-    console.log("REQ_BODY", req.body)
     const { type, price, features, planName } = premiumSubscriptionSchema.parse({ ...req.body });
     const subscriptionId = stringToObjectId(req.body.id);
     appAssert(subscriptionId, BAD_REQUEST, "Invalid subscription id")
@@ -152,7 +151,6 @@ export class AdminController {
   });
 
   deletePremiumSubscription = catchErrors(async (req: Request, res: Response) => {
-    console.log("REQ_PARAMS", req.params);
     const { id } = req.params;
     const subcriptionId = stringToObjectId(id);
     await this.adminUseCase.deletePremiumSubscription(subcriptionId);
@@ -172,12 +170,14 @@ export class AdminController {
   })
 
   adminDasBoardHandler = catchErrors(async (req: Request, res: Response) => {
-    const response = await this.adminUseCase.adminDashboard();
+    const { userId } = req as AuthenticatedRequest
+    const response = await this.adminUseCase.adminDashboard(userId);
     return res.status(OK).json({
       success: true,
       ...response
     })
   })
+
 }
 
 

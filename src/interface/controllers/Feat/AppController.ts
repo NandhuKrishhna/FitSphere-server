@@ -202,6 +202,17 @@ export class AppController {
       message: "Transactions fetched successfully",
       ...response
     })
+  });
+
+
+  getSubscriptionDetailsHandler = catchErrors(async (req: Request, res: Response) => {
+    const { userId } = req as AuthenticatedRequest;
+    const response = await this.appUseCase.getSubscriptionDetails(userId);
+    res.status(OK).json({
+      success: true,
+      message: "Subscription details fetched successfully",
+      response
+    })
   })
 
 }
