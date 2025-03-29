@@ -1,58 +1,57 @@
-import {  Response } from "express";
+import { Response } from "express";
 import { CookieOptions } from "express"
 import { fifteenMinutesFromNow, thirtyDaysFromNow } from "./date";
 import { NODE_ENV } from "../constants/env";
 const secure = NODE_ENV === "production";
 export const REFRESH_PATH = "/api/auth/refresh";
-const defaults: CookieOptions ={
-    sameSite: "strict",
-    httpOnly: true,
-    secure 
+const defaults: CookieOptions = {
+  sameSite: "strict",
+  httpOnly: true,
+  secure
 }
 export const getAccessTokenCookieOptions = (): CookieOptions => ({
-    ...defaults,
-    expires : fifteenMinutesFromNow()
+  ...defaults,
+  expires: fifteenMinutesFromNow()
 })
 
 export const generateRefreshTokenCookieOptions = (): CookieOptions => ({
-    ...defaults,
-    expires: thirtyDaysFromNow(),
-    path: REFRESH_PATH
+  ...defaults,
+  expires: thirtyDaysFromNow(),
+  path: REFRESH_PATH
 })
 
 type Params = {
-     res: Response;
-     accessToken: string;
-     refreshToken: string;
-  };
-
-  export const setAuthCookies = ({ res, accessToken, refreshToken }: Params): Response => {
-    // console.log("Setting Cookies:", { accessToken, refreshToken }); 
-    return res
-      .cookie("accessToken", accessToken, getAccessTokenCookieOptions())
-      .cookie("refreshToken", refreshToken, generateRefreshTokenCookieOptions());
+  res: Response;
+  accessToken: string;
+  refreshToken: string;
 };
 
-  
+export const setAuthCookies = ({ res, accessToken, refreshToken }: Params): Response => {
+  return res
+    .cookie("accessToken", accessToken, getAccessTokenCookieOptions())
+    .cookie("refreshToken", refreshToken, generateRefreshTokenCookieOptions());
+};
 
-  export const clearAuthCookies = (res: Response) => 
-    res.clearCookie("accessToken").clearCookie("refreshToken", {
-        path: REFRESH_PATH
-    });
 
 
-  type TempParams = {
-    res: Response,
-    accessToken: string
-  }
-  export const getTempAccessTokenCookieOptions = (): CookieOptions => ({
-    ...defaults,
-    expires : fifteenMinutesFromNow()
+export const clearAuthCookies = (res: Response) =>
+  res.clearCookie("accessToken").clearCookie("refreshToken", {
+    path: REFRESH_PATH
+  });
+
+
+type TempParams = {
+  res: Response,
+  accessToken: string
+}
+export const getTempAccessTokenCookieOptions = (): CookieOptions => ({
+  ...defaults,
+  expires: fifteenMinutesFromNow()
 })
-  export const setTempAuthCookies = ({res, accessToken} : TempParams) : Response =>{
-    return res
+export const setTempAuthCookies = ({ res, accessToken }: TempParams): Response => {
+  return res
     .cookie("accessToken", accessToken, getTempAccessTokenCookieOptions())
-  };
+};
 
-  export const clearTempAuthCookies = (res: Response) => 
-    res.clearCookie("accessToken");
+export const clearTempAuthCookies = (res: Response) =>
+  res.clearCookie("accessToken");
