@@ -1,12 +1,13 @@
- import { Service } from "typedi";
+import { Service } from "typedi";
 import {
   ITransactionRepository,
   ITransactionRepositoryToken,
 } from "../../application/repositories/ITransactionRepository";
 import TransactionModel, { ITransaction } from "../models/transactionModel";
 import { ObjectId } from "../models/UserModel";
-import { TransactionQueryParams } from "../../interface/controllers/Feat/AppController";
 import mongoose, { isValidObjectId } from "mongoose";
+import { TransactionsResponse } from "../../domain/types/transaction.types";
+import { TransactionQueryParams } from "../../domain/types/queryParams.types";
 
 @Service(ITransactionRepositoryToken)
 export class TransactionRepository implements ITransactionRepository {
@@ -31,11 +32,11 @@ export class TransactionRepository implements ITransactionRepository {
     const transactions = await TransactionModel.find({
       $or: [{ from: userId }, { to: userId }]
     }).exec();
-    
+
     return transactions;
   }
 
-  async  fetchAllTransactionById(
+  async fetchAllTransactionById(
     userId: ObjectId,
     {
       page = "1",
@@ -48,37 +49,37 @@ export class TransactionRepository implements ITransactionRepository {
       method,
       type,
     }: TransactionQueryParams = {},
-    role : "user" | "doctor"
-  ): Promise<any> {
-    
+    role: "user" | "doctor"
+  ): Promise<TransactionsResponse> {
+
     try {
 
-      const objectIdUserId = mongoose.Types.ObjectId.isValid(userId) 
-        ? new mongoose.Types.ObjectId(userId) 
+      const objectIdUserId = mongoose.Types.ObjectId.isValid(userId)
+        ? new mongoose.Types.ObjectId(userId)
         : userId;
       const pageNum = parseInt(page, 10) || 1;
       const limitNum = parseInt(limit, 10) || 10;
       const skip = (pageNum - 1) * limitNum;
-  
+
       const pipeline: any[] = [
         {
           $match: {
             $or: [
               ...(role === "user"
                 ? [
-                  { from: objectIdUserId, paymentType: { $in: ["slot_booking", "failed"] }, type: {$in :["debit","failed"]} },
-                    { to: objectIdUserId, paymentType: "cancel_appointment", type: "credit" },
-                    { to: objectIdUserId, paymentType: "refund" }
-                  ]
+                  { from: objectIdUserId, paymentType: { $in: ["slot_booking", "subscription", "failed"] }, type: { $in: ["debit", "failed"] } },
+                  { to: objectIdUserId, paymentType: "cancel_appointment", type: "credit" },
+                  { to: objectIdUserId, paymentType: "refund" }
+                ]
                 : []),
               ...(role === "doctor"
                 ? [
-                    { to: objectIdUserId, paymentType: "slot_booking", type: "credit" },
-                    { from: objectIdUserId, paymentType: "cancel_appointment", type: "debit" }
-                  ]
+                  { to: objectIdUserId, paymentType: "slot_booking", type: "credit" },
+                  { from: objectIdUserId, paymentType: "cancel_appointment", type: "debit" }
+                ]
                 : []),
             ],
-            ...(status ? { status } : {}), 
+            ...(status ? { status } : {}),
           },
         },
         {
@@ -227,7 +228,7 @@ export class TransactionRepository implements ITransactionRepository {
       }
       const { metadata, data } = result[0];
       const total = metadata.length > 0 ? metadata[0].total : 0;
-  
+
       return {
         transactions: data,
         page: pageNum,
@@ -240,5 +241,5 @@ export class TransactionRepository implements ITransactionRepository {
       throw new Error(`Failed to fetch transactions: ${error.message}`);
     }
   }
-  
+
 }
