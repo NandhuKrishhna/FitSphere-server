@@ -3,9 +3,7 @@ import { NotificationType, OtpCodeTypes, VerificationCodeTypes } from "../consta
 import { generateOtpExpiration } from "./date";
 import { generateOTP } from "./otpGenerator";
 import { Otp } from "../../domain/entities/Otp";
-import Role from "../constants/UserRole";
 import { Session } from "../../domain/entities/Session";
-import { Notification } from "../../domain/entities/Notification";
 
 //create OTP
 export const IcreateOtp = (userId: mongoose.Types.ObjectId, type: OtpCodeTypes) => {
@@ -26,13 +24,3 @@ export const ERRORS = {
   EMAIL_VERIFICATION_REQUIRED: "Please verify your email. A verification code has been sent to your email.",
 };
 
-export const INotification = (
-  userId: mongoose.Types.ObjectId,
-  type: NotificationType,
-  message: string,
-  status: "pending" | "approved" | "rejected",
-  metadata?: Record<string, any>,
-  read?: boolean
-) => {
-  return new Notification(userId, type, message, status, metadata, read);
-};
