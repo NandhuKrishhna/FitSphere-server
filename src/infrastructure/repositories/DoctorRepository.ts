@@ -8,6 +8,7 @@ import { DoctorDocument, DoctorModel } from "../models/DoctorModel";
 import { DoctorProfile, DoctorwithDetails, UpdateDoctorParams } from "../../domain/types/doctorTypes";
 import bcrypt from "bcrypt";
 import { UserModel } from "../models/UserModel";
+import RatingModel from "../models/RatingsModel";
 interface MatchStage {
   isApproved: boolean;
   isVerified: boolean;
@@ -201,31 +202,79 @@ export class DoctorRepository implements IDoctorRepository {
 
   async updateDoctorDetailsByDocId(id: mongoose.Types.ObjectId, updates: Partial<DoctorDetails>): Promise<DoctorDetailsDocument | null> {
     const result = await DoctorDetailsModel.findOneAndUpdate(
-        { doctorId: id },   
-        { $set: updates },  
-        { new: true }      
-    ); 
-    return result;
-}
-async updatePassword(userId: mongoose.Types.ObjectId, newPassword: string, role: string): Promise<void> {
-  try {
-    const Model = role === "user" ? (UserModel as mongoose.Model<any>) : (DoctorModel as mongoose.Model<any>);
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const result = await Model.findByIdAndUpdate(
-      userId,
-      { $set: { password: hashedPassword } },
+      { doctorId: id },
+      { $set: updates },
       { new: true }
     );
-    if (!result) {
-      throw new Error("User not found or password update failed");
-    }
-    console.log("Password updated successfully for:", userId.toString());
-  } catch (error) {
-    console.error("Error updating password:", error);
-    throw new Error("Failed to update password. Please try again.");
+    return result;
   }
-}
+  async updatePassword(userId: mongoose.Types.ObjectId, newPassword: string, role: string): Promise<void> {
+    try {
+      const Model = role === "user" ? (UserModel as mongoose.Model<any>) : (DoctorModel as mongoose.Model<any>);
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const result = await Model.findByIdAndUpdate(
+        userId,
+        { $set: { password: hashedPassword } },
+        { new: true }
+      );
+      if (!result) {
+        throw new Error("User not found or password update failed");
+      }
+    } catch (error) {
+      console.error("Error updating password:", error);
+      throw new Error("Failed to update password. Please try again.");
+    }
+  }
 
+  async getDoctorStatistics() {
+    const stats = await DoctorModel.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalDoctors: { $sum: 1 },
+          approvedDoctors: { $sum: { $cond: [{ $eq: ["$isApproved", true] }, 1, 0] } },
+          verifiedDoctors: { $sum: { $cond: [{ $eq: ["$isVerified", true] }, 1, 0] } }
+        }
+      }
+    ]);
+
+    const topDoctors = await RatingModel.aggregate([
+      {
+        $sort: { averageRating: -1 }
+      },
+      {
+        $limit: 10
+      },
+      {
+        $lookup: {
+          from: "doctors",
+          localField: "doctorId",
+          foreignField: "_id",
+          as: "doctorDetails"
+        }
+      },
+      {
+        $unwind: "$doctorDetails"
+      },
+      {
+        $project: {
+          _id: "$doctorDetails._id",
+          name: "$doctorDetails.name",
+          email: "$doctorDetails.email",
+          profilePicture: "$doctorDetails.profilePicture",
+          averageRating: 1,
+          totalReviews: 1
+        }
+      }
+    ]);
+
+    return {
+      totalDoctors: stats.length > 0 ? stats[0].totalDoctors : 0,
+      approvedDoctors: stats.length > 0 ? stats[0].approvedDoctors : 0,
+      verifiedDoctors: stats.length > 0 ? stats[0].verifiedDoctors : 0,
+      topDoctors
+    };
+  }
 
 
 }

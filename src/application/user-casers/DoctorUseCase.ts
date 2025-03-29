@@ -55,7 +55,6 @@ export class DoctorUseCase {
     // send verfication email
     const otpCode = IcreateOtp(doctor._id as ObjectId, OtpCodeTypes.EmailVerification);
     const newOtp = await this.otpRepository.saveOtp(otpCode);
-    console.log("new created Otp : ", newOtp);
     await sendMail({
       to: doctor.email,
       ...getVerifyEmailTemplates(newOtp.code, newDoctor.name),

@@ -14,11 +14,11 @@ import appAssert from "../../../shared/utils/appAssert";
 
 @Service()
 export class DoctorController {
-  constructor(@Inject() private doctorUseCase: DoctorUseCase) {}
-  //Doctor Registration;
+  constructor(@Inject() private doctorUseCase: DoctorUseCase) { }
 
+
+  //Doctor Registration;
   registerHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
     const request = doctorRegisterSchema.parse({
       ...req.body,
       userAgent: req.headers["user-agent"],
@@ -31,9 +31,8 @@ export class DoctorController {
     });
   });
 
-  // register as doctor handler
+  // Register as Doctor 
   registerAsDoctorHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
     const request = doctorDetailsSchema.parse({
       ...req.body.formData,
       userAgent: req.headers["user-agent"],
@@ -54,7 +53,6 @@ export class DoctorController {
 
   // otp verification
   otpVerifyHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log(req.body);
     const userId = stringToObjectId(req.body.userId);
     const { code } = otpVerificationSchema.parse(req.body);
     await this.doctorUseCase.verifyOtp(code, userId);
@@ -98,7 +96,7 @@ export class DoctorController {
 
   updateDoctorDetailsHandler = catchErrors(async (req: Request, res: Response) => {
     const request = doctorUpdateSchema.parse(req.body);
-    const {userId} = req as AuthenticatedRequest;
+    const { userId } = req as AuthenticatedRequest;
     const response = await this.doctorUseCase.updateDoctorDetails(userId, request);
     return res.status(OK).json({
       success: true,
@@ -108,33 +106,32 @@ export class DoctorController {
   });
 
   updatePasswordHandler = catchErrors(async (req: Request, res: Response) => {
-    const {userId , role} = req as AuthenticatedRequest;
-    console.log(req.body)
-    appAssert(userId , BAD_REQUEST, "User not authenticated. Please login");
-   const currentPassword = passwordSchema.parse(req.body.currentPassword);
-   const newPassword = passwordSchema.parse(req.body.newPassword);
-     await this.doctorUseCase.updatePassword({userId, currentPassword, newPassword , role});
+    const { userId, role } = req as AuthenticatedRequest;
+    appAssert(userId, BAD_REQUEST, "User not authenticated. Please login");
+    const currentPassword = passwordSchema.parse(req.body.currentPassword);
+    const newPassword = passwordSchema.parse(req.body.newPassword);
+    await this.doctorUseCase.updatePassword({ userId, currentPassword, newPassword, role });
     return res.status(OK).json({
       success: true,
       message: "Password updated successfully",
-  });
-})
+    });
+  })
 
-// googleAuthHandler = catchErrors(async (req: Request, res: Response) => {
-//   console.log("Google auth handler called");
-//   const  code = req.query.code;
-//   console.log("Code from google auth handler",code);
-//   if (typeof code !== 'string') {
-//     throw new Error('Invalid code query parameter');
-//   }
-//   const {accessToken,refreshToken , user} = await this.doctorUseCase.googleAuth(code);
-//   return setAuthCookies({ res, accessToken, refreshToken })
-//   .status(OK)
-//   .json({
-//     message: "Google login successful",
-//     response: { ...user, accessToken },
-//   });
-// }); 
+  // googleAuthHandler = catchErrors(async (req: Request, res: Response) => {
+  //   console.log("Google auth handler called");
+  //   const  code = req.query.code;
+  //   console.log("Code from google auth handler",code);
+  //   if (typeof code !== 'string') {
+  //     throw new Error('Invalid code query parameter');
+  //   }
+  //   const {accessToken,refreshToken , user} = await this.doctorUseCase.googleAuth(code);
+  //   return setAuthCookies({ res, accessToken, refreshToken })
+  //   .status(OK)
+  //   .json({
+  //     message: "Google login successful",
+  //     response: { ...user, accessToken },
+  //   });
+  // }); 
 
 
 }
