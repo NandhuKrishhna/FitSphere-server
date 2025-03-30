@@ -7,8 +7,10 @@ export const REFRESH_PATH = "/api/auth/refresh";
 const defaults: CookieOptions = {
   sameSite: "strict",
   httpOnly: true,
-  secure
-}
+  secure: NODE_ENV === "production",
+  domain: "fitsphere.nandhu.live",
+};
+
 export const getAccessTokenCookieOptions = (): CookieOptions => ({
   ...defaults,
   expires: fifteenMinutesFromNow()
