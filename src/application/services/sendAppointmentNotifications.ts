@@ -9,7 +9,6 @@ import { formatDate, formatToIndianTime } from "../../shared/utils/timeConvertor
 import { getReceiverSocketId } from "../../infrastructure/config/socket.io";
 import { emitNotification } from "../../shared/utils/emitNotification";
 import { SlotDocument } from "../../infrastructure/models/slot.models";
-import logger from "../../shared/utils/logger";
 
 @Service()
 export class SendAppointmentNotifications {
@@ -21,7 +20,6 @@ export class SendAppointmentNotifications {
 
     async sendAppointmentNotifications(appointment: AppointmentDocument, doctorName: string, updatedSlotDetails: SlotDocument) {
         const userDetails = await this.userRepository.findUserById(appointment.patientId);
-        logger.info("UserDetails", userDetails)
 
         const [doctorNotification, patientNotification] = await Promise.all([
             this.notificationRepository.createNotification({
@@ -51,8 +49,6 @@ export class SendAppointmentNotifications {
                 },
             }),
         ]);
-        logger.info(doctorNotification)
-        logger.info(patientNotification)
 
         const doctorSocketId = getReceiverSocketId(appointment.doctorId.toString());
         const patientSocketId = getReceiverSocketId(appointment.patientId.toString());

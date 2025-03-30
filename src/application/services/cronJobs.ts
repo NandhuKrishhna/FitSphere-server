@@ -1,6 +1,5 @@
 import { CalorieIntakeModel } from "../../infrastructure/models/caloriesIntakeModel";
 import { UserDetailsModel } from "../../infrastructure/models/user.addition.details";
-import logger from "../../shared/utils/logger";
 import cron from "node-cron";
 
 export const setupCalorieIntakeCron = async () => {
