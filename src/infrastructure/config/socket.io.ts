@@ -15,7 +15,6 @@ const io = new Server(server, {
 });
 
 const userSocketMap: { [key: string]: string } = {};
-//TODO remove console.log 
 export function getReceiverSocketId(userId: any) {
   return userSocketMap[userId] || null;
 }
@@ -29,9 +28,9 @@ io.on("connection", (socket) => {
 
   // Handle Typing Indicator
   socket.on("typing", ({ senderId, receiverId }) => {
-    console.log(senderId , receiverId)
+    console.log(senderId, receiverId)
     const receiverSocketId = getReceiverSocketId(receiverId);
-    console.log("Receiver Socket Id",receiverSocketId)
+    console.log("Receiver Socket Id", receiverSocketId)
     if (receiverSocketId) {
       console.log(`User ${senderId} is typing...`);
       io.to(receiverSocketId).emit("typing", { senderId });
