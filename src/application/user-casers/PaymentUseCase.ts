@@ -16,7 +16,6 @@ import { IAppointmentRepository, IAppointmentRepositoryToken } from "../reposito
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 import { ITransactionRepository, ITransactionRepositoryToken } from "../repositories/ITransactionRepository";
 import { NotificationType } from "../../shared/constants/verficationCodeTypes";
-import logger from "../../shared/utils/logger";
 import { WalletParams } from "./AppUseCase";
 import mongoose, { isValidObjectId } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
@@ -415,7 +414,6 @@ export class PaymentUseCase {
     }
     // else {
     //   // if its subcription ......
-    //   logger.info("Subscription payment");
     //   const subscriptionPrices: Record<string, number> = {
     //     basic: 199,
     //     premium: 499,
@@ -463,7 +461,6 @@ export class PaymentUseCase {
 
     appAssert(subscriptionId, BAD_REQUEST, "Subscription not found. Please try again.");
     const subscriptionDetails = await this.premiumSubscriptionRepository.getSubscriptionById(subscriptionId);
-    logger.info("Premium Subscription : ", subscriptionDetails);
     appAssert(subscriptionDetails, BAD_REQUEST, "Subscription not found. Please try again.");
     const userDetails = await this.userRepository.findUserById(userId);
     appAssert(userDetails, BAD_REQUEST, "User not found. Please try again.");

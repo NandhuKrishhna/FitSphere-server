@@ -6,7 +6,6 @@ import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
 import appAssert from "../../../shared/utils/appAssert";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
-import logger from "../../../shared/utils/logger";
 import mongoose, { isValidObjectId } from "mongoose";
 
 @Service()
@@ -30,7 +29,6 @@ export class PaymentController {
   });
 
   verifyPaymentHandler = catchErrors(async (req: Request, res: Response) => {
-    logger.info("Req body from the verify payment handler:", req.body);
 
     const { razorpay_order_id, doctorName, paymentType, doctorId } = req.body;
     const subscriptionId = req.body.subscriptionId
@@ -74,7 +72,6 @@ export class PaymentController {
     const orderId = req.body.orderId;
     appAssert(orderId, BAD_REQUEST, "Missing");
     const response = await this.paymentUseCase.abortPayment(orderId);
-    logger.info(response);
     res.status(OK).json({
       success: true,
       message: "Payment failure recorded",

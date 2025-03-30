@@ -5,7 +5,6 @@ import { Request, Response } from "express";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { CREATED, NOT_FOUND, OK } from "../../../shared/constants/http";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
-import logger from "../../../shared/utils/logger";
 export type GetMessagesQueryParams = {
   receiverId: string;
   page?: string

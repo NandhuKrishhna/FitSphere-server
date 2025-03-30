@@ -5,7 +5,6 @@ import { NOT_FOUND, OK } from "../../../shared/constants/http";
 import { Inject, Service } from "typedi";
 import { WebRtcUseCase } from "../../../application/user-casers/WebRtcUseCase";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
-import logger from "../../../shared/utils/logger";
 @Service()
 export class WebRtcController {
   constructor(@Inject() private webRtcUseCase: WebRtcUseCase) { }

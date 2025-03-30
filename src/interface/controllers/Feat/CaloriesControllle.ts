@@ -7,7 +7,6 @@ import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { updateUserDetailsSchema, userDetailsSchema } from "../../validations/user.details.schema";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import appAssert from "../../../shared/utils/appAssert";
-import logger from "../../../shared/utils/logger";
 
 @Service()
 export class CaloriesController {
@@ -69,8 +68,6 @@ export class CaloriesController {
     const { userId } = req as AuthenticatedRequest;
     const mealType = req.body.mealType;
     const foodItem = req.body.foodItem;
-    logger.info("Food Item:", foodItem);
-    logger.info("MealType:", mealType);
     const response = await this.caloriesUseCase.addMeal(userId, mealType, foodItem);
     res.status(CREATED).json({
       success: true,
@@ -82,7 +79,6 @@ export class CaloriesController {
   getFoodLogsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const date = req.body.date;
-    logger.info(req.body.date);
     const response = await this.caloriesUseCase.getFoodLogs(userId, date);
     res.status(OK).json({
       success: true,
@@ -106,7 +102,6 @@ export class CaloriesController {
   //* (USDA Food Database) user search food handler
   searchFoodHandler = catchErrors(async (req: Request, res: Response) => {
     const { query, quantity } = req.query;
-    logger.info(req.query);
     const response = await this.caloriesUseCase.searchFoodForFoodLog(query as string, quantity ? Number(quantity) : undefined);
     res.status(OK).json({
       success: true,

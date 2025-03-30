@@ -3,7 +3,6 @@ import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "../../../shared/constants/ht
 import { z } from "zod";
 import AppError from "../../../shared/utils/AppError";
 import { clearAuthCookies, REFRESH_PATH } from "../../../shared/utils/setAuthCookies";
-import logger from "../../../shared/utils/logger";
 
 const handleZodError = (res: Response, error: z.ZodError) => {
   const errors = error.issues.map((err) => ({
@@ -42,7 +41,6 @@ const errorHandler: ErrorRequestHandler = (error, req: Request, res: Response, n
     },
   };
 
-  logger.error(JSON.stringify(errorDetails, null, 2));
 
   if (req.path === REFRESH_PATH) {
     clearAuthCookies(res);
