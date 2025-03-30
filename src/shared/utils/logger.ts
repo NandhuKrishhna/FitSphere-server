@@ -20,19 +20,15 @@ const logger = createLogger({
   level: "info",
   format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), json()),
   transports: [
-    NODE_ENV === "development"
-      ? new transports.Console({
-        format: combine(colorize(), consoleLogFormat),
-      })
-      : new transports.Console({
-        format: combine(printf(({ level, message, timestamp }) => {
-          return `${timestamp} ${level}: ${message}`;
-        }))
-      }),
+    ...(NODE_ENV === "development"
+      ? [
+        new transports.Console({
+          format: combine(colorize(), consoleLogFormat),
+        }),
+      ]
+      : []),
     fileTransport,
   ],
 });
-
-
 
 export default logger;
