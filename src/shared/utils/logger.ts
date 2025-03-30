@@ -16,21 +16,17 @@ const fileTransport = new DailyRotateFile({
   maxFiles: "7d",
 });
 
-const logger = NODE_ENV === "development"
-  ? createLogger({
-    level: "debug",
-    format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), json()),
-    transports: [
+const logger = createLogger({
+  level: "info",
+  format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), json()),
+  transports: NODE_ENV === "development"
+    ? [
       new transports.Console({
         format: combine(colorize(), consoleLogFormat),
       }),
       fileTransport,
-    ],
-  })
-  : createLogger({
-    level: "info",
-    format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), json()),
-    transports: [fileTransport],
-  });
+    ]
+    : [fileTransport],
+});
 
 export default logger;
