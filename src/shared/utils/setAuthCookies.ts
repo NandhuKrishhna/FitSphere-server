@@ -7,7 +7,7 @@ export const REFRESH_PATH = "/api/auth/refresh";
 const defaults: CookieOptions = {
   httpOnly: true,
   secure: NODE_ENV === "production",
-  domain: "nandhu.live",
+  domain: ".nandhu.live",
   sameSite: "none",
 };
 
