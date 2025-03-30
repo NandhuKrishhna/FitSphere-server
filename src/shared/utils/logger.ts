@@ -28,7 +28,9 @@ const logger = NODE_ENV === "development"
     ],
   })
   : createLogger({
-    transports: [],
+    level: "info",
+    format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), json()),
+    transports: [fileTransport],
   });
 
 export default logger;
