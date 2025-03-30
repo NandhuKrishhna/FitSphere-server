@@ -79,6 +79,7 @@ export class UserController {
   });
 
   refreshHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log("Refreshing token...", req.cookies.refreshToken);
     const refreshToken = req.cookies.refreshToken as string | undefined;
     appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token, please log in again");
     const { accessToken, newRefreshToken } = await this.registerUserUseCase.setRefreshToken(refreshToken);
