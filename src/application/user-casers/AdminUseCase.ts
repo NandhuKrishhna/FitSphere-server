@@ -135,7 +135,7 @@ export class AdminUseCase {
   }
 
   async blockUser(id: mongoose.Types.ObjectId, role: string) {
-    const user = await this.userRepository.findUserById(id);
+    const user = role === Role.USER ? await this.userRepository.findUserById(id) : await this.doctorRepository.findDoctorByID(id);
     const response = await this.adminRepository.blockById(id, role);
     appAssert(response, BAD_REQUEST, "User was not found. Or error in blocking the user");
     if (response) {

@@ -7,9 +7,10 @@ export const REFRESH_PATH = "/api/auth/refresh";
 const defaults: CookieOptions = {
   httpOnly: true,
   secure: NODE_ENV === "production",
-  domain: ".nandhu.live",
-  sameSite: "none",
+  sameSite: NODE_ENV === "production" ? "none" : "strict",
+  domain: NODE_ENV === "production" ? ".nandhu.live" : undefined
 };
+
 export const getAccessTokenCookieOptions = (): CookieOptions => ({
   ...defaults,
   expires: fifteenMinutesFromNow()
