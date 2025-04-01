@@ -16,7 +16,7 @@ export interface IAdminRepository {
     approveRequest(id: mongoose.Types.ObjectId): Promise<void>;
     rejectRequest(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null>;
     doctorDetails(): Promise<LookUpDoctor | null>
-    unblockById(id: mongoose.Types.ObjectId, role: string): Promise<void>;
+    unblockById(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null>;
     blockById(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null>;
 }
 

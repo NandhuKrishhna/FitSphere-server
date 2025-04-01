@@ -129,8 +129,10 @@ export class AdminUseCase {
   }
 
   async unblockUser(id: mongoose.Types.ObjectId, role: string) {
-    const user = await this.userRepository.findUserById(id);
-    await this.adminRepository.unblockById(id, role);
+    const user = role === Role.USER ? await this.userRepository.findUserById(id) : await this.doctorRepository.findDoctorByID(id);
+    appAssert(user?.status !== "active", BAD_REQUEST, "User is already active");
+    const response = await this.adminRepository.unblockById(id, role);
+    return response;
 
   }
 

@@ -98,10 +98,11 @@ export class AdminController {
   unblockUserHandler = catchErrors(async (req: Request, res: Response) => {
     const { id, role } = req.body;
     const objectId = stringToObjectId(id);
-    await this.adminUseCase.unblockUser(objectId, role);
+    const response = await this.adminUseCase.unblockUser(objectId, role);
     return res.status(OK).json({
       success: true,
       message: "User unblocked successfully",
+      updatedUser: response
     });
   });
 

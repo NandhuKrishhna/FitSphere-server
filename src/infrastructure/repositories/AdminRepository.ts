@@ -216,11 +216,11 @@ export class AdminRepository implements IAdminRepository {
     }
   }
 
-  async unblockById(id: mongoose.Types.ObjectId, role: string): Promise<void> {
+  async unblockById(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null> {
     if (role === "user") {
-      await UserModel.findOneAndUpdate({ _id: id }, { $set: { status: "active" } }, { new: true });
+      return await UserModel.findOneAndUpdate({ _id: id }, { $set: { status: "active" } }, { new: true });
     } else {
-      await DoctorModel.findOneAndUpdate({ _id: id }, { $set: { status: "active" } }, { new: true });
+      return await DoctorModel.findOneAndUpdate({ _id: id }, { $set: { status: "active" } }, { new: true });
     }
   }
 
