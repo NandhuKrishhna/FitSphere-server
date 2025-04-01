@@ -136,6 +136,7 @@ export class AdminUseCase {
 
   async blockUser(id: mongoose.Types.ObjectId, role: string) {
     const user = role === Role.USER ? await this.userRepository.findUserById(id) : await this.doctorRepository.findDoctorByID(id);
+    appAssert(user?.status !== "blocked", BAD_REQUEST, "User is already blocked");
     const response = await this.adminRepository.blockById(id, role);
     appAssert(response, BAD_REQUEST, "User was not found. Or error in blocking the user");
     if (response) {
@@ -143,6 +144,7 @@ export class AdminUseCase {
     }
     const userSocketId = getReceiverSocketId(user?._id);
     suspendNotification(userSocketId, "Your account has been suspended. Please contact with our team");
+    return response;
   }
   async addingPremiumSubscription({ userId, type, price, features, planName }: SubcriptionParams) {
     return await this.premiumSubscriptionRepository.createSubscription({

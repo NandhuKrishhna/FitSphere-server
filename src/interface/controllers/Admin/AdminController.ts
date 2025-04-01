@@ -108,10 +108,12 @@ export class AdminController {
   blockUserHandler = catchErrors(async (req: Request, res: Response) => {
     const { id, role } = req.body;
     const objectId = stringToObjectId(id);
-    await this.adminUseCase.blockUser(objectId, role);
+    const response = await this.adminUseCase.blockUser(objectId, role);
+    console.log(response)
     return res.status(OK).json({
       success: true,
       message: "User blocked successfully",
+      updatedUser: response
     });
   });
 

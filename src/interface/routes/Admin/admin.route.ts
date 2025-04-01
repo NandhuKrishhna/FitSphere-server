@@ -3,10 +3,10 @@ import { Container } from "typedi";
 import { AdminController } from "../../controllers/Admin/AdminController";
 import authenticate from "../../middleware/auth/authMiddleware";
 import authorizeRoles from "../../middleware/auth/roleBaseAuthentication";
-import Role from "../../../shared/constants/UserRole";
 
 const adminRouter = Router();
 const adminController = Container.get(AdminController);
+
 
 adminRouter.post("/login", adminController.loginHandler);
 adminRouter.get("/users", authenticate, authorizeRoles(["admin"]), adminController.getAllUsersHandler);
