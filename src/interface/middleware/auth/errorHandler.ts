@@ -3,12 +3,19 @@ import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "../../../shared/constants/ht
 import { z } from "zod";
 import AppError from "../../../shared/utils/AppError";
 import { clearAuthCookies, REFRESH_PATH } from "../../../shared/utils/setAuthCookies";
+import logger from "../../../shared/utils/logger";
 
 const handleZodError = (res: Response, error: z.ZodError) => {
   const errors = error.issues.map((err) => ({
     path: err.path.join("."),
     message: err.message,
   }));
+
+  // Log the Zod error
+  logger.error("Zod validation error", {
+    errors,
+  });
+
   return res.status(BAD_REQUEST).json({
     status: "fail",
     message: "Validation error",
@@ -18,6 +25,12 @@ const handleZodError = (res: Response, error: z.ZodError) => {
 };
 
 const handleAppError = (res: Response, error: AppError) => {
+  // Log the AppError
+  logger.error("AppError occurred", {
+    message: error.message,
+    errorCode: error.errorCode,
+  });
+
   return res.status(error.statusCode).json({
     status: "error",
     message: error.message,
@@ -41,6 +54,8 @@ const errorHandler: ErrorRequestHandler = (error, req: Request, res: Response, n
     },
   };
 
+  // Log the error details
+  logger.error("Unhandled error", errorDetails);
 
   if (req.path === REFRESH_PATH) {
     clearAuthCookies(res);
@@ -51,6 +66,12 @@ const errorHandler: ErrorRequestHandler = (error, req: Request, res: Response, n
   if (error instanceof AppError) {
     return handleAppError(res, error);
   }
+
+  // Log any unexpected errors
+  logger.error("Unexpected error", {
+    message: error.message,
+    stack: error.stack,
+  });
 
   res.status(INTERNAL_SERVER_ERROR).json({
     status: "error",
