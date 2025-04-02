@@ -33,6 +33,7 @@ export class DoctorController {
 
   // Register as Doctor 
   registerAsDoctorHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body)
     const request = doctorDetailsSchema.parse({
       ...req.body.formData,
       userAgent: req.headers["user-agent"],
