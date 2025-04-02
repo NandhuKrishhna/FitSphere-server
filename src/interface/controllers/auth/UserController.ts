@@ -21,13 +21,13 @@ import {
 import { verfiyToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
-import { oauth2Client } from "../../../infrastructure/config/googleAuth";
 
 @Service()
 export class UserController {
   constructor(@Inject() private registerUserUseCase: RegisterUserUseCase) { }
 
   registerHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body)
     const request = userRegisterSchema.parse({
       ...req.body,
       userAgent: req.headers["user-agent"],
@@ -79,7 +79,6 @@ export class UserController {
   });
 
   refreshHandler = catchErrors(async (req: Request, res: Response) => {
-    console.log("Refreshing token...", req.cookies.refreshToken);
     const refreshToken = req.cookies.refreshToken as string | undefined;
     appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token, please log in again");
     const { accessToken, newRefreshToken } = await this.registerUserUseCase.setRefreshToken(refreshToken);
