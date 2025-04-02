@@ -1,10 +1,7 @@
 import { Service } from "typedi";
 import { IAdminRepository, IAdminRepositoryToken } from "../../application/repositories/IAdminRepository";
-import { Admin } from "../../domain/entities/Admin";
 import { AdminDocument, AdminModel } from "../models/adminModel";
 import { UserDocument, UserModel } from "../models/UserModel";
-import { User } from "../../domain/entities/User";
-import { Doctor } from "../../domain/entities/Doctors";
 import { DoctorDocument, DoctorModel } from "../models/DoctorModel";
 import mongoose from "mongoose";
 import { LookUpDoctor } from "../../domain/types/doctorTypes";
@@ -146,9 +143,6 @@ export class AdminRepository implements IAdminRepository {
     }
 
 
-
-
-
     const doctors = await DoctorModel.find(filter)
       .select("-password -__v -createdAt -updatedAt")
       .sort({ [sortBy]: sortDirection })
@@ -177,8 +171,8 @@ export class AdminRepository implements IAdminRepository {
 
 
 
-  async approveRequest(id: mongoose.Types.ObjectId): Promise<void> {
-    await DoctorModel.findByIdAndUpdate(id, { $set: { isApproved: true } }, { new: true });
+  async approveRequest(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null> {
+    return await DoctorModel.findByIdAndUpdate(id, { $set: { isApproved: true } }, { new: true });
   }
 
   async rejectRequest(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null> {

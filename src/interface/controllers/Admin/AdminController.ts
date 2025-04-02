@@ -72,7 +72,7 @@ export class AdminController {
     return res.status(OK).json({
       success: true,
       message: "Request Approved",
-      updatedDoctor,
+      newDoctor: updatedDoctor,
     });
   });
 
@@ -132,14 +132,16 @@ export class AdminController {
     return res.status(CREATED).json({
       success: true,
       message: "Premium subscription added successfully",
-      response,
+      newPremiumSubscription: response,
     });
   });
 
   editPremiumSubscription = catchErrors(async (req: Request, res: Response) => {
+    console.log("Request", req.body)
     const { type, price, features, planName } = premiumSubscriptionSchema.parse({ ...req.body });
-    const subscriptionId = stringToObjectId(req.body.id);
+    const subscriptionId = stringToObjectId(req.body._id);
     appAssert(subscriptionId, BAD_REQUEST, "Invalid subscription id")
+
     const response = await this.adminUseCase.editPremiumSubscription({
       type,
       price,
@@ -149,7 +151,7 @@ export class AdminController {
     return res.status(OK).json({
       success: true,
       message: "Premium subscription edited successfully",
-      response
+      updatedPremiumSubscription: response
     })
   });
 
@@ -168,7 +170,7 @@ export class AdminController {
     const response = await this.adminUseCase.getAllPremiumSubscription();
     return res.status(OK).json({
       success: true,
-      response
+      subscriptionPlan: response
     })
   })
 

@@ -97,9 +97,10 @@ export class AdminUseCase {
   }
 
   async approveRequest(id: mongoose.Types.ObjectId) {
-    await this.adminRepository.approveRequest(id);
     const user = await this.doctorRepository.findDoctorByID(id);
     appAssert(user, BAD_REQUEST, "User not found . Please try again");
+    appAssert(!user.isApproved, BAD_REQUEST, "User is already approved");
+    const approvedDoctor = await this.adminRepository.approveRequest(id);
     await this.walletRespository.createWallet({
       userId: user._id as ObjectId,
       role: "Doctor"
@@ -109,11 +110,13 @@ export class AdminUseCase {
       to: user.name,
       ...getApprovalEmailTemplate(user.name, user.email),
     });
+    return approvedDoctor;
   }
 
   async rejectRequest(id: mongoose.Types.ObjectId, reason: string) {
     const response = await this.adminRepository.rejectRequest(id);
     appAssert(response, BAD_REQUEST, "Unable to Reject Request . Please try again after few minutes");
+    appAssert(response.isApproved, BAD_REQUEST, "User's request was already rejected");
     await this.doctorRepository.deleteDoctorById(id);
     await this.doctorRepository.deleteDoctorDetails(id);
     await this.notificationRepository.deleteNotification(id);
@@ -158,6 +161,7 @@ export class AdminUseCase {
   }
 
   async editPremiumSubscription({ type, price, features, planName }: SubcriptionParams, subscriptionId: mongoose.Types.ObjectId) {
+    console.log("-----------------------")
     return await this.premiumSubscriptionRepository.editPremiumSubscription(subscriptionId, {
       type,
       price,
@@ -167,6 +171,8 @@ export class AdminUseCase {
   }
 
   async deletePremiumSubscription(subscriptionId: ObjectId) {
+    const existingSubscriptionPlan = await this.premiumSubscriptionRepository.getSubscriptionById(subscriptionId);
+    appAssert(existingSubscriptionPlan, BAD_REQUEST, "Subscription not found. Please try again.");
     await this.premiumSubscriptionRepository.deletePremiumSubscription(subscriptionId);
   }
 

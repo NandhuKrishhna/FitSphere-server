@@ -13,7 +13,7 @@ export interface IAdminRepository {
     findAdminByEmail(email: string): Promise<AdminDocument | null>;
     getAllUsers(queryParams: UserQueryParams): Promise<PaginatedUsers | null>;
     getAllDoctors(queryParams: DoctorQueryParams): Promise<PaginatedDoctors | null>;
-    approveRequest(id: mongoose.Types.ObjectId): Promise<void>;
+    approveRequest(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null>;
     rejectRequest(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null>;
     doctorDetails(): Promise<LookUpDoctor | null>
     unblockById(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null>;
