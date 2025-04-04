@@ -4,7 +4,7 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 import { IRating } from "../../infrastructure/models/RatingsModel";
 
 export interface IRatingRepository {
-  updateRating({ doctorId, averageRating, totalReviews }: RatingParams): Promise<void>;
+  updateRating({ doctorId, averageRating, totalReviews }: RatingParams): Promise<IRating>;
   findRatingByDoctorId(doctorId: ObjectId): Promise<IRating | null>;
   findAllRatings(): Promise<IRating[]>;
 }

@@ -9,12 +9,12 @@ import { TUserDetails } from "../../domain/types/calories.Types";
 
 export interface ICaloriesDetailsRepository {
   createCaloriesDetails(userId: mongoose.Types.ObjectId, data: TUserDetails): Promise<IUserDetails>;
-  addMeal(userId: ObjectId, foodItems: IFoodItem, mealType: string): Promise<ICalorieIntake>;
+  addMeal(userId: ObjectId, foodItems: IFoodItem, mealType: string, date: string): Promise<ICalorieIntake>;
   getFoodLogs(userId: ObjectId, date?: Date): Promise<ICalorieIntake | null>;
   getUserHealthDetails(userId: ObjectId): Promise<IUserDetails | null>;
   deleteFoodLogByFoodId(userId: ObjectId, foodId: ObjectId, date: Date): Promise<void>;
-  editFoodLog(userId: ObjectId, foodId: ObjectId, date: Date, updatedFoodItem: IFoodItem, mealType: string): Promise<void>;
-  getWeightLogsByUserId(userId : ObjectId):Promise<IWeightLog[]|null>
+  editFoodLog(userId: ObjectId, foodId: ObjectId, date: string, updatedFoodItem: IFoodItem, mealType: string): Promise<mongoose.Types.ObjectId>;
+  getWeightLogsByUserId(userId: ObjectId): Promise<IWeightLog[] | null>
   updateUserDetails(userId: ObjectId, data: Partial<IUserDetails>): Promise<void>;
 }
 
