@@ -5,14 +5,16 @@ import { Request, Response } from "express";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { CREATED, NOT_FOUND, OK } from "../../../shared/constants/http";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
+import { IChatUseCaseToken } from "../../../application/user-casers/interface/IChatUseCase";
+import { IChatController, IChatControllerToken } from "../../../application/repositories/IChatController";
 export type GetMessagesQueryParams = {
   receiverId: string;
   page?: string
   limit?: string
 }
-@Service()
-export class ChatController {
-  constructor(@Inject() private chatUseCase: ChatUseCase) { }
+@Service(IChatControllerToken)
+export class ChatController implements IChatController {
+  constructor(@Inject(IChatUseCaseToken) private chatUseCase: ChatUseCase) { }
 
   //send message
   sendMessageHandler = catchErrors(async (req: Request, res: Response) => {
@@ -65,13 +67,14 @@ export class ChatController {
   createConversationHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId: senderId } = req as AuthenticatedRequest;
     const receiverId = stringToObjectId(req.body.receiverId);
-    await this.chatUseCase.createConversation(
+    const response = await this.chatUseCase.createConversation(
       senderId,
       receiverId,
     );
     res.status(CREATED).json({
       success: true,
       message: "Conversation created successfully",
+      response
 
     });
   });

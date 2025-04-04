@@ -5,10 +5,15 @@ import { NOT_FOUND, OK } from "../../../shared/constants/http";
 import { Inject, Service } from "typedi";
 import { WebRtcUseCase } from "../../../application/user-casers/WebRtcUseCase";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
-@Service()
-export class WebRtcController {
-  constructor(@Inject() private webRtcUseCase: WebRtcUseCase) { }
+import { IWebRtcUseCaseToken } from "../../../application/user-casers/interface/IWebRtcUseCase";
+import { IWebRtcController, IWebRtcControllerToken } from "../../../application/repositories/IWebRtcCotroller";
+@Service(IWebRtcControllerToken)
+export class WebRtcController implements IWebRtcController {
 
+  constructor(@Inject(IWebRtcUseCaseToken) private webRtcUseCase: WebRtcUseCase) { }
+
+
+  //** @desc video meeting handler */
   videoMeetingHandler = catchErrors(async (req: Request, res: Response) => {
     const meetingId = req.body.meetingId;
     const { userId } = req as AuthenticatedRequest;
@@ -22,6 +27,8 @@ export class WebRtcController {
     });
   });
 
+
+  //** @desc end meeting handler */
   leavingMeetAndUpdateStatus = catchErrors(async (req: Request, res: Response) => {
     const meetingId = req.body.meetingId;
     const { userId } = req as AuthenticatedRequest;

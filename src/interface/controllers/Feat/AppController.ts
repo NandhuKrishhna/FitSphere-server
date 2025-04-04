@@ -8,12 +8,15 @@ import { stringToObjectId } from "../../../shared/utils/bcrypt";
 
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { NotificationQueryParams, TransactionQueryParams, WalletTransactionQuery } from "../../../domain/types/queryParams.types";
-//TODO remove all type from here to seperate files::
+import { IAppUseCaseToken } from "../../../application/user-casers/interface/IAppUseCase";
+import { IAppController } from "../../../application/repositories/IAppController";
+import { IAdminControllerToken } from "../../../application/repositories/IAdminController";
 
 
-@Service()
-export class AppController {
-  constructor(@Inject() private appUseCase: AppUseCase) { }
+
+@Service(IAdminControllerToken)
+export class AppController implements IAppController {
+  constructor(@Inject(IAppUseCaseToken) private appUseCase: AppUseCase) { }
 
   displayAllDoctorsHandler = catchErrors(async (req: Request, res: Response) => {
     const page = req.query.page ? parseInt(req.query.page as string) - 1 : 0;
@@ -114,11 +117,11 @@ export class AppController {
     const { rating, reviewText } = req.body;
     const doctorId = stringToObjectId(req.body.doctorId);
     const { userId } = req as AuthenticatedRequest;
-    const response = await this.appUseCase.reviewAndRating({ userId, doctorId, rating, reviewText });
+    const { review, doctorReviews } = await this.appUseCase.reviewAndRating({ userId, doctorId, rating, reviewText });
     res.status(OK).json({
       success: true,
       message: "Review and rating added successfully",
-      response,
+      reviewId: doctorReviews._id,
     });
   });
 
@@ -172,11 +175,10 @@ export class AppController {
     const { rating, reviewText } = req.body;
     const doctorId = stringToObjectId(req.body.doctorId);
     const reviewId = stringToObjectId(req.body.reviewId);
-    const response = await this.appUseCase.editReview({ userId, doctorId, rating, reviewText, reviewId });
+    await this.appUseCase.editReview({ userId, doctorId, rating, reviewText, reviewId });
     res.status(OK).json({
       success: true,
       message: "Review and rating edited successfully",
-      response,
     });
   })
 
@@ -184,11 +186,10 @@ export class AppController {
     const { userId } = req as AuthenticatedRequest;
     const doctorId = stringToObjectId(req.body.doctorId);
     const reviewId = stringToObjectId(req.body.reviewId);
-    const response = await this.appUseCase.deleteReview(doctorId, reviewId, userId);
+    await this.appUseCase.deleteReview(doctorId, reviewId, userId);
     res.status(OK).json({
       success: true,
       message: "Review deleted successfully",
-      response,
     })
   })
 

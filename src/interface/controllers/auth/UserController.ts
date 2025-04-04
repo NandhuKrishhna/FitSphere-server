@@ -21,11 +21,16 @@ import {
 import { verfiyToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
+import { IRegisterUseCaseToken } from "../../../application/user-casers/interface/IRegisterUseCase";
+import { IUserController, IUserControllerToken } from "../../../application/repositories/IUserController";
 
-@Service()
-export class UserController {
-  constructor(@Inject() private registerUserUseCase: RegisterUserUseCase) { }
+@Service(IUserControllerToken)
 
+export class UserController implements IUserController {
+  constructor(@Inject(IRegisterUseCaseToken) private registerUserUseCase: RegisterUserUseCase) { }
+
+
+  //** @description: This method is used to register a new user.
   registerHandler = catchErrors(async (req: Request, res: Response) => {
     console.log(req.body)
     const request = userRegisterSchema.parse({
@@ -41,7 +46,9 @@ export class UserController {
         response: { ...user, accessToken },
       });
   });
-  // verfiy Otp;
+
+
+  //** @description: This method is used to verify the OTP sent to the user during registration.
   otpVerifyHandler = catchErrors(async (req: Request, res: Response) => {
     const userId = stringToObjectId(req.body.userId);
     const { code } = otpVerificationSchema.parse(req.body);
@@ -52,7 +59,7 @@ export class UserController {
     });
   });
 
-  // user login handler
+  //** @description: This method is used to login a user.
   loginHandler = catchErrors(async (req: Request, res: Response) => {
     const request = loginSchema.parse({
       ...req.body,
@@ -67,6 +74,8 @@ export class UserController {
       });
   });
 
+
+  //** @description: This method is used to logout a user.
   logoutHandler = catchErrors(async (req: Request, res: Response) => {
     const accessToken = req.cookies.accessToken as string | undefined;
     const { payload } = verfiyToken(accessToken || "");
@@ -78,6 +87,9 @@ export class UserController {
     });
   });
 
+
+
+  //** @description: This method is used to refresh the access token using the refresh token.
   refreshHandler = catchErrors(async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken as string | undefined;
     appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token, please log in again");
@@ -91,7 +103,8 @@ export class UserController {
     });
   });
 
-  // verify email handler
+
+  //** @description: This method is used to verify the email of the user.
   verifyEmailHandler = catchErrors(async (req: Request, res: Response) => {
     const verificationCode = verificationCodeSchema.parse(req.params.code);
     await this.registerUserUseCase.verifyEmail(verificationCode);
@@ -100,7 +113,7 @@ export class UserController {
     });
   });
 
-  // handler for user forgot password [user enter the email for getting the reset otp]
+  //** @description: This method is used to send a password reset email to the user.
   sendPasswordResetHandler = catchErrors(async (req: Request, res: Response) => {
     const role = req.body.role;
     const email = emailSchema.parse(req.body?.data?.email);
@@ -113,7 +126,8 @@ export class UserController {
     });
   });
 
-  // handler for verifing the otp  and redirecting to the reset password page
+
+  //** @description: This method is used to verify the OTP sent to the user for password reset.
   verifyResetPasswordCode = catchErrors(async (req: Request, res: Response) => {
     const userId = stringToObjectId(req.body.userId);
     const { code } = otpVerificationSchema.parse(req.body);
@@ -123,7 +137,9 @@ export class UserController {
       message: "Email was successfully verfied",
     });
   });
-  // this handler set a new password for the user
+
+
+  //** @description: This method is used to reset the password of the user.
   resetPasswordHandler = catchErrors(async (req: Request, res: Response) => {
     const role = req.body.role;
     const userId = stringToObjectId(req.body.userId);
@@ -134,7 +150,9 @@ export class UserController {
       message: "Password reset successful",
     });
   });
-  // handler for resend the otp for setting new password to the user
+
+
+  //** @description: This method is used to resend the verification code to the user.
   resendPasswordHandler = catchErrors(async (req: Request, res: Response) => {
     const role = req.body.role;
     const email = emailSchema.parse(req.body.email);
@@ -145,6 +163,8 @@ export class UserController {
   });
 
 
+
+  //** @description: This method is used to verify the Google login.
   googleAuthHandler = catchErrors(async (req: Request, res: Response) => {
     const code = req.query.code;
     if (typeof code !== 'string') {

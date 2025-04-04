@@ -11,10 +11,12 @@ import { DoctorFeatUseCase } from "../../../application/user-casers/DoctorFeatUs
 import { AppointmentQueryParams } from "../../../domain/types/appointment.types";
 import appAssert from "../../../shared/utils/appAssert";
 import { json } from "stream/consumers";
+import { IDoctorFeatUseCaseToken } from "../../../application/user-casers/interface/IDoctorFeatUseCase";
+import { IDoctorFeatController, IDoctorFeatControllerToken } from "../../../application/repositories/IDoctorFeatController";
 
-@Service()
-export class DoctorFeatController {
-  constructor(@Inject() private doctorFeatUseCase: DoctorFeatUseCase) { }
+@Service(IDoctorFeatControllerToken)
+export class DoctorFeatController implements IDoctorFeatController {
+  constructor(@Inject(IDoctorFeatUseCaseToken) private doctorFeatUseCase: DoctorFeatUseCase) { }
 
   slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;

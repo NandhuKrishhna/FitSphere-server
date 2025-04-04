@@ -7,30 +7,12 @@ import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { updateUserDetailsSchema, userDetailsSchema } from "../../validations/user.details.schema";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import appAssert from "../../../shared/utils/appAssert";
+import { ICaloriesUseCaseToken } from "../../../application/user-casers/interface/ICaloriesUseCase";
 
 @Service()
 export class CaloriesController {
-  constructor(@Inject() private caloriesUseCase: CaloriesUseCase) { }
-  //spooner api
-  searchRecipeHandler = catchErrors(async (req: Request, res: Response) => {
-    const ingredients = req.body.ingredients;
-    const response = await this.caloriesUseCase.searchFood(ingredients);
-    res.status(OK).json({
-      success: true,
-      message: "Food Search Successfully",
-      response,
-    });
-  });
+  constructor(@Inject(ICaloriesUseCaseToken) private caloriesUseCase: CaloriesUseCase) { }
 
-  getRecipeHandler = catchErrors(async (req: Request, res: Response) => {
-    const recipeId = req.body.recipeId;
-    const resposse = await this.caloriesUseCase.getRecipeByIngredients(recipeId);
-    res.status(OK).json({
-      success: true,
-      message: "Recipe Fetch Successfully",
-      resposse,
-    });
-  });
   addUserHealthDetails = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const data = userDetailsSchema.parse(req.body);
@@ -66,9 +48,9 @@ export class CaloriesController {
   // add foodlog
   addMealHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
-    const mealType = req.body.mealType;
-    const foodItem = req.body.foodItem;
-    const response = await this.caloriesUseCase.addMeal(userId, mealType, foodItem);
+    console.log(req.body);
+    const { mealType, foodItem, date } = req.body
+    const response = await this.caloriesUseCase.addMeal(userId, mealType, foodItem, date);
     res.status(CREATED).json({
       success: true,
       message: "Meal Added Successfully",
@@ -112,16 +94,15 @@ export class CaloriesController {
 
   //edit food 
   editFoodHandler = catchErrors(async (req: Request, res: Response) => {
+    console.log(req.body)
     const foodId = stringToObjectId(req.body.foodId);
-    const date = req.body.date;
-    const updatedFoodItem = req.body.foodItem;
-    const mealType = req.body.mealType;
+    const { date, mealType, foodItem: updatedFoodItem } = req.body
     const { userId } = req as AuthenticatedRequest;
     const response = await this.caloriesUseCase.editFood(userId, foodId, date, updatedFoodItem, mealType);
     res.status(OK).json({
       success: true,
       message: "Food Updated Successfully",
-      response,
+      foodId: response
     });
   })
 

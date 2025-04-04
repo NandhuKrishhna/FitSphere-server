@@ -11,10 +11,12 @@ import { DoctorQueryParams, UserQueryParams } from "../../../domain/types/queryP
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import premiumSubscriptionSchema, { editPremiumSubscriptionSchema } from "../../validations/premiumSubscriptionSchema";
 import appAssert from "../../../shared/utils/appAssert";
+import { IAdminUseCaseToken } from "../../../application/user-casers/interface/IAdminUseCase";
+import { IAdminController, IAdminControllerToken } from "../../../application/repositories/IAdminController";
 
-@Service()
-export class AdminController {
-  constructor(@Inject() private adminUseCase: AdminUseCase) { }
+@Service(IAdminControllerToken)
+export class AdminController implements IAdminController {
+  constructor(@Inject(IAdminUseCaseToken) private adminUseCase: AdminUseCase) { }
 
   loginHandler = catchErrors(async (req: Request, res: Response) => {
     const doctor = loginSchema.parse({ ...req.body, userAgent: req.headers["user-agent"] });
@@ -78,11 +80,10 @@ export class AdminController {
 
   rejectRequestHandler = catchErrors(async (req: Request, res: Response) => {
     const { id, reason } = req.body;
-    const updatedDoctor = await this.adminUseCase.rejectRequest(id, reason);
+    await this.adminUseCase.rejectRequest(id, reason);
     return res.status(OK).json({
       success: true,
       message: "Request Rejected",
-      updatedDoctor,
     });
   });
 
