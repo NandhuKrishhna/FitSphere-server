@@ -12,9 +12,9 @@ export type GetMessagesQueryParams = {
   page?: string
   limit?: string
 }
-@Service(IChatControllerToken)
+@Service()
 export class ChatController implements IChatController {
-  constructor(@Inject(IChatUseCaseToken) private chatUseCase: ChatUseCase) { }
+  constructor(@Inject() private chatUseCase: ChatUseCase) { }
 
   //send message
   sendMessageHandler = catchErrors(async (req: Request, res: Response) => {

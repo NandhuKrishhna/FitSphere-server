@@ -31,7 +31,7 @@ import { DoctorDetailsDocument } from "../../infrastructure/models/doctor.detail
 
 
 
-@Service(IDoctorUseCaseToken)
+@Service()
 export class DoctorUseCase implements IDoctorUseCase {
   constructor(
     @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,

@@ -14,7 +14,7 @@ import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoct
 import { IConversation } from "../../infrastructure/models/conversationModel";
 import { IChatUseCase, IChatUseCaseToken } from "./interface/IChatUseCase";
 
-@Service(IChatUseCaseToken)
+@Service()
 export class ChatUseCase implements IChatUseCase {
   constructor(
     @Inject(IChatRepositoryToken) private chatRepository: IChatRepository,

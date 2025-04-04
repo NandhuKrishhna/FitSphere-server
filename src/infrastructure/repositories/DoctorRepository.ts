@@ -28,7 +28,7 @@ export class DoctorRepository implements IDoctorRepository {
     const result = await DoctorModel.create(doctor);
     return result;
   }
-  async createDoctorDetails(details: DoctorDetails): Promise<DoctorDetails> {
+  async createDoctorDetails(details: DoctorDetails): Promise<DoctorDetailsDocument> {
     const result = await DoctorDetailsModel.create(details);
     return result;
   }

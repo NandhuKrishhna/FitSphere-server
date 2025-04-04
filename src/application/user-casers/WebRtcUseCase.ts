@@ -7,7 +7,7 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 import { AppointmentDocument } from "../../infrastructure/models/appointmentModel";
 import { IWebRtcUseCase, IWebRtcUseCaseToken } from "./interface/IWebRtcUseCase";
 
-@Service(IWebRtcUseCaseToken)
+@Service()
 export class WebRtcUseCase implements IWebRtcUseCase {
   constructor(
     @Inject(IAppointmentRepositoryToken) private appointmentRepository: IAppointmentRepository,

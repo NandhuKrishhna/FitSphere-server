@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 const getEnv = (key: string, defaltvalue?: string): string => {
   const value = process.env[key] || defaltvalue;
 

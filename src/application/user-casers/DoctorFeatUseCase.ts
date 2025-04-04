@@ -13,7 +13,7 @@ import { AppointmentQueryParams, PaginatedAppointments } from "../../domain/type
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 import { IDoctorFeatUseCase, IDoctorFeatUseCaseToken } from "./interface/IDoctorFeatUseCase";
 
-@Service(IDoctorFeatUseCaseToken)
+@Service()
 export class DoctorFeatUseCase implements IDoctorFeatUseCase {
   constructor(
     @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository,

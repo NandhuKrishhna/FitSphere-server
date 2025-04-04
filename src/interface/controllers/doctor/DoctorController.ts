@@ -14,9 +14,9 @@ import appAssert from "../../../shared/utils/appAssert";
 import { IDoctorUseCaseToken } from "../../../application/user-casers/interface/IDoctorUseCase";
 import { IDoctorController, IDoctorControllerToken } from "../../../application/repositories/IDoctorController";
 
-@Service(IDoctorControllerToken)
+@Service()
 export class DoctorController implements IDoctorController {
-  constructor(@Inject(IDoctorUseCaseToken) private doctorUseCase: DoctorUseCase) { }
+  constructor(@Inject() private doctorUseCase: DoctorUseCase) { }
 
 
   //Doctor Registration;

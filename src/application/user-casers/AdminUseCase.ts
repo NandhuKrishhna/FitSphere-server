@@ -26,7 +26,7 @@ import { SubcriptionParams } from "./interface-types/UseCase-types";
 import { IAdminUseCase, IAdminUseCaseToken } from "./interface/IAdminUseCase";
 import { INotification } from "../../infrastructure/models/notification.models";
 
-@Service(IAdminUseCaseToken)
+@Service()
 export class AdminUseCase implements IAdminUseCase {
   constructor(
     @Inject(IAdminRepositoryToken) private adminRepository: IAdminRepository,

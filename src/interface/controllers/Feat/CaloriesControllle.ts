@@ -11,7 +11,7 @@ import { ICaloriesUseCaseToken } from "../../../application/user-casers/interfac
 
 @Service()
 export class CaloriesController {
-  constructor(@Inject(ICaloriesUseCaseToken) private caloriesUseCase: CaloriesUseCase) { }
+  constructor(@Inject() private caloriesUseCase: CaloriesUseCase) { }
 
   addUserHealthDetails = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;

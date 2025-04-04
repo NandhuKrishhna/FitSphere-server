@@ -26,7 +26,7 @@ import { IUserSubscriptionRepository, IUserSubscriptionRepositoryToken } from ".
 import { IAppUseCase, IAppUseCaseToken } from "./interface/IAppUseCase";
 
 
-@Service(IAppUseCaseToken)
+@Service()
 export class AppUseCase implements IAppUseCase {
   constructor(
     @Inject(IUserRepositoryToken) private userRepository: IUserRepository,

@@ -14,9 +14,9 @@ import appAssert from "../../../shared/utils/appAssert";
 import { IAdminUseCaseToken } from "../../../application/user-casers/interface/IAdminUseCase";
 import { IAdminController, IAdminControllerToken } from "../../../application/repositories/IAdminController";
 
-@Service(IAdminControllerToken)
+@Service()
 export class AdminController implements IAdminController {
-  constructor(@Inject(IAdminUseCaseToken) private adminUseCase: AdminUseCase) { }
+  constructor(@Inject() private adminUseCase: AdminUseCase) { }
 
   loginHandler = catchErrors(async (req: Request, res: Response) => {
     const doctor = loginSchema.parse({ ...req.body, userAgent: req.headers["user-agent"] });

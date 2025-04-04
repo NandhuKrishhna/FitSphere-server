@@ -93,16 +93,7 @@ Container.set(IReviewsRepositoryToken, new ReviewsRepository());
 Container.set(IRatingRepositoryToken, new RatingsRepository());
 Container.set(IUserSubscriptionRepositoryToken, new UserSubscriptionRepository());
 
-//**usecases**
-Container.set(IAdminUseCaseToken, Container.get(AdminUseCase));
-Container.set(IAppUseCaseToken, Container.get(AppUseCase));
-Container.set(ICaloriesUseCaseToken, Container.get(CaloriesUseCase));
-Container.set(IChatUseCaseToken, Container.get(ChatUseCase));
-Container.set(IDoctorFeatUseCaseToken, Container.get(DoctorFeatUseCase));
-Container.set(IDoctorUseCaseToken, Container.get(DoctorUseCase));
-Container.set(IPaymentUseCaseToken, Container.get(PaymentUseCase));
-Container.set(IRegisterUseCaseToken, Container.get(RegisterUserUseCase));
-Container.set(IWebRtcUseCaseToken, Container.get(WebRtcUseCase));
+
 
 //** controllers**
 Container.set(IAdminControllerToken, Container.get(AdminController));
@@ -115,4 +106,13 @@ Container.set(IChatControllerToken, Container.get(ChatController));
 Container.set(IPaymentControllerToken, Container.get(PaymentController));
 Container.set(IWebRtcControllerToken, Container.get(WebRtcController));
 
-// Container.set(IRegisterControllerToken, new RegisterController());
+//**usecases**
+Container.set(IAdminUseCaseToken, Container.get(AdminUseCase));
+Container.set(IAppUseCaseToken, Container.get(AppUseCase));
+Container.set(ICaloriesUseCaseToken, Container.get(CaloriesUseCase));
+Container.set(IChatUseCaseToken, Container.get(ChatUseCase));
+Container.set(IDoctorFeatUseCaseToken, Container.get(DoctorFeatUseCase));
+Container.set(IDoctorUseCaseToken, Container.get(DoctorUseCase));
+Container.set(IPaymentUseCaseToken, Container.get(PaymentUseCase));
+Container.set(IRegisterUseCaseToken, Container.get(RegisterUserUseCase));
+Container.set(IWebRtcUseCaseToken, Container.get(WebRtcUseCase));

@@ -14,9 +14,9 @@ import { IAdminControllerToken } from "../../../application/repositories/IAdminC
 
 
 
-@Service(IAdminControllerToken)
+@Service()
 export class AppController implements IAppController {
-  constructor(@Inject(IAppUseCaseToken) private appUseCase: AppUseCase) { }
+  constructor(@Inject() private appUseCase: AppUseCase) { }
 
   displayAllDoctorsHandler = catchErrors(async (req: Request, res: Response) => {
     const page = req.query.page ? parseInt(req.query.page as string) - 1 : 0;

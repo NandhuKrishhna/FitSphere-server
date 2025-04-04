@@ -49,6 +49,7 @@ app.use("/api/notification", authenticate, authorizeRoles([Role.USER, Role.DOCTO
 app.use(errorHandler);
 
 server.listen(PORT, async () => {
+  console.log("MONGODB_URL:", process.env.MONGODB_URL);
   await connectToDatabase();
   setupCalorieIntakeCron();
   console.log("Server is running on port", PORT);

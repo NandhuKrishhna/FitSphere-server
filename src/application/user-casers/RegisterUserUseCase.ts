@@ -36,7 +36,7 @@ import { GOOGLE_USER_INFO_URL } from "../../shared/constants/contants";
 import { IUserSubscriptionRepository, IUserSubscriptionRepositoryToken } from "../repositories/IUserSubscriptionRepository";
 import { IRegisterUseCase, IRegisterUseCaseToken } from "./interface/IRegisterUseCase";
 
-@Service(IRegisterUseCaseToken)
+@Service()
 export class RegisterUserUseCase implements IRegisterUseCase {
   constructor(
     @Inject(IUserRepositoryToken) private userRepository: IUserRepository,

@@ -14,9 +14,9 @@ import { json } from "stream/consumers";
 import { IDoctorFeatUseCaseToken } from "../../../application/user-casers/interface/IDoctorFeatUseCase";
 import { IDoctorFeatController, IDoctorFeatControllerToken } from "../../../application/repositories/IDoctorFeatController";
 
-@Service(IDoctorFeatControllerToken)
+@Service()
 export class DoctorFeatController implements IDoctorFeatController {
-  constructor(@Inject(IDoctorFeatUseCaseToken) private doctorFeatUseCase: DoctorFeatUseCase) { }
+  constructor(@Inject() private doctorFeatUseCase: DoctorFeatUseCase) { }
 
   slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;

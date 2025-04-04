@@ -24,10 +24,10 @@ import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { IRegisterUseCaseToken } from "../../../application/user-casers/interface/IRegisterUseCase";
 import { IUserController, IUserControllerToken } from "../../../application/repositories/IUserController";
 
-@Service(IUserControllerToken)
+@Service()
 
 export class UserController implements IUserController {
-  constructor(@Inject(IRegisterUseCaseToken) private registerUserUseCase: RegisterUserUseCase) { }
+  constructor(@Inject() private registerUserUseCase: RegisterUserUseCase) { }
 
 
   //** @description: This method is used to register a new user.

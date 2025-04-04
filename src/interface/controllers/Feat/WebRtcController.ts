@@ -7,10 +7,10 @@ import { WebRtcUseCase } from "../../../application/user-casers/WebRtcUseCase";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { IWebRtcUseCaseToken } from "../../../application/user-casers/interface/IWebRtcUseCase";
 import { IWebRtcController, IWebRtcControllerToken } from "../../../application/repositories/IWebRtcCotroller";
-@Service(IWebRtcControllerToken)
+@Service()
 export class WebRtcController implements IWebRtcController {
 
-  constructor(@Inject(IWebRtcUseCaseToken) private webRtcUseCase: WebRtcUseCase) { }
+  constructor(@Inject() private webRtcUseCase: WebRtcUseCase) { }
 
 
   //** @desc video meeting handler */
