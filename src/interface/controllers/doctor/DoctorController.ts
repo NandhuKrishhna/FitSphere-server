@@ -11,10 +11,12 @@ import { verfiyToken } from "../../../shared/utils/jwt";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import appAssert from "../../../shared/utils/appAssert";
+import { IDoctorUseCaseToken } from "../../../application/user-casers/interface/IDoctorUseCase";
+import { IDoctorController, IDoctorControllerToken } from "../../../application/repositories/IDoctorController";
 
-@Service()
-export class DoctorController {
-  constructor(@Inject() private doctorUseCase: DoctorUseCase) { }
+@Service(IDoctorControllerToken)
+export class DoctorController implements IDoctorController {
+  constructor(@Inject(IDoctorUseCaseToken) private doctorUseCase: DoctorUseCase) { }
 
 
   //Doctor Registration;
