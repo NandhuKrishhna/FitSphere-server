@@ -160,7 +160,7 @@ export interface ILoginDoctorResponse {
 };
 
 export interface IUserAppointmentBookingResponse {
-    newAppointmentDetails: AppointmentDocument
+    newAppointmentDetails: AppointmentDocument | null
     order: {
         id: string;
         amount: string | number;
@@ -266,4 +266,16 @@ export interface IAdminDashBoardResponse {
         userDetails: UserStats;
         walletDetails: WalletDocument | null;
     }
+}
+
+export interface IDoctorLoginResponse {
+    user: {
+        _id: ObjectId;
+        name: string;
+        email: string;
+        profilePicture: string | undefined;
+        role: "user" | "doctor";
+    }
+    accessToken: string;
+    refreshToken: string;
 }

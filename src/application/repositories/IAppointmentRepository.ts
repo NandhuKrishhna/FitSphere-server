@@ -18,7 +18,7 @@ export interface IAppointmentRepository {
     endTime: Date,
     date: Date
   ): Promise<AppointmentDocument | null>;
-  createAppointment(appointment: Partial<AppointmentDocument>): Promise<AppointmentDocument>;
+  createAppointment(appointment: Partial<AppointmentDocument>): Promise<AppointmentDocument | null>;
   updatePaymentStatus(
     id: string,
     additionalDetails: AdditonDetails,

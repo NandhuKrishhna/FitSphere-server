@@ -13,16 +13,16 @@ import { SlotDocument } from "../../infrastructure/models/slot.models";
 @Service()
 export class SendAppointmentNotifications {
     constructor(
-        @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
-        @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository,
-        @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
+        @Inject(IUserRepositoryToken) private _userRepository: IUserRepository,
+        @Inject(ISlotRepositoryToken) private _slotRepository: ISlotRepository,
+        @Inject(INotificationRepositoryToken) private __notificationRepository: INotificationRepository,
     ) { }
 
     async sendAppointmentNotifications(appointment: AppointmentDocument, doctorName: string, updatedSlotDetails: SlotDocument) {
-        const userDetails = await this.userRepository.findUserById(appointment.patientId);
+        const userDetails = await this._userRepository.findUserById(appointment.patientId);
 
         const [doctorNotification, patientNotification] = await Promise.all([
-            this.notificationRepository.createNotification({
+            this.__notificationRepository.createNotification({
                 userId: appointment.doctorId,
                 role: Role.DOCTOR,
                 type: NotificationType.Appointment,
@@ -35,7 +35,7 @@ export class SendAppointmentNotifications {
                     appointMentId: appointment._id,
                 },
             }),
-            this.notificationRepository.createNotification({
+            this.__notificationRepository.createNotification({
                 userId: appointment.patientId,
                 role: Role.USER,
                 type: NotificationType.Appointment,

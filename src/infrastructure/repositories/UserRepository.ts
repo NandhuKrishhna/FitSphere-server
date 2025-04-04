@@ -8,11 +8,11 @@ import { UserStats } from "../../application/user-casers/interface-types/UseCase
 @Service(IUserRepositoryToken)
 export class UserRepository implements IUserRepository {
   async createUser(user: UserDocument): Promise<UserDocument> {
-    const result = await UserModel.create(user);
+    const result = await UserModel.create(user)
     return result;
   }
   async findUserByEmail(email: string): Promise<UserDocument | null> {
-    const result = await UserModel.findOne({ email });
+    const result = await UserModel.findOne({ email })
     return result;
   }
   async updateUserStatus(email: string, isActive: boolean): Promise<void> {
@@ -29,7 +29,8 @@ export class UserRepository implements IUserRepository {
     return result;
   }
   async findUserById(id: mongoose.Types.ObjectId): Promise<UserDocument | null> {
-    const user = await UserModel.findById(id);
+    const user = await UserModel.findById(id)
+      .select("-password -__v -createdAt -updatedAt");
     return user;
   }
 

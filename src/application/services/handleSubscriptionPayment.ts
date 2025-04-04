@@ -19,8 +19,8 @@ export class SubscriptionPayment {
     constructor(
         @Inject(IPremiumSubscriptionRepositoryToken) private premiumRepository: IPremiumSubscriptionRepository,
         @Inject(IUserSubscriptionRepositoryToken) private userSubscriptionRepository: IUserSubscriptionRepository,
-        @Inject(ITransactionRepositoryToken) private transactionRepository: ITransactionRepository,
-        @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository
+        @Inject(ITransactionRepositoryToken) private __transactionRepository: ITransactionRepository,
+        @Inject(IWalletRepositoryToken) private __walletRepository: IWalletRepository
 
     ) { }
 
@@ -36,11 +36,11 @@ export class SubscriptionPayment {
         appAssert(existingSubscriptionPlanDetails, NOT_FOUND, "Subscription was not found. Please try another.");
         await this.userSubscriptionRepository.deleteExistingSubscription({ userId });
         await this.userSubscriptionRepository.addSubscription({ userId, subscriptionId });
-        await this.walletRepository.addCompanyBalance(Number(orderinfo_amount));
+        await this.__walletRepository.addCompanyBalance(Number(orderinfo_amount));
 
 
         //update transacation status;
-        const updatedUserTransaction = await this.transactionRepository.updateTransaction(
+        const updatedUserTransaction = await this.__transactionRepository.updateTransaction(
             { paymentGatewayId: receiptId },
             {
                 status: "success",

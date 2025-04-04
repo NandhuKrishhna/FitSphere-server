@@ -18,10 +18,10 @@ export type AdditonDetails = {
 @Service()
 export class SlotPaymentService {
     constructor(
-        @Inject(IAppointmentRepositoryToken) private appointmentRepository: IAppointmentRepository,
-        @Inject(ITransactionRepositoryToken) private transactionRepository: ITransactionRepository,
-        @Inject(ISlotRepositoryToken) private slotRespository: ISlotRepository,
-        @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository,
+        @Inject(IAppointmentRepositoryToken) private _appointmentRepository: IAppointmentRepository,
+        @Inject(ITransactionRepositoryToken) private __transactionRepository: ITransactionRepository,
+        @Inject(ISlotRepositoryToken) private __slotRespository: ISlotRepository,
+        @Inject(IWalletRepositoryToken) private __walletRepository: IWalletRepository,
         @Inject(() => SendAppointmentNotifications) private sendAppointmentNotifications: SendAppointmentNotifications
     ) { }
     async handleSlotBookingPayment(
@@ -35,10 +35,10 @@ export class SlotPaymentService {
 
     ) {
 
-        const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId, paymentDetails, "completed");
+        const appointment = await this._appointmentRepository.updatePaymentStatus(receiptId, paymentDetails, "completed");
         appAssert(appointment, BAD_REQUEST, "Appointment details are missing. Please try again.");
 
-        const updatedUserTransaction = await this.transactionRepository.updateTransaction(
+        const updatedUserTransaction = await this.__transactionRepository.updateTransaction(
             { paymentGatewayId: receiptId },
             {
                 status: "success",
@@ -47,7 +47,7 @@ export class SlotPaymentService {
         );
         appAssert(updatedUserTransaction, BAD_REQUEST, "Failed to update user transaction.");
 
-        const doctorTransaction = await this.transactionRepository.createTransaction({
+        const doctorTransaction = await this.__transactionRepository.createTransaction({
             from: userId,
             fromModel: "User",
             to: appointment.doctorId || doctorId,
@@ -62,9 +62,9 @@ export class SlotPaymentService {
             relatedTransactionId: updatedUserTransaction.transactionId,
         });
 
-        const updatedSlot = await this.slotRespository.updateSlotById(appointment?.slotId, appointment?.patientId);
+        const updatedSlot = await this.__slotRespository.updateSlotById(appointment?.slotId, appointment?.patientId);
         appAssert(updatedSlot, NOT_FOUND, "Slot details not found")
-        await this.walletRepository.increaseBalance({
+        await this.__walletRepository.increaseBalance({
             userId: doctorId || appointment.doctorId,
             role: "Doctor",
             amount: Number(orderinfo_amount) / 100,

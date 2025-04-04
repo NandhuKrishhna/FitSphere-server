@@ -20,9 +20,10 @@ interface MatchStage {
 @Service(IDoctorRepositoryToken)
 export class DoctorRepository implements IDoctorRepository {
   async findDoctorByEmail(email: string): Promise<DoctorDocument | null> {
-    const doctor = await DoctorModel.findOne({ email });
+    const doctor = await DoctorModel.findOne({ email })
     return doctor;
   }
+
 
   async createDoctor(doctor: DoctorDocument): Promise<DoctorDocument> {
     const result = await DoctorModel.create(doctor);
