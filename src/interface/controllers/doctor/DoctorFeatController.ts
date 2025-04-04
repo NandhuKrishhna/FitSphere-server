@@ -16,7 +16,7 @@ import { IDoctorFeatController, IDoctorFeatControllerToken } from "../../../appl
 
 @Service()
 export class DoctorFeatController implements IDoctorFeatController {
-  constructor(@Inject() private doctorFeatUseCase: DoctorFeatUseCase) { }
+  constructor(@Inject() private _doctorFeatUseCase: DoctorFeatUseCase) { }
 
   slotManagementHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
@@ -33,7 +33,7 @@ export class DoctorFeatController implements IDoctorFeatController {
           consultationType: slotData.consultationType,
         };
 
-        const slot = await this.doctorFeatUseCase.addSlots(userId, payload);
+        const slot = await this._doctorFeatUseCase.addSlots(userId, payload);
         createdSlots.push(slot);
       }
 
@@ -50,7 +50,7 @@ export class DoctorFeatController implements IDoctorFeatController {
         date: convertToISTWithOffset(date, 5.5),
         consultationType,
       };
-      const response = await this.doctorFeatUseCase.addSlots(userId, payload);
+      const response = await this._doctorFeatUseCase.addSlots(userId, payload);
       return res.status(OK).json({
         success: true,
         message: "Slot added successfully",
@@ -61,7 +61,7 @@ export class DoctorFeatController implements IDoctorFeatController {
 
   displayAllSlotsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
-    const response = await this.doctorFeatUseCase.displayAllSlots(userId);
+    const response = await this._doctorFeatUseCase.displayAllSlots(userId);
     return res.status(OK).json({
       success: true,
       response,
@@ -71,7 +71,7 @@ export class DoctorFeatController implements IDoctorFeatController {
 
     const slotId = stringToObjectId(req.body.slotId);
     const { userId } = req as AuthenticatedRequest;
-    await this.doctorFeatUseCase.cancelSlot(userId, slotId);
+    await this._doctorFeatUseCase.cancelSlot(userId, slotId);
     res.status(OK).json({
       success: true,
       message: "Slot cancelled successfully",
@@ -81,7 +81,7 @@ export class DoctorFeatController implements IDoctorFeatController {
   getAllAppointmentsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId, role } = req as AuthenticatedRequest;
     const queryParams: AppointmentQueryParams = req.query;
-    const response = await this.doctorFeatUseCase.getAllAppointment(userId, queryParams, role);
+    const response = await this._doctorFeatUseCase.getAllAppointment(userId, queryParams, role);
     return res.status(OK).json({
       success: true,
       ...response,
@@ -91,7 +91,7 @@ export class DoctorFeatController implements IDoctorFeatController {
   getUsersInSideBarHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const { role } = req as AuthenticatedRequest;
-    const users = await this.doctorFeatUseCase.getAllUsers(userId, role);
+    const users = await this._doctorFeatUseCase.getAllUsers(userId, role);
 
     res.status(OK).json({
       success: true,
@@ -102,7 +102,7 @@ export class DoctorFeatController implements IDoctorFeatController {
   getDoctorDetailHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     appAssert(userId, BAD_REQUEST, "Please login or Invalid DoctorId.");
-    const doctorDetails = await this.doctorFeatUseCase.getDoctorDetails({ userId });
+    const doctorDetails = await this._doctorFeatUseCase.getDoctorDetails({ userId });
     res.status(OK).json({
       success: true,
       message: "Doctor Details fetched successfully",
@@ -112,7 +112,7 @@ export class DoctorFeatController implements IDoctorFeatController {
   profilePageDetailsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     appAssert(userId, BAD_REQUEST, "Missing DoctorId. Try Again or Please Login");
-    const profilePageDetails = await this.doctorFeatUseCase.profilePageDetails(userId);
+    const profilePageDetails = await this._doctorFeatUseCase.profilePageDetails(userId);
     return res.status(OK).json({
       success: true,
       message: "Successfull",

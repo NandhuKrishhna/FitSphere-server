@@ -16,7 +16,7 @@ import { IDoctorController, IDoctorControllerToken } from "../../../application/
 
 @Service()
 export class DoctorController implements IDoctorController {
-  constructor(@Inject() private doctorUseCase: DoctorUseCase) { }
+  constructor(@Inject() private _doctorUseCase: DoctorUseCase) { }
 
 
   //Doctor Registration;
@@ -25,7 +25,7 @@ export class DoctorController implements IDoctorController {
       ...req.body,
       userAgent: req.headers["user-agent"],
     });
-    const { user } = await this.doctorUseCase.registerDoctor(request);
+    const { user } = await this._doctorUseCase.registerDoctor(request);
     return res.status(CREATED).json({
       success: true,
       message: "Registration successfull . An OTP has been sent to your email",
@@ -42,7 +42,7 @@ export class DoctorController implements IDoctorController {
     });
     const userId = stringToObjectId(req.body.userId);
     const doctorInfo = req.body.doctorInfo;
-    const { doctorDetails } = await this.doctorUseCase.registerAsDoctor({
+    const { doctorDetails } = await this._doctorUseCase.registerAsDoctor({
       userId,
       details: request,
       doctorInfo,
@@ -58,7 +58,7 @@ export class DoctorController implements IDoctorController {
   otpVerifyHandler = catchErrors(async (req: Request, res: Response) => {
     const userId = stringToObjectId(req.body.userId);
     const { code } = otpVerificationSchema.parse(req.body);
-    await this.doctorUseCase.verifyOtp(code, userId);
+    await this._doctorUseCase.verifyOtp(code, userId);
     return res.status(OK).json({
       success: true,
       message: "Email was successfully verified . Now you can register as Doctor",
@@ -70,12 +70,12 @@ export class DoctorController implements IDoctorController {
       ...req.body,
       userAgent: req.headers["user-agent"],
     });
-    const { accessToken, refreshToken, doctor } = await this.doctorUseCase.loginDoctor(request);
+    const { accessToken, refreshToken, user } = await this._doctorUseCase.loginDoctor(request);
     return setAuthCookies({ res, accessToken, refreshToken })
       .status(OK)
       .json({
         message: "Login successful",
-        response: { ...doctor, accessToken },
+        response: { ...user, accessToken },
       });
   });
 
@@ -83,7 +83,7 @@ export class DoctorController implements IDoctorController {
     const accessToken = req.cookies.accessToken as string | undefined;
     const { payload } = verfiyToken(accessToken || "");
     if (payload) {
-      await this.doctorUseCase.logoutUser(payload);
+      await this._doctorUseCase.logoutUser(payload);
     }
     return clearAuthCookies(res).status(OK).json({
       message: "Logout successful",
@@ -93,14 +93,14 @@ export class DoctorController implements IDoctorController {
   //verfiy Email
   verifyEmailHandler = catchErrors(async (req: Request, res: Response) => {
     const verificationCode = verificationCodeSchema.parse(req.params.code);
-    await this.doctorUseCase.verifyEmail(verificationCode);
+    await this._doctorUseCase.verifyEmail(verificationCode);
     return res.status(OK).json({ message: "Email verified successfully" });
   });
 
   updateDoctorDetailsHandler = catchErrors(async (req: Request, res: Response) => {
     const request = doctorUpdateSchema.parse(req.body);
     const { userId } = req as AuthenticatedRequest;
-    const response = await this.doctorUseCase.updateDoctorDetails(userId, request);
+    const response = await this._doctorUseCase.updateDoctorDetails(userId, request);
     return res.status(OK).json({
       success: true,
       message: "Details updated successfully",
@@ -113,7 +113,7 @@ export class DoctorController implements IDoctorController {
     appAssert(userId, BAD_REQUEST, "User not authenticated. Please login");
     const currentPassword = passwordSchema.parse(req.body.currentPassword);
     const newPassword = passwordSchema.parse(req.body.newPassword);
-    await this.doctorUseCase.updatePassword({ userId, currentPassword, newPassword, role });
+    await this._doctorUseCase.updatePassword({ userId, currentPassword, newPassword, role });
     return res.status(OK).json({
       success: true,
       message: "Password updated successfully",
@@ -127,7 +127,7 @@ export class DoctorController implements IDoctorController {
   //   if (typeof code !== 'string') {
   //     throw new Error('Invalid code query parameter');
   //   }
-  //   const {accessToken,refreshToken , user} = await this.doctorUseCase.googleAuth(code);
+  //   const {accessToken,refreshToken , user} = await this._doctorUseCase.googleAuth(code);
   //   return setAuthCookies({ res, accessToken, refreshToken })
   //   .status(OK)
   //   .json({

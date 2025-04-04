@@ -16,7 +16,7 @@ import { IAdminControllerToken } from "../../../application/repositories/IAdminC
 
 @Service()
 export class AppController implements IAppController {
-  constructor(@Inject() private appUseCase: AppUseCase) { }
+  constructor(@Inject() private _appUseCase: AppUseCase) { }
 
   displayAllDoctorsHandler = catchErrors(async (req: Request, res: Response) => {
     const page = req.query.page ? parseInt(req.query.page as string) - 1 : 0;
@@ -30,7 +30,7 @@ export class AppController implements IAppController {
     const language = req.query.language ? (req.query.language as string).split(",") : [];
     const experience = req.query.experience ? parseInt(req.query.experience as string) : 0;
 
-    const { doctors, total } = await this.appUseCase.displayAllDoctors({
+    const { doctors, total } = await this._appUseCase.displayAllDoctors({
       page,
       limit,
       search,
@@ -59,7 +59,7 @@ export class AppController implements IAppController {
     appAssert(profilePic, BAD_REQUEST, "Profile picture is required");
     const { userId } = req as AuthenticatedRequest;
 
-    const user = await this.appUseCase.updateProfile(userId, profilePic);
+    const user = await this._appUseCase.updateProfile(userId, profilePic);
     res.status(OK).json({
       message: "Profile picture updated successfully",
       profilePicture: user.profilePicture,
@@ -70,7 +70,7 @@ export class AppController implements IAppController {
   doctorDetailsHandler = catchErrors(async (req: Request, res: Response) => {
     const doctorId = stringToObjectId(req.body.doctorId);
     appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
-    const doctorDetails = await this.appUseCase.displayDoctorDetails(doctorId);
+    const doctorDetails = await this._appUseCase.displayDoctorDetails(doctorId);
     res.status(OK).json({
       success: true,
       message: "Doctor details fetched successfully",
@@ -81,7 +81,7 @@ export class AppController implements IAppController {
   getSlotsHandler = catchErrors(async (req: Request, res: Response) => {
     const doctorId = stringToObjectId(req.body.doctorId);
     appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
-    const slots = await this.appUseCase.getSlots(doctorId);
+    const slots = await this._appUseCase.getSlots(doctorId);
     res.status(OK).json({
       success: true,
       message: "Slots fetched successfully",
@@ -93,7 +93,7 @@ export class AppController implements IAppController {
     const queryParams: WalletTransactionQuery = req.query as WalletTransactionQuery;
     const userId = stringToObjectId(req.params.userId);
     const { role } = req as AuthenticatedRequest
-    const response = await this.appUseCase.getWalletDetails(userId, role, queryParams);
+    const response = await this._appUseCase.getWalletDetails(userId, role, queryParams);
     res.status(OK).json({
       success: true,
       message: "Wallet details fetched successfully",
@@ -104,7 +104,7 @@ export class AppController implements IAppController {
   getNotificationsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId, role } = req as AuthenticatedRequest;
     const queryParams: NotificationQueryParams = req.query;
-    const allNotifications = await this.appUseCase.getNotifications(userId, role, queryParams);
+    const allNotifications = await this._appUseCase.getNotifications(userId, role, queryParams);
     res.status(OK).json({
       success: true,
       message: "Notifications fetched successfully",
@@ -117,7 +117,7 @@ export class AppController implements IAppController {
     const { rating, reviewText } = req.body;
     const doctorId = stringToObjectId(req.body.doctorId);
     const { userId } = req as AuthenticatedRequest;
-    const { review, doctorReviews } = await this.appUseCase.reviewAndRating({ userId, doctorId, rating, reviewText });
+    const { review, doctorReviews } = await this._appUseCase.reviewAndRating({ userId, doctorId, rating, reviewText });
     res.status(OK).json({
       success: true,
       message: "Review and rating added successfully",
@@ -128,7 +128,7 @@ export class AppController implements IAppController {
   fetchReviewsAndRatingHandler = catchErrors(async (req: Request, res: Response) => {
     const doctorId = stringToObjectId(req.params.doctorId as string);
     appAssert(doctorId, BAD_REQUEST, "Doctor Id is required");
-    const { reviews, rating } = await this.appUseCase.fetchReviewsAndRating(doctorId);
+    const { reviews, rating } = await this._appUseCase.fetchReviewsAndRating(doctorId);
     res.status(OK).json({
       success: true,
       message: "Reviews and rating fetched successfully",
@@ -141,7 +141,7 @@ export class AppController implements IAppController {
   });
 
   getAllRatingsHandler = catchErrors(async (req: Request, res: Response) => {
-    const response = await this.appUseCase.getAllRatings();
+    const response = await this._appUseCase.getAllRatings();
     res.status(OK).json({
       success: true,
       message: "All reviews fetched successfully",
@@ -153,7 +153,7 @@ export class AppController implements IAppController {
     const { userId } = req as AuthenticatedRequest;
     const notificationId = stringToObjectId(req.body.notificationId);
     appAssert(notificationId, BAD_REQUEST, "No Notificaiton was found");
-    await this.appUseCase.markAsReadNotification(notificationId);
+    await this._appUseCase.markAsReadNotification(notificationId);
     res.status(OK).json({
       success: true,
       message: "Notification marked as read successfully",
@@ -162,7 +162,7 @@ export class AppController implements IAppController {
 
   getAllTransactionsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
-    const transactions = await this.appUseCase.getTransactions(userId);
+    const transactions = await this._appUseCase.getTransactions(userId);
     res.status(OK).json({
       success: true,
       message: "Transactions fetched successfully",
@@ -175,7 +175,7 @@ export class AppController implements IAppController {
     const { rating, reviewText } = req.body;
     const doctorId = stringToObjectId(req.body.doctorId);
     const reviewId = stringToObjectId(req.body.reviewId);
-    await this.appUseCase.editReview({ userId, doctorId, rating, reviewText, reviewId });
+    await this._appUseCase.editReview({ userId, doctorId, rating, reviewText, reviewId });
     res.status(OK).json({
       success: true,
       message: "Review and rating edited successfully",
@@ -186,7 +186,7 @@ export class AppController implements IAppController {
     const { userId } = req as AuthenticatedRequest;
     const doctorId = stringToObjectId(req.body.doctorId);
     const reviewId = stringToObjectId(req.body.reviewId);
-    await this.appUseCase.deleteReview(doctorId, reviewId, userId);
+    await this._appUseCase.deleteReview(doctorId, reviewId, userId);
     res.status(OK).json({
       success: true,
       message: "Review deleted successfully",
@@ -197,7 +197,7 @@ export class AppController implements IAppController {
   fetchTransactionHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId, role } = req as AuthenticatedRequest;
     const queryParams: TransactionQueryParams = req.query;
-    const response = await this.appUseCase.fetchTransactions(userId, queryParams, role);
+    const response = await this._appUseCase.fetchTransactions(userId, queryParams, role);
     res.status(OK).json({
       success: true,
       message: "Transactions fetched successfully",
@@ -208,7 +208,7 @@ export class AppController implements IAppController {
 
   getSubscriptionDetailsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
-    const response = await this.appUseCase.getSubscriptionDetails(userId);
+    const response = await this._appUseCase.getSubscriptionDetails(userId);
     res.status(OK).json({
       success: true,
       message: "Subscription details fetched successfully",

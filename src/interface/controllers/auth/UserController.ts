@@ -27,7 +27,7 @@ import { IUserController, IUserControllerToken } from "../../../application/repo
 @Service()
 
 export class UserController implements IUserController {
-  constructor(@Inject() private registerUserUseCase: RegisterUserUseCase) { }
+  constructor(@Inject() private _registerUserUseCase: RegisterUserUseCase) { }
 
 
   //** @description: This method is used to register a new user.
@@ -37,7 +37,7 @@ export class UserController implements IUserController {
       ...req.body,
       userAgent: req.headers["user-agent"],
     });
-    const { user, accessToken, refreshToken } = await this.registerUserUseCase.registerUser(request);
+    const { user, accessToken, refreshToken } = await this._registerUserUseCase.registerUser(request);
     return setAuthCookies({ res, accessToken, refreshToken })
       .status(CREATED)
       .json({
@@ -52,7 +52,7 @@ export class UserController implements IUserController {
   otpVerifyHandler = catchErrors(async (req: Request, res: Response) => {
     const userId = stringToObjectId(req.body.userId);
     const { code } = otpVerificationSchema.parse(req.body);
-    await this.registerUserUseCase.verifyOtp(code, userId);
+    await this._registerUserUseCase.verifyOtp(code, userId);
     return res.status(OK).json({
       success: true,
       message: "Email was successfully verfied",
@@ -65,7 +65,7 @@ export class UserController implements IUserController {
       ...req.body,
       userAgent: req.headers["user-agent"],
     });
-    const { accessToken, refreshToken, user } = await this.registerUserUseCase.loginUser(request);
+    const { accessToken, refreshToken, user } = await this._registerUserUseCase.loginUser(request);
     return setAuthCookies({ res, accessToken, refreshToken })
       .status(OK)
       .json({
@@ -80,7 +80,7 @@ export class UserController implements IUserController {
     const accessToken = req.cookies.accessToken as string | undefined;
     const { payload } = verfiyToken(accessToken || "");
     if (payload) {
-      await this.registerUserUseCase.logoutUser(payload);
+      await this._registerUserUseCase.logoutUser(payload);
     }
     return clearAuthCookies(res).status(OK).json({
       message: "Logout successful",
@@ -93,7 +93,7 @@ export class UserController implements IUserController {
   refreshHandler = catchErrors(async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken as string | undefined;
     appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token, please log in again");
-    const { accessToken, newRefreshToken } = await this.registerUserUseCase.setRefreshToken(refreshToken);
+    const { accessToken, newRefreshToken } = await this._registerUserUseCase.setRefreshToken(refreshToken);
     if (newRefreshToken) {
       res.cookie("refreshToken", newRefreshToken, generateRefreshTokenCookieOptions());
     }
@@ -107,7 +107,7 @@ export class UserController implements IUserController {
   //** @description: This method is used to verify the email of the user.
   verifyEmailHandler = catchErrors(async (req: Request, res: Response) => {
     const verificationCode = verificationCodeSchema.parse(req.params.code);
-    await this.registerUserUseCase.verifyEmail(verificationCode);
+    await this._registerUserUseCase.verifyEmail(verificationCode);
     return res.status(OK).json({
       message: "Email was successfully verfied",
     });
@@ -117,7 +117,7 @@ export class UserController implements IUserController {
   sendPasswordResetHandler = catchErrors(async (req: Request, res: Response) => {
     const role = req.body.role;
     const email = emailSchema.parse(req.body?.data?.email);
-    const { user } = await this.registerUserUseCase.sendPasswordResetEmail(email, role);
+    const { user } = await this._registerUserUseCase.sendPasswordResetEmail(email, role);
     return res.status(OK).json({
       success: true,
       message: "Password reset email sent successfully",
@@ -131,7 +131,7 @@ export class UserController implements IUserController {
   verifyResetPasswordCode = catchErrors(async (req: Request, res: Response) => {
     const userId = stringToObjectId(req.body.userId);
     const { code } = otpVerificationSchema.parse(req.body);
-    await this.registerUserUseCase.verifyResetPassword(userId, code);
+    await this._registerUserUseCase.verifyResetPassword(userId, code);
     return res.status(OK).json({
       success: true,
       message: "Email was successfully verfied",
@@ -144,7 +144,7 @@ export class UserController implements IUserController {
     const role = req.body.role;
     const userId = stringToObjectId(req.body.userId);
     const request = resetPasswordSchema.parse(req.body);
-    await this.registerUserUseCase.resetPassword({ userId, role, ...request });
+    await this._registerUserUseCase.resetPassword({ userId, role, ...request });
 
     return clearTempAuthCookies(res).status(OK).json({
       message: "Password reset successful",
@@ -156,7 +156,7 @@ export class UserController implements IUserController {
   resendPasswordHandler = catchErrors(async (req: Request, res: Response) => {
     const role = req.body.role;
     const email = emailSchema.parse(req.body.email);
-    const { user } = await this.registerUserUseCase.resendVerificaitonCode(email, role);
+    const { user } = await this._registerUserUseCase.resendVerificaitonCode(email, role);
     return res.status(OK).json({
       message: `Verification code sent to ${user.email}`,
     });
@@ -170,7 +170,7 @@ export class UserController implements IUserController {
     if (typeof code !== 'string') {
       throw new Error('Invalid code query parameter');
     }
-    const { accessToken, refreshToken, user } = await this.registerUserUseCase.googleAuth(code);
+    const { accessToken, refreshToken, user } = await this._registerUserUseCase.googleAuth(code);
     return setAuthCookies({ res, accessToken, refreshToken })
       .status(OK)
       .json({

@@ -10,11 +10,11 @@ import mongoose, { isValidObjectId } from "mongoose";
 
 @Service()
 export class PaymentController {
-  constructor(@Inject() private paymentUseCase: PaymentUseCase) { }
+  constructor(@Inject() private _paymentUseCase: PaymentUseCase) { }
 
   bookAppointment = catchErrors(async (req: Request, res: Response) => {
     const { slotId, amount, doctorId, patientId } = req.body;
-    const { newAppointmentDetails, order } = await this.paymentUseCase.userAppointment({
+    const { newAppointmentDetails, order } = await this._paymentUseCase.userAppointment({
       slotId,
       amount,
       doctorId,
@@ -41,7 +41,7 @@ export class PaymentController {
 
     const { userId } = req as AuthenticatedRequest;
 
-    await this.paymentUseCase.verifyPayment({
+    await this._paymentUseCase.verifyPayment({
       doctorId,
       userId,
       razorpay_order_id,
@@ -59,7 +59,7 @@ export class PaymentController {
 
   cancelAppointmentHandler = catchErrors(async (req: Request, res: Response) => {
     const appointmentId = stringToObjectId(req.body.appointmentId);
-    const response = await this.paymentUseCase.cancelAppointment(appointmentId);
+    const response = await this._paymentUseCase.cancelAppointment(appointmentId);
     res.status(OK).json({
       success: true,
       message: "Appointment cancelled successfully",
@@ -71,7 +71,7 @@ export class PaymentController {
   abortPaymentHandler = catchErrors(async (req: Request, res: Response) => {
     const orderId = req.body.orderId;
     appAssert(orderId, BAD_REQUEST, "Missing");
-    const response = await this.paymentUseCase.abortPayment(orderId);
+    const response = await this._paymentUseCase.abortPayment(orderId);
     res.status(OK).json({
       success: true,
       message: "Payment failure recorded",
@@ -81,7 +81,7 @@ export class PaymentController {
   premiumSubscriptionHandler = catchErrors(async (req: Request, res: Response) => {
     const subscriptionId = stringToObjectId(req.body.subscriptionId);
     const { userId } = req as AuthenticatedRequest;
-    const response = await this.paymentUseCase.buyPremiumSubscription({ subscriptionId, userId });
+    const response = await this._paymentUseCase.buyPremiumSubscription({ subscriptionId, userId });
     res.status(CREATED).json({
       success: true,
       response,
@@ -92,7 +92,7 @@ export class PaymentController {
   walletPaymentHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const { usecase, type, doctorId, slotId, amount, patientId } = req.body;
-    const response = await this.paymentUseCase.walletPayment({
+    const response = await this._paymentUseCase.walletPayment({
       userId,
       usecase,
       type,

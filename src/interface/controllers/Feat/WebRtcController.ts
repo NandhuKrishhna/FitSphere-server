@@ -10,7 +10,7 @@ import { IWebRtcController, IWebRtcControllerToken } from "../../../application/
 @Service()
 export class WebRtcController implements IWebRtcController {
 
-  constructor(@Inject() private webRtcUseCase: WebRtcUseCase) { }
+  constructor(@Inject() private _webRtcUseCase: WebRtcUseCase) { }
 
 
   //** @desc video meeting handler */
@@ -19,7 +19,7 @@ export class WebRtcController implements IWebRtcController {
     const { userId } = req as AuthenticatedRequest;
     const { role } = req as AuthenticatedRequest;
     appAssert(meetingId, NOT_FOUND, "Meeting id is required. Or invalid meeting id");
-    const appointment = await this.webRtcUseCase.videoMeeting(meetingId, userId, role);
+    const appointment = await this._webRtcUseCase.videoMeeting(meetingId, userId, role);
     return res.status(OK).json({
       success: true,
       message: "Successfully joined the meeting",
@@ -34,7 +34,7 @@ export class WebRtcController implements IWebRtcController {
     const { userId } = req as AuthenticatedRequest;
     const { role } = req as AuthenticatedRequest;
     appAssert(meetingId, NOT_FOUND, "Meeting id is required. Or invalid meeting id");
-    await this.webRtcUseCase.leavingMeetAndUpdateStatus(meetingId,);
+    await this._webRtcUseCase.leavingMeetAndUpdateStatus(meetingId,);
     return res.status(OK).json({ success: true, message: "Successfully left the meeting" });
   });
 }

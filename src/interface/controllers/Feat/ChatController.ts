@@ -14,7 +14,7 @@ export type GetMessagesQueryParams = {
 }
 @Service()
 export class ChatController implements IChatController {
-  constructor(@Inject() private chatUseCase: ChatUseCase) { }
+  constructor(@Inject() private _chatUseCase: ChatUseCase) { }
 
   //send message
   sendMessageHandler = catchErrors(async (req: Request, res: Response) => {
@@ -22,7 +22,7 @@ export class ChatController implements IChatController {
     const receiverId = stringToObjectId(req.body.receiverId);
     const message = req.body.message;
     const image = req.body.image;
-    const newMessage = await this.chatUseCase.sendMessage({
+    const newMessage = await this._chatUseCase.sendMessage({
       senderId,
       receiverId,
       message,
@@ -41,7 +41,7 @@ export class ChatController implements IChatController {
   getMessagesHandler = catchErrors(async (req: Request, res: Response) => {
     const receiverId = stringToObjectId(req.query.receiverId as string);
     const { userId: senderId } = req as AuthenticatedRequest;
-    const { messages, conversationId } = await this.chatUseCase.getMessages({
+    const { messages, conversationId } = await this._chatUseCase.getMessages({
       senderId,
       receiverId,
     });
@@ -56,7 +56,7 @@ export class ChatController implements IChatController {
   getAllUsersHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const { role } = req as AuthenticatedRequest;
-    const users = await this.chatUseCase.getAllUsers(userId, role);
+    const users = await this._chatUseCase.getAllUsers(userId, role);
     res.status(OK).json({
       success: true,
       message: "Users fetched successfully",
@@ -67,7 +67,7 @@ export class ChatController implements IChatController {
   createConversationHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId: senderId } = req as AuthenticatedRequest;
     const receiverId = stringToObjectId(req.body.receiverId);
-    const response = await this.chatUseCase.createConversation(
+    const response = await this._chatUseCase.createConversation(
       senderId,
       receiverId,
     );
@@ -83,7 +83,7 @@ export class ChatController implements IChatController {
     const { userId: senderId } = req as AuthenticatedRequest;
     const receiverId = stringToObjectId(req.query.receiverId as string);
 
-    const conversation = await this.chatUseCase.getConversation(senderId, receiverId);
+    const conversation = await this._chatUseCase.getConversation(senderId, receiverId);
 
     if (conversation) {
       return res.status(OK).json({

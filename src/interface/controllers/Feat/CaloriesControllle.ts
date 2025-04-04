@@ -11,12 +11,12 @@ import { ICaloriesUseCaseToken } from "../../../application/user-casers/interfac
 
 @Service()
 export class CaloriesController {
-  constructor(@Inject() private caloriesUseCase: CaloriesUseCase) { }
+  constructor(@Inject() private _caloriesUseCase: CaloriesUseCase) { }
 
   addUserHealthDetails = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const data = userDetailsSchema.parse(req.body);
-    const response = await this.caloriesUseCase.addUserHealthDetails(userId, data);
+    const response = await this._caloriesUseCase.addUserHealthDetails(userId, data);
     res.status(OK).json({
       success: true,
       message: "User Health Details Added Successfully",
@@ -26,7 +26,7 @@ export class CaloriesController {
   updateUserDetails = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const data = updateUserDetailsSchema.parse(req.body);
-    const response = await this.caloriesUseCase.updateUserDetails(userId, data);
+    const response = await this._caloriesUseCase.updateUserDetails(userId, data);
     res.status(OK).json({
       success: true,
       message: "User Details Updated Successfully",
@@ -37,7 +37,7 @@ export class CaloriesController {
   // get user health details
   getUserHealthDetailsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
-    const userHealthDetails = await this.caloriesUseCase.getUserHealthDetails(userId);
+    const userHealthDetails = await this._caloriesUseCase.getUserHealthDetails(userId);
     res.status(OK).json({
       success: true,
       message: "User Health Details Fetched Successfully",
@@ -50,7 +50,7 @@ export class CaloriesController {
     const { userId } = req as AuthenticatedRequest;
     console.log(req.body);
     const { mealType, foodItem, date } = req.body
-    const response = await this.caloriesUseCase.addMeal(userId, mealType, foodItem, date);
+    const response = await this._caloriesUseCase.addMeal(userId, mealType, foodItem, date);
     res.status(CREATED).json({
       success: true,
       message: "Meal Added Successfully",
@@ -61,7 +61,7 @@ export class CaloriesController {
   getFoodLogsHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const date = req.body.date;
-    const response = await this.caloriesUseCase.getFoodLogs(userId, date);
+    const response = await this._caloriesUseCase.getFoodLogs(userId, date);
     res.status(OK).json({
       success: true,
       message: "Food Logs Fetched Successfully",
@@ -74,7 +74,7 @@ export class CaloriesController {
     const foodId = stringToObjectId(req.body.foodId);
     const date = req.body.date;
     const { userId } = req as AuthenticatedRequest;
-    await this.caloriesUseCase.deleteFood(userId, foodId, date);
+    await this._caloriesUseCase.deleteFood(userId, foodId, date);
     res.status(OK).json({
       success: true,
       message: "Food Deleted Successfully",
@@ -84,7 +84,7 @@ export class CaloriesController {
   //* (USDA Food Database) user search food handler
   searchFoodHandler = catchErrors(async (req: Request, res: Response) => {
     const { query, quantity } = req.query;
-    const response = await this.caloriesUseCase.searchFoodForFoodLog(query as string, quantity ? Number(quantity) : undefined);
+    const response = await this._caloriesUseCase.searchFoodForFoodLog(query as string, quantity ? Number(quantity) : undefined);
     res.status(OK).json({
       success: true,
       message: "Food Searched Successfully",
@@ -98,7 +98,7 @@ export class CaloriesController {
     const foodId = stringToObjectId(req.body.foodId);
     const { date, mealType, foodItem: updatedFoodItem } = req.body
     const { userId } = req as AuthenticatedRequest;
-    const response = await this.caloriesUseCase.editFood(userId, foodId, date, updatedFoodItem, mealType);
+    const response = await this._caloriesUseCase.editFood(userId, foodId, date, updatedFoodItem, mealType);
     res.status(OK).json({
       success: true,
       message: "Food Updated Successfully",
@@ -110,7 +110,7 @@ export class CaloriesController {
   getWeightLogHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     appAssert(userId, BAD_REQUEST, "Invalid User ID. Please login again.");
-    const weightProgress = await this.caloriesUseCase.getWeightLogs(userId);
+    const weightProgress = await this._caloriesUseCase.getWeightLogs(userId);
     res.status(OK).json({
       success: true,
       message: "Weight Log fetch successfully",
