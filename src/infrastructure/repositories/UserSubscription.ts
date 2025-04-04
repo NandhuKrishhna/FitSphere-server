@@ -3,6 +3,7 @@ import { IUserSubscriptionRepository, IUserSubscriptionRepositoryToken } from ".
 import mongoose from "mongoose";
 import { IUserSubscription, UserSubscriptionModel } from "../models/userSubscription-model";
 import { PremiumSubscriptionModel } from "../models/premiumSubscriptionModel";
+import { ISubscriptionDetails } from "../../application/user-casers/interface-types/UseCase-types";
 export type AddSubscriptionParams = {
     userId: mongoose.Types.ObjectId,
     subscriptionId: mongoose.Types.ObjectId
@@ -27,15 +28,14 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
         await newSubscription.save();
     }
 
-    async getSubscriptionDetails(userId: mongoose.Types.ObjectId): Promise<any | null> {
+    async getSubscriptionDetails(userId: mongoose.Types.ObjectId): Promise<ISubscriptionDetails | null> {
         try {
-
             const userSubscription = await UserSubscriptionModel.findOne({ userId: userId });
             if (!userSubscription) {
                 return null;
             }
-            const premiumSubscription = await PremiumSubscriptionModel.findById(userSubscription.subscriptionId);
 
+            const premiumSubscription = await PremiumSubscriptionModel.findById(userSubscription.subscriptionId);
             if (!premiumSubscription) {
                 return null;
             }
@@ -57,6 +57,7 @@ export class UserSubscriptionRepository implements IUserSubscriptionRepository {
             return null;
         }
     }
+
 
     async createDefaultSubscription(userId: mongoose.Types.ObjectId): Promise<void> {
         const subscriptionPlans = await PremiumSubscriptionModel.find({ type: "basic" });

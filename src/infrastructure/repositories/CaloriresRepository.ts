@@ -35,18 +35,24 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
     return user;
   }
 
-  async addMeal(userId: mongoose.Types.ObjectId, foodItem: IFoodItem, mealType: string): Promise<ICalorieIntake> {
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
+  async addMeal(
+    userId: mongoose.Types.ObjectId,
+    foodItem: IFoodItem,
+    mealType: string,
+    date: string
+  ): Promise<ICalorieIntake> {
+    const formattedDate = new Date(date);
+    formattedDate.setUTCHours(0, 0, 0, 0);
+
     let calorieIntake = await CalorieIntakeModel.findOne({
       userId,
-      date: today,
+      date: formattedDate,
     });
 
     if (!calorieIntake) {
       calorieIntake = new CalorieIntakeModel({
         userId,
-        date: today,
+        date: formattedDate,
         meals: {
           breakfast: [],
           lunch: [],
@@ -55,11 +61,13 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
         },
       });
     }
+
     calorieIntake.meals[mealType as keyof typeof calorieIntake.meals].push(foodItem);
     const updatedLog = await calorieIntake.save();
 
     return updatedLog;
   }
+
 
   async getFoodLogs(userId: mongoose.Types.ObjectId, date?: Date): Promise<ICalorieIntake | null> {
     const targetDate = date ? new Date(date) : new Date();
@@ -81,8 +89,6 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
 
     const targetDate = date ? new Date(date) : new Date();
     targetDate.setUTCHours(0, 0, 0, 0);
-
-    // Check if the food log exists before deletion
     const existingLog = await CalorieIntakeModel.findOne({ userId, date: targetDate });
 
     if (!existingLog) {
@@ -155,30 +161,35 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
   async editFoodLog(
     userId: mongoose.Types.ObjectId,
     foodId: mongoose.Types.ObjectId,
-    date: Date,
+    date: string,
     updatedFoodItem: IFoodItem,
     mealType: string
-  ): Promise<void> {
+  ): Promise<mongoose.Types.ObjectId> {
     const formattedDate = new Date(date);
     formattedDate.setUTCHours(0, 0, 0, 0);
+
     const calorieIntake = await CalorieIntakeModel.findOne({ userId, date: formattedDate });
     if (!calorieIntake) {
       throw new Error("Calorie intake record not found for the given date.");
     }
+
     const mealArray = calorieIntake.meals[mealType as keyof typeof calorieIntake.meals];
     if (!mealArray) {
       throw new Error(`Invalid meal type: ${mealType}`);
     }
 
     const foodIndex = mealArray.findIndex((food) => food._id?.toString() === foodId.toString());
-
     if (foodIndex === -1) {
       throw new Error(`Food item not found in the meal. FoodId: ${foodId}, MealType: ${mealType}`);
     }
-    mealArray[foodIndex] = { ...mealArray[foodIndex], ...updatedFoodItem };
 
-    const updatedLog = await calorieIntake.save();
+    mealArray[foodIndex] = { ...updatedFoodItem, _id: new mongoose.Types.ObjectId() };
+
+    await calorieIntake.save();
+
+    return mealArray[foodIndex]._id as mongoose.Types.ObjectId
   }
+
 
   async getWeightLogsByUserId(userId: ObjectId): Promise<IWeightLog[] | null> {
     return await WeightLogModel.find({ userId: userId }).lean()

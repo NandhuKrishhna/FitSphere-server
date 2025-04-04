@@ -3,6 +3,7 @@ import { IUserRepository, IUserRepositoryToken } from "../../application/reposit
 import { UserDocument, UserModel } from "../models/UserModel";
 import { User, UserType } from "../../domain/entities/User";
 import mongoose from "mongoose";
+import { UserStats } from "../../application/user-casers/interface-types/UseCase-types";
 
 @Service(IUserRepositoryToken)
 export class UserRepository implements IUserRepository {
@@ -42,7 +43,7 @@ export class UserRepository implements IUserRepository {
     return result;
   }
 
-  async userDetails() {
+  async userDetails(): Promise<UserStats> {
     const stats = await UserModel.aggregate([
       {
         $group: {

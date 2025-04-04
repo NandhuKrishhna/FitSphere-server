@@ -6,7 +6,10 @@ import {
 import ConversationModel, { IConversation } from "../models/conversationModel";
 import { Service } from "typedi";
 import Role from "../../shared/constants/UserRole";
-import { QueryResult } from "../../domain/types/conversation.types";
+import { ConversationResponse, QueryResult } from "../../domain/types/conversation.types";
+import { DoctorModel } from "../models/DoctorModel";
+import appAssert from "../../shared/utils/appAssert";
+import { NOT_FOUND } from "../../shared/constants/http";
 
 export type GetUserType = {
   _id: string;
@@ -66,6 +69,11 @@ export class ConversationRepository implements IConversationRepository {
         },
       },
       {
+        $sort: {
+          updatedAt: -1
+        }
+      },
+      {
         $project: {
           "doctorDetails._id": 1,
           "doctorDetails.name": 1,
@@ -77,13 +85,19 @@ export class ConversationRepository implements IConversationRepository {
     return result;
   }
 
-  async addUserForSidebar(participants: string[]): Promise<IConversation> {
-    const existingConversation = await ConversationModel.findOne({ participants });
+  async addUserForSidebar(participants: string[]): Promise<ConversationResponse> {
 
-    if (existingConversation) {
-      return existingConversation;
-    }
     const newConversation = await ConversationModel.create({ participants });
-    return newConversation;
+    const doctorDoctorDetails = await DoctorModel.findOne({ _id: { $in: participants } })
+    appAssert(doctorDoctorDetails, NOT_FOUND, "Doctor not found");
+    return {
+      _id: newConversation._id,
+      doctorDetails: {
+        _id: doctorDoctorDetails?._id as string,
+        name: doctorDoctorDetails?.name,
+        profilePicture: doctorDoctorDetails?.profilePicture!,
+      },
+      lastMessage: newConversation.lastMessage ?? ""
+    }
   };
 }

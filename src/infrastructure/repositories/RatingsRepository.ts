@@ -7,8 +7,8 @@ import { ObjectId } from "../models/UserModel";
 
 @Service(IRatingRepositoryToken)
 export class RatingsRepository implements IRatingRepository {
-  async updateRating({ doctorId, averageRating, totalReviews }: RatingParams) {
-    await RatingModel.findOneAndUpdate(
+  async updateRating({ doctorId, averageRating, totalReviews }: RatingParams): Promise<IRating> {
+    return await RatingModel.findOneAndUpdate(
       { doctorId: doctorId },
       { averageRating, totalReviews },
       { upsert: true, new: true }
