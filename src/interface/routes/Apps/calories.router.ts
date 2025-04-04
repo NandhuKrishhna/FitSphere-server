@@ -4,8 +4,6 @@ import { CaloriesController } from "../../controllers/Feat/CaloriesControllle";
 
 const caloriesRouter = Router();
 const caloriesController = Container.get(CaloriesController);
-caloriesRouter.post("/serach-food", caloriesController.searchRecipeHandler);
-caloriesRouter.post("/generate-recipe", caloriesController.getRecipeHandler);
 caloriesRouter.post("/add-userdetails", caloriesController.addUserHealthDetails);
 caloriesRouter.patch("/update-userdetails", caloriesController.updateUserDetails);
 caloriesRouter.post("/add-foodlog", caloriesController.addMealHandler);
