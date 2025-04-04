@@ -37,7 +37,7 @@ export interface IPaymentUseCase {
             patientId,
             amount,
             slotId
-        }: WalletParams): Promise<AppointmentDocument | undefined>;
+        }: WalletParams): Promise<AppointmentDocument | null | undefined>;
     buyPremiumSubscription(
         {
             subscriptionId,

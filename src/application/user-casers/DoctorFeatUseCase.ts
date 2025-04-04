@@ -16,14 +16,14 @@ import { IDoctorFeatUseCase, IDoctorFeatUseCaseToken } from "./interface/IDoctor
 @Service()
 export class DoctorFeatUseCase implements IDoctorFeatUseCase {
   constructor(
-    @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository,
-    @Inject(IAppointmentRepositoryToken) private appointmentRepository: IAppointmentRepository,
+    @Inject(ISlotRepositoryToken) private _slotRepository: ISlotRepository,
+    @Inject(IAppointmentRepositoryToken) private _appointmentRepository: IAppointmentRepository,
     @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository,
-    @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository
+    @Inject(IDoctorRepositoryToken) private _doctorRepository: IDoctorRepository
   ) { }
 
   async addSlots(doctorId: mongoose.Types.ObjectId, payload: SlotType) {
-    const existingSlots = await this.slotRepository.findSlotDetails(
+    const existingSlots = await this._slotRepository.findSlotDetails(
       doctorId,
       payload.startTime,
       payload.endTime,
@@ -35,27 +35,27 @@ export class DoctorFeatUseCase implements IDoctorFeatUseCase {
     let type = payload.consultationType === "video" ? ConsultationType.Video : ConsultationType.Audio;
     const newSlot = IcreateSlot(doctorId, startTime, endTime, payload.date, type);
 
-    const newSlotDetails = await this.slotRepository.createSlot(newSlot);
+    const newSlotDetails = await this._slotRepository.createSlot(newSlot);
     return newSlotDetails;
   }
 
   async displayAllSlots(doctorId: mongoose.Types.ObjectId) {
-    const slots = await this.slotRepository.findAllActiveSlots(doctorId);
+    const slots = await this._slotRepository.findAllActiveSlots(doctorId);
     return slots;
   }
 
   async cancelSlot(doctorId: mongoose.Types.ObjectId, slotId: mongoose.Types.ObjectId) {
-    const existingSlot = await this.slotRepository.findSlotById(slotId);
+    const existingSlot = await this._slotRepository.findSlotById(slotId);
     appAssert(existingSlot, BAD_REQUEST, "Slot not found.Or Already cancelled.");
     appAssert(existingSlot?.status !== "cancelled", UNAUTHORIZED, "Slot has already been cancelled.");
     appAssert(existingSlot?.status !== "booked", UNAUTHORIZED, "Patient has already booked this slot.");
-    await this.slotRepository.deleteSlot(doctorId, slotId);
+    await this._slotRepository.deleteSlot(doctorId, slotId);
   }
 
   async getAllAppointment(userId: ObjectId, queryParams: AppointmentQueryParams, role: string): Promise<PaginatedAppointments> {
     appAssert(userId, BAD_REQUEST, "Doctor Id is required");
 
-    return this.appointmentRepository.findAllAppointmentByUserIdAndRole(userId, queryParams, role);
+    return this._appointmentRepository.findAllAppointmentByUserIdAndRole(userId, queryParams, role);
   }
 
   async getAllUsers(userId: mongoose.Types.ObjectId, role: string) {
@@ -64,12 +64,12 @@ export class DoctorFeatUseCase implements IDoctorFeatUseCase {
   }
 
   async getDoctorDetails({ userId }: { userId: ObjectId }) {
-    const doctorDetails = await this.doctorRepository.findDoctorDetails(userId);
+    const doctorDetails = await this._doctorRepository.findDoctorDetails(userId);
   }
 
   async profilePageDetails(userId: ObjectId) {
-    const appointments = await this.appointmentRepository.findAllAppointments(userId);
-    const slots = await this.slotRepository.findAllSlots(userId);
+    const appointments = await this._appointmentRepository.findAllAppointments(userId);
+    const slots = await this._slotRepository.findAllSlots(userId);
     return {
       appointments,
       slots,

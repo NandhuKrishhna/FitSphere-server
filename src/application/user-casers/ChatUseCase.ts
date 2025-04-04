@@ -19,8 +19,8 @@ export class ChatUseCase implements IChatUseCase {
   constructor(
     @Inject(IChatRepositoryToken) private chatRepository: IChatRepository,
     @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository,
-    @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
-    @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
+    @Inject(IUserRepositoryToken) private _userRepository: IUserRepository,
+    @Inject(IDoctorRepositoryToken) private _doctorRepository: IDoctorRepository,
   ) { }
 
   async sendMessage({ senderId, receiverId, message, image, role }: SendMessageProps) {
@@ -32,8 +32,8 @@ export class ChatUseCase implements IChatUseCase {
     }
     let imageUrl;
     if (image) {
-      const uploadResponse = await cloudinary.uploader.upload(image);
-      imageUrl = uploadResponse.secure_url;
+      const uploadResponse = await cloudinary.uploader.upload(image, { type: "authenticated" });
+      imageUrl = uploadResponse.public_id;
     }
     const newMessage = await this.chatRepository.createMessage({
       conversationId: conversation._id,
@@ -43,8 +43,8 @@ export class ChatUseCase implements IChatUseCase {
       image: imageUrl
     });
     const user = role === Role.USER
-      ? await this.userRepository.findUserById(senderId)
-      : await this.doctorRepository.findDoctorByID(senderId);
+      ? await this._userRepository.findUserById(senderId)
+      : await this._doctorRepository.findDoctorByID(senderId);
     const receiverSocketid = getReceiverSocketId(receiverId);
     if (receiverSocketid) {
       io.to(receiverSocketid).emit("newMessage", newMessage.message);

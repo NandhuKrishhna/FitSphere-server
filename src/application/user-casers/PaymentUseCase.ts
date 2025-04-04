@@ -40,27 +40,28 @@ export type BuyPremiumSubscriptionParams = {
 @Service()
 export class PaymentUseCase implements IPaymentUseCase {
   constructor(
-    @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
+    @Inject(IUserRepositoryToken) private _userRepository: IUserRepository,
     @Inject(IDoctorRepositoryToken)
     private doctorRespository: IDoctorRepository,
-    @Inject(ISlotRepositoryToken) private slotRespository: ISlotRepository,
+    @Inject(ISlotRepositoryToken) private __slotRespository: ISlotRepository,
     @Inject(IAppointmentRepositoryToken)
-    private appointmentRepository: IAppointmentRepository,
-    @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository,
-    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
-    @Inject(IPremiumSubscriptionRepositoryToken) private premiumSubscriptionRepository: IPremiumSubscriptionRepository,
-    @Inject(ITransactionRepositoryToken) private transactionRepository: ITransactionRepository,
+    private _appointmentRepository: IAppointmentRepository,
+    @Inject(IWalletRepositoryToken) private __walletRepository: IWalletRepository,
+    @Inject(INotificationRepositoryToken) private __notificationRepository: INotificationRepository,
+    @Inject(IPremiumSubscriptionRepositoryToken) private _premiumSubscriptionRepository: IPremiumSubscriptionRepository,
+    @Inject(ITransactionRepositoryToken) private __transactionRepository: ITransactionRepository,
     @Inject(IUserSubscriptionRepositoryToken) private userSubscriptionRepository: IUserSubscriptionRepository,
-    @Inject(() => SlotPaymentService) private slotPaymentService: SlotPaymentService,
-    @Inject(() => SubscriptionPayment) private subscriptionService: SubscriptionPayment
+    @Inject(() => SlotPaymentService) private __slotPaymentService: SlotPaymentService,
+    @Inject(() => SubscriptionPayment) private __subscriptionService: SubscriptionPayment
   ) { }
 
   async userAppointment({ doctorId, patientId, slotId, amount }: BookAppointmentParams) {
-    const patient = await this.userRepository.findUserById(patientId);
+    const patient = await this._userRepository.findUserById(patientId);
     appAssert(patient, BAD_REQUEST, "Patient not found. Please try again.");
     const doctor = await this.doctorRespository.findDoctorByID(doctorId);
     appAssert(doctor, BAD_REQUEST, "Doctor not found. Please try again.");
-    const existingSlot = await this.slotRespository.findSlotById(slotId);
+    appAssert(doctor.status !== "blocked", BAD_REQUEST, "Doctor is not active. Please book another doctor");
+    const existingSlot = await this.__slotRespository.findSlotById(slotId);
     appAssert(existingSlot, BAD_REQUEST, "No slots found. Please try another slot.");
     appAssert(!existingSlot.patientId, BAD_REQUEST, "Slot is already booked. Please try another slot.");
     appAssert(existingSlot.status === "available", BAD_REQUEST, "Slot is not available. Please try another slot.");
@@ -78,7 +79,7 @@ export class PaymentUseCase implements IPaymentUseCase {
       payment_capture: true,
     });
 
-    const newAppointmentDetails = await this.appointmentRepository.createAppointment({
+    const newAppointmentDetails = await this._appointmentRepository.createAppointment({
       doctorId,
       patientId,
       slotId,
@@ -88,7 +89,7 @@ export class PaymentUseCase implements IPaymentUseCase {
       orderId: razorpayOrder.receipt,
     });
 
-    const transaction = await this.transactionRepository.createTransaction({
+    const transaction = await this.__transactionRepository.createTransaction({
       from: patientId,
       fromModel: "User",
       to: doctorId,
@@ -99,7 +100,7 @@ export class PaymentUseCase implements IPaymentUseCase {
       paymentType: "slot_booking",
       status: "pending",
       paymentGatewayId: razorpayOrder.receipt,
-      bookingId: newAppointmentDetails._id as string,
+      bookingId: newAppointmentDetails?._id as string,
     });
 
 
@@ -140,7 +141,7 @@ export class PaymentUseCase implements IPaymentUseCase {
         bank: payments.items[0]?.bank,
         meetingId: uuidv4(),
       };
-      response = await this.slotPaymentService.handleSlotBookingPayment(
+      response = await this.__slotPaymentService.handleSlotBookingPayment(
         userId,
         doctorId!,
         doctorName!,
@@ -154,7 +155,7 @@ export class PaymentUseCase implements IPaymentUseCase {
     if (orderInfo.status === "paid" && paymentType === "subscription") {
       appAssert(subscriptionId, NOT_FOUND, "Subscription Id not found. Please try after some time.")
       const payments = await razorpayInstance.orders.fetchPayments(razorpay_order_id);
-      response = await this.subscriptionService.handleSubscriptionPayment({
+      response = await this.__subscriptionService.handleSubscriptionPayment({
         userId,
         subscriptionId,
         razorpay_order_id,
@@ -172,23 +173,23 @@ export class PaymentUseCase implements IPaymentUseCase {
 
   async cancelAppointment(appointmentId: mongoose.Types.ObjectId) {
 
-    const details = await this.appointmentRepository.cancelAppointment(appointmentId);
+    const details = await this._appointmentRepository.cancelAppointment(appointmentId);
     appAssert(details, BAD_REQUEST, "Unable to cancel appointment. Please try few minutes later.");
-    await this.slotRespository.cancelSlotById(details.slotId);
+    await this.__slotRespository.cancelSlotById(details.slotId);
     // Decreasing from the Doctor and Increasing to the Patient
-    await this.walletRepository.decreaseBalance({
+    await this.__walletRepository.decreaseBalance({
       userId: details.doctorId,
       role: "Doctor",
       amount: details.amount,
       description: "Appointment cancellation refund",
     })
-    await this.walletRepository.increaseBalance({
+    await this.__walletRepository.increaseBalance({
       userId: details.patientId,
       role: "User",
       amount: details.amount,
       description: "Appointment cancellation refund",
     });
-    await this.transactionRepository.createTransaction({
+    await this.__transactionRepository.createTransaction({
       from: details.doctorId,
       fromModel: "Doctor",
       to: details.patientId,
@@ -202,7 +203,7 @@ export class PaymentUseCase implements IPaymentUseCase {
 
     });
 
-    await this.transactionRepository.createTransaction({
+    await this.__transactionRepository.createTransaction({
       from: details.doctorId,
       fromModel: "Doctor",
       to: details.patientId,
@@ -215,7 +216,7 @@ export class PaymentUseCase implements IPaymentUseCase {
       bookingId: details._id as string,
     });
     const doctorDetails = await this.doctorRespository.findDoctorByID(details.doctorId);
-    const userDetails = await this.userRepository.findUserById(details.patientId);
+    const userDetails = await this._userRepository.findUserById(details.patientId);
     const doctorSocketId = getReceiverSocketId(details?.doctorId.toString());
     const patientSocketId = getReceiverSocketId(details?.patientId.toString());
 
@@ -263,17 +264,17 @@ export class PaymentUseCase implements IPaymentUseCase {
       } catch (paymentError) {
 
       };
-      const appointment = await this.appointmentRepository.updatePaymentStatus(receiptId!, additionalDetails, "failed");
+      const appointment = await this._appointmentRepository.updatePaymentStatus(receiptId!, additionalDetails, "failed");
 
       if (appointment) {
-        await this.notificationRepository.createNotification({
+        await this.__notificationRepository.createNotification({
           userId: appointment.patientId,
           role: Role.USER,
           type: NotificationType.Appointment,
           message: "Your payment was cancelled or failed",
           status: "pending",
         });
-        const response = await this.transactionRepository.updateTransaction(
+        const response = await this.__transactionRepository.updateTransaction(
           { paymentGatewayId: receiptId },
           {
             status: "failed",
@@ -296,25 +297,25 @@ export class PaymentUseCase implements IPaymentUseCase {
 
   async walletPayment({ usecase, type, userId, doctorId, patientId, amount, slotId }: WalletParams) {
     if (usecase === "slot_booking") {
-      const patient = await this.userRepository.findUserById(patientId!);
+      const patient = await this._userRepository.findUserById(patientId!);
       appAssert(patient, BAD_REQUEST, "Patient not found. Please try again.");
-      const wallet = await this.walletRepository.findWalletById(userId, "User");
+      const wallet = await this.__walletRepository.findWalletById(userId, "User");
       appAssert(wallet, BAD_REQUEST, "Wallet not found. Please try again");
       appAssert(wallet.balance > amount, BAD_REQUEST, "Insufficient balance.Please choose another payment method.");
       const doctor = await this.doctorRespository.findDoctorByID(doctorId!);
       appAssert(doctor, BAD_REQUEST, "Doctor not found. Please try again.");
-      const existingSlot = await this.slotRespository.findSlotById(slotId!);
+      const existingSlot = await this.__slotRespository.findSlotById(slotId!);
       appAssert(existingSlot, BAD_REQUEST, "No slots found. Please try another slot.");
       appAssert(!existingSlot.patientId, BAD_REQUEST, "Slot is already booked. Please try another slot.");
       appAssert(existingSlot.status === "available", BAD_REQUEST, "Slot is not available. Please try another slot.");
-      const overlappingAppointment = await this.appointmentRepository.findOverlappingAppointment(
+      const overlappingAppointment = await this._appointmentRepository.findOverlappingAppointment(
         doctorId!,
         existingSlot.startTime,
         existingSlot.endTime,
         existingSlot.date
       );
       appAssert(!overlappingAppointment, BAD_REQUEST, "Slot is already booked. Please try another slot.");
-      const newAppointmentDetails = await this.appointmentRepository.createAppointment({
+      const newAppointmentDetails = await this._appointmentRepository.createAppointment({
         doctorId,
         patientId,
         slotId,
@@ -328,7 +329,7 @@ export class PaymentUseCase implements IPaymentUseCase {
         description: "Slot booking",
         meetingId: uuidv4(),
       });
-      const doctorTransaction = await this.transactionRepository.createTransaction({
+      const doctorTransaction = await this.__transactionRepository.createTransaction({
         from: userId,
         fromModel: "User",
         to: doctorId,
@@ -338,11 +339,11 @@ export class PaymentUseCase implements IPaymentUseCase {
         method: "wallet",
         paymentType: "slot_booking",
         status: "success",
-        bookingId: newAppointmentDetails._id as string,
+        bookingId: newAppointmentDetails?._id as string,
         relatedTransactionId: wallet._id as string,
       });
       //user transaction
-      const userTransaction = await this.transactionRepository.createTransaction({
+      const userTransaction = await this.__transactionRepository.createTransaction({
         from: userId,
         fromModel: "User",
         to: doctorId,
@@ -352,19 +353,19 @@ export class PaymentUseCase implements IPaymentUseCase {
         method: "wallet",
         paymentType: "slot_booking",
         status: "success",
-        bookingId: newAppointmentDetails._id as string,
+        bookingId: newAppointmentDetails?._id as string,
         relatedTransactionId: wallet._id as string,
       });
 
-      const updatedSlotDetails = await this.slotRespository.updateSlotById(slotId!, patientId!);
-      await this.walletRepository.increaseBalance({
+      const updatedSlotDetails = await this.__slotRespository.updateSlotById(slotId!, patientId!);
+      await this.__walletRepository.increaseBalance({
         userId: doctorId!,
         role: "Doctor",
         amount: Number(amount),
         description: "Slot Booking",
         relatedTransactionId: doctorTransaction._id as string
       });
-      await this.walletRepository.decreaseBalance({
+      await this.__walletRepository.decreaseBalance({
         userId: patientId!,
         role: "User",
         amount: Number(amount),
@@ -374,7 +375,7 @@ export class PaymentUseCase implements IPaymentUseCase {
 
       try {
         const [doctorNotification, patientNotification] = await Promise.all([
-          this.notificationRepository.createNotification({
+          this.__notificationRepository.createNotification({
             userId: doctorId,
             role: Role.DOCTOR,
             type: NotificationType.Appointment,
@@ -387,7 +388,7 @@ export class PaymentUseCase implements IPaymentUseCase {
               appointMentId: newAppointmentDetails?._id,
             },
           }),
-          this.notificationRepository.createNotification({
+          this.__notificationRepository.createNotification({
             userId: patientId,
             role: Role.USER,
             type: NotificationType.Appointment,
@@ -419,9 +420,9 @@ export class PaymentUseCase implements IPaymentUseCase {
   async buyPremiumSubscription({ subscriptionId, userId }: BuyPremiumSubscriptionParams) {
 
     appAssert(subscriptionId, BAD_REQUEST, "Subscription not found. Please try again.");
-    const subscriptionDetails = await this.premiumSubscriptionRepository.getSubscriptionById(subscriptionId);
+    const subscriptionDetails = await this._premiumSubscriptionRepository.getSubscriptionById(subscriptionId);
     appAssert(subscriptionDetails, BAD_REQUEST, "Subscription not found. Please try again.");
-    const userDetails = await this.userRepository.findUserById(userId);
+    const userDetails = await this._userRepository.findUserById(userId);
     appAssert(userDetails, BAD_REQUEST, "User not found. Please try again.");
 
 
@@ -434,7 +435,7 @@ export class PaymentUseCase implements IPaymentUseCase {
       payment_capture: true,
     })
 
-    const transaction = await this.transactionRepository.createTransaction({
+    const transaction = await this.__transactionRepository.createTransaction({
       from: userId,
       fromModel: "User",
       amount: subscriptionDetails.price,

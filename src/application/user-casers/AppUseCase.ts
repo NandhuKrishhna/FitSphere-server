@@ -29,17 +29,17 @@ import { IAppUseCase, IAppUseCaseToken } from "./interface/IAppUseCase";
 @Service()
 export class AppUseCase implements IAppUseCase {
   constructor(
-    @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
+    @Inject(IUserRepositoryToken) private _userRepository: IUserRepository,
     @Inject(IDoctorRepositoryToken)
     private doctorRespository: IDoctorRepository,
-    @Inject(ISlotRepositoryToken) private slotRespository: ISlotRepository,
+    @Inject(ISlotRepositoryToken) private __slotRespository: ISlotRepository,
     @Inject(IAppointmentRepositoryToken)
-    private appointmentRepository: IAppointmentRepository,
-    @Inject(IWalletRepositoryToken) private walletRepository: IWalletRepository,
-    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
+    private _appointmentRepository: IAppointmentRepository,
+    @Inject(IWalletRepositoryToken) private __walletRepository: IWalletRepository,
+    @Inject(INotificationRepositoryToken) private __notificationRepository: INotificationRepository,
     @Inject(IReviewsRepositoryToken) private reviewsRepository: IReviewsRepository,
     @Inject(IRatingRepositoryToken) private ratingRepository: IRatingRepository,
-    @Inject(ITransactionRepositoryToken) private transactionRepository: ITransactionRepository,
+    @Inject(ITransactionRepositoryToken) private __transactionRepository: ITransactionRepository,
     @Inject(IUserSubscriptionRepositoryToken) private userSubscriptionRepository: IUserSubscriptionRepository
 
   ) { }
@@ -76,7 +76,7 @@ export class AppUseCase implements IAppUseCase {
 
   async updateProfile(userId: mongoose.Types.ObjectId, profilePic: string) {
     const uploadResponse = await cloudinary.uploader.upload(profilePic);
-    const updatedUser = await this.userRepository.updateProfile(userId, uploadResponse.secure_url);
+    const updatedUser = await this._userRepository.updateProfile(userId, uploadResponse.secure_url);
     appAssert(updatedUser, BAD_REQUEST, "Failed to update profile");
     return updatedUser;
   }
@@ -88,7 +88,7 @@ export class AppUseCase implements IAppUseCase {
   }
 
   async getSlots(doctorId: mongoose.Types.ObjectId) {
-    const slots = await this.slotRespository.findAllActiveSlots(doctorId);
+    const slots = await this.__slotRespository.findAllActiveSlots(doctorId);
     appAssert(slots, NOT_FOUND, "No slots found. Please try another slot.");
     return slots;
   }
@@ -98,12 +98,12 @@ export class AppUseCase implements IAppUseCase {
   async getWalletDetails(userId: mongoose.Types.ObjectId, role: string, queryParams: WalletTransactionQuery) {
     const roleType = role === "user" ? "User" : "Doctor";
 
-    const details = await this.walletRepository.getWalletDetailsById(userId, roleType, queryParams);
+    const details = await this.__walletRepository.getWalletDetailsById(userId, roleType, queryParams);
     return details;
   }
   async getNotifications(userId: mongoose.Types.ObjectId, role: string, queryParams: NotificationQueryParams) {
     appAssert(userId, BAD_REQUEST, "Invalid User. Please login again.");
-    const details = await this.notificationRepository.getAllNotificationById(userId, role, queryParams);
+    const details = await this.__notificationRepository.getAllNotificationById(userId, role, queryParams);
     appAssert(details, BAD_REQUEST, "Unable to fetch notifications. Please try few minutes later.");
     return details;
   }
@@ -111,7 +111,7 @@ export class AppUseCase implements IAppUseCase {
   async reviewAndRating({ userId, doctorId, rating, reviewText }: ReviewsAndRatingParams) {
     const doctor = await this.doctorRespository.findDoctorByID(doctorId);
     appAssert(doctor, BAD_REQUEST, "Doctor not found. Please try again later.");
-    const user = await this.userRepository.findUserById(userId);
+    const user = await this._userRepository.findUserById(userId);
     appAssert(user, BAD_REQUEST, "User not found. Please try again later.");
     appAssert(rating >= 1 && rating <= 5, BAD_REQUEST, "Rating should be between 1 and 5");
     appAssert(reviewText.length > 0, BAD_REQUEST, "Review is required");
@@ -145,12 +145,12 @@ export class AppUseCase implements IAppUseCase {
     return ratings;
   }
   async markAsReadNotification(notificationId: ObjectId) {
-    await this.notificationRepository.markNotificationAsRead(notificationId);
+    await this.__notificationRepository.markNotificationAsRead(notificationId);
 
   }
 
   async getTransactions(userId: mongoose.Types.ObjectId) {
-    const transactions = await this.transactionRepository.getAllTransactions(userId);
+    const transactions = await this.__transactionRepository.getAllTransactions(userId);
     return transactions;
   }
   async editReview({ userId, doctorId, rating, reviewText, reviewId }: ReviewsAndRatingParams) {
@@ -169,7 +169,7 @@ export class AppUseCase implements IAppUseCase {
 
   async fetchTransactions(userId: ObjectId, queryParams: TransactionQueryParams, role: string) {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
-    return this.transactionRepository.fetchAllTransactionById(userId, queryParams, role);
+    return this.__transactionRepository.fetchAllTransactionById(userId, queryParams, role);
 
   }
 

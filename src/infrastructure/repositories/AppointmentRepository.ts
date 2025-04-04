@@ -8,6 +8,8 @@ import mongoose, { PipelineStage } from "mongoose";
 import { AppointmentDocument, AppointmentModel } from "../models/appointmentModel";
 import { ObjectId } from "../models/UserModel";
 import { AppointmentQueryParams, PaginatedAppointments } from "../../domain/types/appointment.types";
+import appAssert from "../../shared/utils/appAssert";
+import { CONFLICT } from "../../shared/constants/http";
 
 @Service(IAppointmentRepositoryToken)
 export class AppointmentRepository implements IAppointmentRepository {
@@ -28,9 +30,16 @@ export class AppointmentRepository implements IAppointmentRepository {
     return appointments;
   }
 
-  async createAppointment(appointment: AppointmentDocument): Promise<AppointmentDocument> {
-    const response = await AppointmentModel.create(appointment);
-    return response;
+  async createAppointment(appointment: AppointmentDocument): Promise<AppointmentDocument | null> {
+    try {
+      const response = await AppointmentModel.create(appointment);
+      return response;
+    } catch (err: any) {
+      if (err.code === 11000 && err.message.includes("meetingId")) {
+        appAssert(false, CONFLICT, "Appointment is already being booked. Please wait...")
+      }
+      return null
+    }
   }
 
   async updatePaymentStatus(

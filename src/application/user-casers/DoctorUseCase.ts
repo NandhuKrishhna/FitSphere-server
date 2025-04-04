@@ -34,27 +34,27 @@ import { DoctorDetailsDocument } from "../../infrastructure/models/doctor.detail
 @Service()
 export class DoctorUseCase implements IDoctorUseCase {
   constructor(
-    @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
+    @Inject(IDoctorRepositoryToken) private _doctorRepository: IDoctorRepository,
     @Inject(IVerficaitonCodeRepositoryToken) private verificationCodeRepository: IVerficaitonCodeRepository,
-    @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
+    @Inject(ISessionRepositoryToken) private _sessionRepository: ISessionRepository,
     @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
-    @Inject(INotificationRepositoryToken) private notificationRepository: INotificationRepository,
-    @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
+    @Inject(INotificationRepositoryToken) private __notificationRepository: INotificationRepository,
+    @Inject(IUserRepositoryToken) private _userRepository: IUserRepository,
 
   ) { }
 
   async registerDoctor(details: RegisterDoctorParams) {
-    const existingDoctor = await this.doctorRepository.findDoctorByEmail(details.email);
+    const existingDoctor = await this._doctorRepository.findDoctorByEmail(details.email);
     appAssert(!existingDoctor, CONFLICT, "Email already exists");
     // create doctor
-    const newDoctor = await this.doctorRepository.createDoctor({
+    const newDoctor = await this._doctorRepository.createDoctor({
       email: details.email,
       password: details.password,
       name: details.name,
       role: Role.DOCTOR,
       provider: "email",
     })
-    const doctor = await this.doctorRepository.createDoctor(newDoctor);
+    const doctor = await this._doctorRepository.createDoctor(newDoctor);
     // send verfication email
     const otpCode = IcreateOtp(doctor._id as ObjectId, OtpCodeTypes.EmailVerification);
     const newOtp = await this.otpRepository.saveOtp(otpCode);
@@ -73,9 +73,9 @@ export class DoctorUseCase implements IDoctorUseCase {
     doctorInfo: DoctorInfoParams;
   }) {
 
-    const existingDoctor = await this.doctorRepository.findDoctorDetails(userId);
+    const existingDoctor = await this._doctorRepository.findDoctorDetails(userId);
     appAssert(!existingDoctor, CONFLICT, "Email already exists");
-    const doctor = await this.doctorRepository.findDoctorByID(userId);
+    const doctor = await this._doctorRepository.findDoctorByID(userId);
     let doctorName;
     if (doctor) {
       doctorName = doctor.name;
@@ -103,12 +103,12 @@ export class DoctorUseCase implements IDoctorUseCase {
       uploadResponse?.secure_url!
     );
     //add to the database;
-    const newDoctorDetails = await this.doctorRepository.createDoctorDetails(doctorDetails);
+    const newDoctorDetails = await this._doctorRepository.createDoctorDetails(doctorDetails);
     const newDoctorEmail = newDoctorDetails.professionalEmail;
     await sendMail({ to: newDoctorEmail, ...getPendingApprovalEmailTemplate() });
     let message = `${doctorName} has registered as a doctor and is waiting for approval.`;
 
-    const notification = await this.notificationRepository.createNotification({
+    const notification = await this.__notificationRepository.createNotification({
       userId,
       role: Role.ADMIN,
       type: NotificationType.DoctorRegistration,
@@ -118,7 +118,7 @@ export class DoctorUseCase implements IDoctorUseCase {
       read: false,
     });
 
-    const new_notification = await this.notificationRepository.createNotification(notification);
+    const new_notification = await this.__notificationRepository.createNotification(notification);
 
     return {
       doctorDetails: newDoctorDetails as DoctorDetailsDocument,
@@ -133,7 +133,7 @@ export class DoctorUseCase implements IDoctorUseCase {
       VerificationCodeTypes.EmailVerification
     );
     appAssert(valideCode, NOT_FOUND, "Invalid or expired verification code");
-    const updatedUser = await this.doctorRepository.updateUserById(valideCode!.userId, { isVerified: true });
+    const updatedUser = await this._doctorRepository.updateUserById(valideCode!.userId, { isVerified: true });
     appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
     await this.verificationCodeRepository.deleteVerificationCode(valideCode!.userId);
     return updatedUser;
@@ -145,15 +145,16 @@ export class DoctorUseCase implements IDoctorUseCase {
     if (validCode.expiresAt < new Date()) {
       appAssert(false, BAD_REQUEST, "OTP has expired");
     }
-    const updatedUser = await this.doctorRepository.updateUserById(validCode.userId, { isVerified: true });
+    const updatedUser = await this._doctorRepository.updateUserById(validCode.userId, { isVerified: true });
     appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
     await this.otpRepository.deleteOtp(validCode._id);
     return { user: updatedUser };
   }
 
   async loginDoctor(doctorData: LoginUserParams) {
-    const existingDoctor = await this.doctorRepository.findDoctorByEmail(doctorData.email);
+    const existingDoctor = await this._doctorRepository.findDoctorByEmail(doctorData.email);
     appAssert(existingDoctor, UNAUTHORIZED, "Email not exists. Please register first");
+    appAssert(existingDoctor.status !== "blocked", UNAUTHORIZED, "Your account has been suspended. Please contact support for more information.");
     appAssert(
       existingDoctor.isApproved,
       UNAUTHORIZED,
@@ -162,7 +163,7 @@ export class DoctorUseCase implements IDoctorUseCase {
     const isValidUser = await existingDoctor.comparePassword(doctorData.password);
     appAssert(isValidUser, UNAUTHORIZED, "Invalid Email or Password");
     const newSession = IcreateSession(existingDoctor._id as ObjectId, Role.DOCTOR, doctorData.userAgent, oneYearFromNow());
-    const session = await this.sessionRepository.createSession(newSession);
+    const session = await this._sessionRepository.createSession(newSession);
 
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
@@ -177,21 +178,27 @@ export class DoctorUseCase implements IDoctorUseCase {
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
 
     return {
-      doctor: existingDoctor,
+      user: {
+        _id: existingDoctor._id as ObjectId,
+        name: existingDoctor.name,
+        email: existingDoctor.email,
+        profilePicture: existingDoctor.profilePicture,
+        role: existingDoctor.role,
+      },
       accessToken,
       refreshToken,
     };
   }
 
   async logoutUser(payload: AccessTokenPayload) {
-    await this.sessionRepository.findByIdAndDelete(payload.sessionId);
+    await this._sessionRepository.findByIdAndDelete(payload.sessionId);
   }
 
   async updateDoctorDetails(userId: mongoose.Types.ObjectId, details: DoctorDetailsParams) {
     appAssert(userId, BAD_REQUEST, "Invalid userId. Please login again.");
-    const doctorDetails = await this.doctorRepository.findDoctorByID(userId);
+    const doctorDetails = await this._doctorRepository.findDoctorByID(userId);
     appAssert(doctorDetails, NOT_FOUND, "User not found");
-    return await this.doctorRepository.updateDoctorDetailsByDocId(userId, details);
+    return await this._doctorRepository.updateDoctorDetailsByDocId(userId, details);
   }
 
   async updatePassword({ userId, currentPassword, newPassword, role }: updatePasswordParams) {
@@ -199,8 +206,8 @@ export class DoctorUseCase implements IDoctorUseCase {
     appAssert(newPassword, BAD_REQUEST, "New password is required");
 
     const isExistingUser = role === Role.DOCTOR
-      ? await this.doctorRepository.findDoctorByID(userId)
-      : await this.userRepository.findUserById(userId);
+      ? await this._doctorRepository.findDoctorByID(userId)
+      : await this._userRepository.findUserById(userId);
 
     appAssert(isExistingUser, NOT_FOUND, "User not found");
 
@@ -209,7 +216,7 @@ export class DoctorUseCase implements IDoctorUseCase {
 
     const isSamePassword = await isExistingUser.comparePassword(newPassword);
     appAssert(!isSamePassword, BAD_REQUEST, "New password cannot be the same as the current password");
-    return await this.doctorRepository.updatePassword(userId, newPassword, role);
+    return await this._doctorRepository.updatePassword(userId, newPassword, role);
   }
 
   // async googleAuth(code : string){
@@ -221,11 +228,11 @@ export class DoctorUseCase implements IDoctorUseCase {
   //   );
   //   // console.log(userRes);
   //   const { email, name, picture } = userRes.data;
-  //   let doctor = await this.doctorRepository.findDoctorByEmail(email);
+  //   let doctor = await this._doctorRepository.findDoctorByEmail(email);
   //   let isNewDoctor = false;
   //   if(!doctor){
   //     isNewDoctor = true;
-  //     doctor = await this.doctorRepository.createDoctor({
+  //     doctor = await this._doctorRepository.createDoctor({
   //       name,
   //       email,
   //       role: Role.DOCTOR,
