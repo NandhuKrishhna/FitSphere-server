@@ -11,9 +11,10 @@ import { ConsultationType, IcreateSlot } from "../../shared/utils/doctorHelper";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { AppointmentQueryParams, PaginatedAppointments } from "../../domain/types/appointment.types";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
+import { IDoctorFeatUseCase, IDoctorFeatUseCaseToken } from "./interface/IDoctorFeatUseCase";
 
-@Service()
-export class DoctorFeatUseCase {
+@Service(IDoctorFeatUseCaseToken)
+export class DoctorFeatUseCase implements IDoctorFeatUseCase {
   constructor(
     @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository,
     @Inject(IAppointmentRepositoryToken) private appointmentRepository: IAppointmentRepository,
@@ -45,6 +46,8 @@ export class DoctorFeatUseCase {
 
   async cancelSlot(doctorId: mongoose.Types.ObjectId, slotId: mongoose.Types.ObjectId) {
     const existingSlot = await this.slotRepository.findSlotById(slotId);
+    appAssert(existingSlot, BAD_REQUEST, "Slot not found.Or Already cancelled.");
+    appAssert(existingSlot?.status !== "cancelled", UNAUTHORIZED, "Slot has already been cancelled.");
     appAssert(existingSlot?.status !== "booked", UNAUTHORIZED, "Patient has already booked this slot.");
     await this.slotRepository.deleteSlot(doctorId, slotId);
   }

@@ -23,22 +23,11 @@ import { getReceiverSocketId } from "../../infrastructure/config/socket.io";
 import { emitNotification } from "../../shared/utils/emitNotification";
 import { NotificationQueryParams, TransactionQueryParams, WalletTransactionQuery } from "../../domain/types/queryParams.types";
 import { IUserSubscriptionRepository, IUserSubscriptionRepositoryToken } from "../repositories/IUserSubscriptionRepository";
+import { IAppUseCase, IAppUseCaseToken } from "./interface/IAppUseCase";
 
-export type WalletParams = {
-  userId: ObjectId;
-  type?: "basic" | "premium" | "enterprise";
-  usecase: string;
-  doctorId?: ObjectId;
-  slotId?: ObjectId;
-  amount: number;
-  patientId?: ObjectId;
-};
-export type MarkAsReadNotificationParams = {
-  userId: ObjectId,
-  notificationId: ObjectId
-}
-@Service()
-export class AppUseCase {
+
+@Service(IAppUseCaseToken)
+export class AppUseCase implements IAppUseCase {
   constructor(
     @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
     @Inject(IDoctorRepositoryToken)
@@ -126,19 +115,23 @@ export class AppUseCase {
     appAssert(user, BAD_REQUEST, "User not found. Please try again later.");
     appAssert(rating >= 1 && rating <= 5, BAD_REQUEST, "Rating should be between 1 and 5");
     appAssert(reviewText.length > 0, BAD_REQUEST, "Review is required");
-    await this.reviewsRepository.createReview({ userId, doctorId, rating, reviewText });
+    const doctorReviews = await this.reviewsRepository.createReview({ userId, doctorId, rating, reviewText });
     const ratings = await this.ratingRepository.findRatingByDoctorId(doctorId);
+    let review;
     if (ratings) {
       const totalReviews = ratings.totalReviews + 1;
       const averageRating = (ratings.averageRating * ratings.totalReviews + rating) / totalReviews;
-      await this.ratingRepository.updateRating({ doctorId, totalReviews, averageRating });
+      review = await this.ratingRepository.updateRating({ doctorId, totalReviews, averageRating });
 
     } else {
-      await this.ratingRepository.updateRating({ doctorId, totalReviews: 1, averageRating: rating });
+      review = await this.ratingRepository.updateRating({ doctorId, totalReviews: 1, averageRating: rating });
     }
     const doctorSocketId = getReceiverSocketId((doctor?._id as ObjectId).toString());
     const message = `You have a new review from ${user.name}`;
     emitNotification(doctorSocketId, message);
+    return {
+      review, doctorReviews
+    }
   }
 
   async fetchReviewsAndRating(doctorId: ObjectId) {

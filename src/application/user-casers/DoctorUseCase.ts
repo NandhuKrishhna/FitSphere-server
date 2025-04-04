@@ -25,11 +25,14 @@ import { IcreateDoctorDetails } from "../../shared/utils/doctorHelper";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
 import { updatePasswordParams } from "../../domain/types/doctorUseCase.types";
+import { IDoctorUseCase, IDoctorUseCaseToken } from "./interface/IDoctorUseCase";
+import { DoctorDocument } from "../../infrastructure/models/DoctorModel";
+import { DoctorDetailsDocument } from "../../infrastructure/models/doctor.details.model";
 
 
 
-@Service()
-export class DoctorUseCase {
+@Service(IDoctorUseCaseToken)
+export class DoctorUseCase implements IDoctorUseCase {
   constructor(
     @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
     @Inject(IVerficaitonCodeRepositoryToken) private verificationCodeRepository: IVerficaitonCodeRepository,
@@ -60,7 +63,7 @@ export class DoctorUseCase {
       ...getVerifyEmailTemplates(newOtp.code, newDoctor.name),
     });
     return {
-      user: doctor.omitPassword(),
+      user: doctor
     };
   }
   // register as doctor;
@@ -118,7 +121,7 @@ export class DoctorUseCase {
     const new_notification = await this.notificationRepository.createNotification(notification);
 
     return {
-      doctorDetails: newDoctorDetails,
+      doctorDetails: newDoctorDetails as DoctorDetailsDocument,
       notification: new_notification,
     };
   }
@@ -133,9 +136,7 @@ export class DoctorUseCase {
     const updatedUser = await this.doctorRepository.updateUserById(valideCode!.userId, { isVerified: true });
     appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
     await this.verificationCodeRepository.deleteVerificationCode(valideCode!.userId);
-    return {
-      user: updatedUser.omitPassword(),
-    };
+    return updatedUser;
   }
 
   async verifyOtp(code: string, userId: mongoose.Types.ObjectId) {
@@ -147,7 +148,7 @@ export class DoctorUseCase {
     const updatedUser = await this.doctorRepository.updateUserById(validCode.userId, { isVerified: true });
     appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
     await this.otpRepository.deleteOtp(validCode._id);
-    return { user: updatedUser.omitPassword() };
+    return { user: updatedUser };
   }
 
   async loginDoctor(doctorData: LoginUserParams) {
@@ -176,7 +177,7 @@ export class DoctorUseCase {
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
 
     return {
-      doctor: existingDoctor.omitPassword(),
+      doctor: existingDoctor,
       accessToken,
       refreshToken,
     };

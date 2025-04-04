@@ -16,7 +16,6 @@ import { IAppointmentRepository, IAppointmentRepositoryToken } from "../reposito
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 import { ITransactionRepository, ITransactionRepositoryToken } from "../repositories/ITransactionRepository";
 import { NotificationType } from "../../shared/constants/verficationCodeTypes";
-import { WalletParams } from "./AppUseCase";
 import mongoose, { isValidObjectId } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 import Role from "../../shared/constants/UserRole";
@@ -29,6 +28,9 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 import { IUserSubscriptionRepository, IUserSubscriptionRepositoryToken } from "../repositories/IUserSubscriptionRepository";
 import { SlotPaymentService } from "../services/handleSlotBookingPayment";
 import { SubscriptionPayment } from "../services/handleSubscriptionPayment";
+import { WalletParams } from "./interface-types/UseCase-types";
+import { IPaymentUseCase } from "./interface/IPaymentUseCase";
+import { AppointmentDocument } from "../../infrastructure/models/appointmentModel";
 
 export type BuyPremiumSubscriptionParams = {
   subscriptionId: ObjectId,
@@ -36,7 +38,7 @@ export type BuyPremiumSubscriptionParams = {
 }
 
 @Service()
-export class PaymentUseCase {
+export class PaymentUseCase implements IPaymentUseCase {
   constructor(
     @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
     @Inject(IDoctorRepositoryToken)
@@ -162,7 +164,7 @@ export class PaymentUseCase {
     }
 
 
-    return response;
+    return response || { message: undefined };
   }
 
 
@@ -408,52 +410,9 @@ export class PaymentUseCase {
       }
 
 
-      return {
-        newAppointmentDetails,
-      };
+      return newAppointmentDetails;
     }
-    // else {
-    //   // if its subcription ......
-    //   const subscriptionPrices: Record<string, number> = {
-    //     basic: 199,
-    //     premium: 499,
-    //     pro: 999,
-    //   };
-    //   const price = subscriptionPrices[type!];
-    //   const user = await this.userRepository.findUserById(userId);
-    //   appAssert(user, BAD_REQUEST, "User not found. Please try again.");
-    //   const wallet = await this.walletRepository.findWalletById(userId , "User");
-    //   appAssert(wallet, BAD_REQUEST, "Wallet not found. Please try again");
-    //   appAssert(wallet.balance >= price, BAD_REQUEST, "Insufficient balance. Please add money to wallet.");
-    //   const subscription = await this.premiumSubscriptionRepository.getSubscriptionByUserId(userId);
-    //   appAssert(!subscription, CONFLICT, "You already have a subscription. Please try again.");
 
-    //   const startDate = new Date();
-    //   const endDate = new Date();
-    //   endDate.setMonth(endDate.getMonth() + 1);
-    //   const planName = `${type!.charAt(0).toUpperCase() + type!.slice(1)} Plan`;
-    //   const currency = CURRENCY;
-    //   const newSubscription = await this.premiumSubscriptionRepository.createSubscription({
-    //     userId,
-    //     type,
-    //     planName,
-    //     price,
-    //     currency,
-    //     startDate,
-    //     endDate,
-    //     status: "active",
-    //   });
-    //   await this.walletRepository.decreaseBalance(userId, price);
-    //   await this.transactionRepository.createTransaction({
-    //     userId,
-    //     amount: price,
-    //     type: "debit",
-    //     method: "wallet",
-    //     paymentType: "subscription",
-    //     status: "success",
-    //   });
-    //   await this.userRepository.updateUserById(userId, { isPremium: true });
-    // }
   }
 
 
@@ -491,7 +450,7 @@ export class PaymentUseCase {
         id: razorpayOrder.id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        subscriptionId: subscriptionDetails._id,
+        subscriptionId: subscriptionDetails._id as ObjectId,
       },
 
     }

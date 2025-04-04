@@ -12,9 +12,10 @@ import Role from "../../shared/constants/UserRole";
 import { IUserRepository, IUserRepositoryToken } from "../repositories/IUserRepository";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 import { IConversation } from "../../infrastructure/models/conversationModel";
+import { IChatUseCase, IChatUseCaseToken } from "./interface/IChatUseCase";
 
-@Service()
-export class ChatUseCase {
+@Service(IChatUseCaseToken)
+export class ChatUseCase implements IChatUseCase {
   constructor(
     @Inject(IChatRepositoryToken) private chatRepository: IChatRepository,
     @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository,
@@ -22,7 +23,7 @@ export class ChatUseCase {
     @Inject(IDoctorRepositoryToken) private doctorRepository: IDoctorRepository,
   ) { }
 
-  public async sendMessage({ senderId, receiverId, message, image, role }: SendMessageProps) {
+  async sendMessage({ senderId, receiverId, message, image, role }: SendMessageProps) {
     appAssert(message?.trim() || image, BAD_REQUEST, "Message or image is required");
     const participants = [senderId.toString(), receiverId.toString()].sort();;
     let conversation = await this.conversationRepository.getConversationByParticipants(participants);
@@ -58,7 +59,7 @@ export class ChatUseCase {
     return newMessage;
   }
 
-  public async getMessages({ senderId, receiverId }: ParticipantsType) {
+  async getMessages({ senderId, receiverId }: ParticipantsType) {
     const participants = [senderId.toString(), receiverId.toString()].sort();;
     let conversation = await this.conversationRepository.getConversationByParticipants(participants);
     appAssert(conversation, NOT_FOUND, "Conversation not found");
@@ -69,12 +70,12 @@ export class ChatUseCase {
     };
   }
 
-  public async getAllUsers(userId: mongoose.Types.ObjectId, role: string) {
+  async getAllUsers(userId: mongoose.Types.ObjectId, role: string) {
     const users = await this.conversationRepository.getUsers(userId, role);
     return users;
   }
 
-  public async createConversation(senderId: ObjectId, receiverId: ObjectId): Promise<void> {
+  async createConversation(senderId: ObjectId, receiverId: ObjectId) {
     appAssert(senderId, NOT_FOUND, "Sender ID is required");
     appAssert(receiverId, NOT_FOUND, "Receiver ID is required");
     const participants = [senderId.toString(), receiverId.toString()].sort();;
@@ -82,11 +83,11 @@ export class ChatUseCase {
 
     if (conversation) return;
 
-    await this.conversationRepository.addUserForSidebar(participants);
+    return await this.conversationRepository.addUserForSidebar(participants);
   }
 
 
-  public async getConversation(senderId: ObjectId, receiverId: ObjectId): Promise<IConversation | null> {
+  async getConversation(senderId: ObjectId, receiverId: ObjectId): Promise<IConversation | null> {
     appAssert(senderId, NOT_FOUND, "Sender ID is required");
     appAssert(receiverId, NOT_FOUND, "Receiver ID is required");
     const participants = [senderId, receiverId].map(id => id.toString()).sort();

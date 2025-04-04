@@ -34,9 +34,10 @@ import axios from "axios";
 import { ObjectId, } from "../../infrastructure/models/UserModel";
 import { GOOGLE_USER_INFO_URL } from "../../shared/constants/contants";
 import { IUserSubscriptionRepository, IUserSubscriptionRepositoryToken } from "../repositories/IUserSubscriptionRepository";
+import { IRegisterUseCase, IRegisterUseCaseToken } from "./interface/IRegisterUseCase";
 
-@Service()
-export class RegisterUserUseCase {
+@Service(IRegisterUseCaseToken)
+export class RegisterUserUseCase implements IRegisterUseCase {
   constructor(
     @Inject(IUserRepositoryToken) private userRepository: IUserRepository,
     @Inject(IVerficaitonCodeRepositoryToken) private verificationCodeRepository: IVerficaitonCodeRepository,
@@ -47,6 +48,8 @@ export class RegisterUserUseCase {
     @Inject(IUserSubscriptionRepositoryToken) private userSubscriptionRepository: IUserSubscriptionRepository
   ) { }
 
+
+  //** de
   async registerUser(userData: RegisterUserParams) {
     const existingUser = await this.userRepository.findUserByEmail(userData.email);
     appAssert(!existingUser, CONFLICT, "Email already in use");
@@ -87,7 +90,7 @@ export class RegisterUserUseCase {
     const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
     return {
       user: {
-        _id: user._id,
+        _id: user._id as ObjectId,
         name: user.name,
         email: user.email,
         profilePicture: user.profilePicture,
@@ -112,7 +115,7 @@ export class RegisterUserUseCase {
     await this.otpRepository.deleteOtp(validCode._id);
 
     return {
-      user: updatedUser.omitPassword(),
+      user: updatedUser,
     };
   }
 
@@ -155,7 +158,7 @@ export class RegisterUserUseCase {
 
     return {
       user: {
-        _id: existingUser._id,
+        _id: existingUser._id as ObjectId,
         name: existingUser.name,
         email: existingUser.email,
         profilePicture: existingUser.profilePicture,
@@ -218,7 +221,7 @@ export class RegisterUserUseCase {
     await this.verificationCodeRepository.deleteVerificationCode(valideCode!.userId);
 
     return {
-      user: updatedUser.omitPassword(),
+      user: updatedUser,
     };
   }
 
@@ -240,7 +243,7 @@ export class RegisterUserUseCase {
       ...getResetPasswordEmailTemplates(newOtp.code, user.name),
     });
     return {
-      user: user.omitPassword(),
+      user: user,
     };
   }
   // handler for verifing the otp  and redirecting to the reset password page
@@ -278,7 +281,7 @@ export class RegisterUserUseCase {
     await this.sessionRepository.deleteSessionByID(userId);
 
     return {
-      user: updatedUser.omitPassword(),
+      user: updatedUser,
     };
   }
 
@@ -298,7 +301,7 @@ export class RegisterUserUseCase {
     });
     return {
       otpCode: newOtp.code,
-      user: user.omitPassword(),
+      user: user,
     };
   }
 
@@ -346,7 +349,7 @@ export class RegisterUserUseCase {
 
     return {
       user: {
-        _id: user._id,
+        _id: user._id as ObjectId,
         name: user.name,
         email: user.email,
         profilePicture: user.profilePicture,

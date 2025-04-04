@@ -14,49 +14,17 @@ import { ObjectId } from "../../infrastructure/models/UserModel";
 import { USDA_FOODDATA_API_URL } from "../../shared/constants/url";
 import { IFoodItem } from "../../infrastructure/models/caloriesIntakeModel";
 import { IUserDetails } from "../../infrastructure/models/user.addition.details";
+import { IFood, INutrient, INutrientValues } from "./interface-types/UseCase-types";
+import { ICaloriesUseCase } from "./interface/ICaloriesUseCase";
 
-interface INutrient {
-  nutrientName: string;
-  value: number;
-}
 
-interface IFood {
-  description: string;
-  foodNutrients: INutrient[];
-}
-
-interface INutrientValues {
-  calories?: number;
-  protein?: number;
-  carbs?: number;
-  fats?: number;
-}
-
-interface IFoodItems extends INutrientValues {
-  name: string;
-  quantity: string;
-}
 @Service()
-export class CaloriesUseCase {
+export class CaloriesUseCase implements ICaloriesUseCase {
   constructor(@Inject(ICaloriesDetailsRepositoryToken) private caloriesDetailsRepository: ICaloriesDetailsRepository) { }
 
-  public async searchFood(ingredients: string) {
-    appAssert(ingredients, BAD_REQUEST, "Invalid ingredients");
-    const sponnerApiUrl = getRecipeByIngredientsUrl(ingredients);
-    // const sponnerApiUrl = `https://www.themealdb.com/api/json/v1/1/search.php?s=${ingredients}`;
-    const response = await axios.get(sponnerApiUrl);
-    return response.data;
-  }
 
-  public async getRecipeByIngredients(recipeId: string) {
-    appAssert(recipeId, BAD_REQUEST, "Invalid ingredients");
-    // const sponnerApiUrl = `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${recipeId}`;
-    const sponnerApiUrl = getRecipeInformationUrl(recipeId);
-    const respones = await axios.get(sponnerApiUrl);
-    return respones.data;
-  }
 
-  public async addUserHealthDetails(userId: ObjectId, data: TUserDetails) {
+  async addUserHealthDetails(userId: ObjectId, data: TUserDetails) {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
     appAssert(data, BAD_REQUEST, "Invalid data");
     const targetDailyCalories = calculateTargetCalories(data);
@@ -67,7 +35,7 @@ export class CaloriesUseCase {
   }
 
 
-  public async updateUserDetails(userId: ObjectId, data: Partial<IUserDetails>) {
+  async updateUserDetails(userId: ObjectId, data: Partial<IUserDetails>) {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
     appAssert(data, BAD_REQUEST, "Invalid data");
     const existingUser = await this.caloriesDetailsRepository.getUserHealthDetails(userId);
@@ -81,31 +49,31 @@ export class CaloriesUseCase {
   }
 
 
-  public async getUserHealthDetails(userId: ObjectId) {
+  async getUserHealthDetails(userId: ObjectId) {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
     return await this.caloriesDetailsRepository.getUserHealthDetails(userId);
   }
 
-  async addMeal(userId: ObjectId, mealType: string, foodItems: IFoodItem) {
+  async addMeal(userId: ObjectId, mealType: string, foodItems: IFoodItem, date: string) {
     appAssert(foodItems, BAD_REQUEST, "Invalid foodItems");
     appAssert(mealType, BAD_REQUEST, "Invalid mealType");
-    await this.caloriesDetailsRepository.addMeal(userId, foodItems, mealType);
+    return await this.caloriesDetailsRepository.addMeal(userId, foodItems, mealType, date);
   }
 
   //get foodlogs
-  public async getFoodLogs(userId: ObjectId, date?: Date) {
+  async getFoodLogs(userId: ObjectId, date?: Date) {
     appAssert(userId, BAD_REQUEST, "Invalid userId");
     return await this.caloriesDetailsRepository.getFoodLogs(userId, date);
   }
 
   // delete food log by id
-  public async deleteFood(userId: ObjectId, foodId: ObjectId, date: Date) {
+  async deleteFood(userId: ObjectId, foodId: ObjectId, date: Date) {
     appAssert(userId, BAD_REQUEST, "Please Login to delete food log");
     appAssert(foodId, BAD_REQUEST, "Something went wrong. Please try again");
     await this.caloriesDetailsRepository.deleteFoodLogByFoodId(userId, foodId, date);
   }
 
-  public async searchFoodForFoodLog(ingredients: string, quantity?: number) {
+  async searchFoodForFoodLog(ingredients: string, quantity?: number) {
     appAssert(ingredients, BAD_REQUEST, "Something went wrong. Please try again");
 
     const response = await axios.get(USDA_FOODDATA_API_URL, {
@@ -141,10 +109,10 @@ export class CaloriesUseCase {
     return foods;
   }
 
-  async editFood(userId: ObjectId, foodId: ObjectId, date: Date, updatedFoodItem: IFoodItem, mealType: string) {
+  async editFood(userId: ObjectId, foodId: ObjectId, date: string, updatedFoodItem: IFoodItem, mealType: string) {
     appAssert(userId, BAD_REQUEST, "Please Login to delete food log");
     appAssert(foodId, BAD_REQUEST, "Something went wrong. Please try again");
-    await this.caloriesDetailsRepository.editFoodLog(userId, foodId, date, updatedFoodItem, mealType);
+    return await this.caloriesDetailsRepository.editFoodLog(userId, foodId, date, updatedFoodItem, mealType);
   }
 
   async getWeightLogs(userId: ObjectId) {

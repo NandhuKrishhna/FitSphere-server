@@ -22,15 +22,12 @@ import { getReceiverSocketId } from "../../infrastructure/config/socket.io";
 import { emitNotification, suspendNotification } from "../../shared/utils/emitNotification";
 import { DoctorQueryParams, UserQueryParams } from "../../domain/types/queryParams.types";
 import { IPremiumSubscriptionRepository, IPremiumSubscriptionRepositoryToken } from "../repositories/IPremiumSubscription";
-export type SubcriptionParams = {
-  userId?: ObjectId,
-  type: string,
-  price: number,
-  features: string[]
-  planName: string
-}
-@Service()
-export class AdminUseCase {
+import { SubcriptionParams } from "./interface-types/UseCase-types";
+import { IAdminUseCase, IAdminUseCaseToken } from "./interface/IAdminUseCase";
+import { INotification } from "../../infrastructure/models/notification.models";
+
+@Service(IAdminUseCaseToken)
+export class AdminUseCase implements IAdminUseCase {
   constructor(
     @Inject(IAdminRepositoryToken) private adminRepository: IAdminRepository,
     @Inject(ISessionRepositoryToken) private sessionRepository: ISessionRepository,
@@ -88,12 +85,10 @@ export class AdminUseCase {
   async logoutAdmin(payload: AccessTokenPayload) {
     await this.sessionRepository.findByIdAndDelete(payload.sessionId);
   }
-  async getNotification() {
+  async getNotification(): Promise<INotification[]> {
     const type: string[] = [NotificationType.DoctorRegistration];
     const notification = await this.notificationRepository.getAllNotifications(type);
-    return {
-      notification,
-    };
+    return notification;
   }
 
   async approveRequest(id: mongoose.Types.ObjectId) {

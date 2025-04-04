@@ -5,13 +5,14 @@ import { BAD_REQUEST, NOT_FOUND, UNAUTHORIZED } from "../../shared/constants/htt
 import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepository";
 import { ObjectId } from "../../infrastructure/models/UserModel";
 import { AppointmentDocument } from "../../infrastructure/models/appointmentModel";
+import { IWebRtcUseCase, IWebRtcUseCaseToken } from "./interface/IWebRtcUseCase";
 
-@Service()
-export class WebRtcUseCase {
+@Service(IWebRtcUseCaseToken)
+export class WebRtcUseCase implements IWebRtcUseCase {
   constructor(
     @Inject(IAppointmentRepositoryToken) private appointmentRepository: IAppointmentRepository,
     @Inject(ISlotRepositoryToken) private slotRepository: ISlotRepository
-  ) { }
+  ) { };
 
   async videoMeeting(meetingId: string, userId: ObjectId, role: string): Promise<AppointmentDocument> {
     const appointment = await this.appointmentRepository.findAppointmentByMeetingId(meetingId);
