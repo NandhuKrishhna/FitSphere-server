@@ -51,6 +51,6 @@ app.use(errorHandler);
 server.listen(PORT, async () => {
   await connectToDatabase();
   setupCalorieIntakeCron();
-  // logger.info(`Server running at http://localhost:${PORT} in ${NODE_ENV} mode`);
-  console.log("Server running at http://localhost:" + PORT + " in " + NODE_ENV + " mode");
+  console.log("Server is running on port", PORT);
+
 });
