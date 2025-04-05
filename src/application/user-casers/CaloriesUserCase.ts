@@ -67,9 +67,12 @@ export class CaloriesUseCase implements ICaloriesUseCase {
   }
 
   // delete food log by id
-  async deleteFood(userId: ObjectId, foodId: ObjectId, date: Date) {
+  async deleteFood(userId: ObjectId, foodId: ObjectId, date: Date, mealType: string) {
     appAssert(userId, BAD_REQUEST, "Please Login to delete food log");
     appAssert(foodId, BAD_REQUEST, "Something went wrong. Please try again");
+    const existingLog = await this.caloriesDetailsRepository.findFoodLogById(userId, foodId, date, mealType);
+    appAssert(existingLog, BAD_REQUEST, "Food log not found");
+    console.log(existingLog);
     await this.caloriesDetailsRepository.deleteFoodLogByFoodId(userId, foodId, date);
   }
 

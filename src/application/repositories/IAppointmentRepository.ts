@@ -24,6 +24,7 @@ export interface IAppointmentRepository {
     additionalDetails: AdditonDetails,
     status: string
   ): Promise<AppointmentDocument | null>;
+  findAppointmentById(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null>;
   cancelAppointment(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null>;
   findAllAppointmentByUserIdAndRole(userId: ObjectId, queryParams: AppointmentQueryParams, role: string): Promise<PaginatedAppointments>;
   findAppointmentByMeetingId(meetingId: string): Promise<AppointmentDocument | null>;

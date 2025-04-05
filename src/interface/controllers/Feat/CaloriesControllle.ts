@@ -71,10 +71,10 @@ export class CaloriesController {
 
   //delete food
   deleteFoodHandler = catchErrors(async (req: Request, res: Response) => {
-    const foodId = stringToObjectId(req.body.foodId);
-    const date = req.body.date;
+    console.log(req.body)
+    const { foodId, date, mealType } = req.body
     const { userId } = req as AuthenticatedRequest;
-    await this._caloriesUseCase.deleteFood(userId, foodId, date);
+    await this._caloriesUseCase.deleteFood(userId, foodId, date, mealType);
     res.status(OK).json({
       success: true,
       message: "Food Deleted Successfully",

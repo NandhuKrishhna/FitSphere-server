@@ -12,6 +12,7 @@ export interface ICaloriesDetailsRepository {
   addMeal(userId: ObjectId, foodItems: IFoodItem, mealType: string, date: string): Promise<ICalorieIntake>;
   getFoodLogs(userId: ObjectId, date?: Date): Promise<ICalorieIntake | null>;
   getUserHealthDetails(userId: ObjectId): Promise<IUserDetails | null>;
+  findFoodLogById(userId: ObjectId, foodId: ObjectId, date: Date, mealType: string): Promise<ICalorieIntake | null>;
   deleteFoodLogByFoodId(userId: ObjectId, foodId: ObjectId, date: Date): Promise<void>;
   editFoodLog(userId: ObjectId, foodId: ObjectId, date: string, updatedFoodItem: IFoodItem, mealType: string): Promise<mongoose.Types.ObjectId>;
   getWeightLogsByUserId(userId: ObjectId): Promise<IWeightLog[] | null>

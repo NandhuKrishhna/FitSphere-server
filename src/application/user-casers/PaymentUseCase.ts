@@ -172,7 +172,10 @@ export class PaymentUseCase implements IPaymentUseCase {
 
 
   async cancelAppointment(appointmentId: mongoose.Types.ObjectId) {
-
+    const appointment = await this._appointmentRepository.findAppointmentById(appointmentId);
+    appAssert(appointment, BAD_REQUEST, "Appointment not found. Please try again.");
+    appAssert(appointment.status !== "cancelled", BAD_REQUEST, "Appointment is already cancelled.");
+    appAssert(appointment.status !== "completed", BAD_REQUEST, "Appointment is already completed.");
     const details = await this._appointmentRepository.cancelAppointment(appointmentId);
     appAssert(details, BAD_REQUEST, "Unable to cancel appointment. Please try few minutes later.");
     await this.__slotRespository.cancelSlotById(details.slotId);
@@ -422,6 +425,9 @@ export class PaymentUseCase implements IPaymentUseCase {
     appAssert(subscriptionId, BAD_REQUEST, "Subscription not found. Please try again.");
     const subscriptionDetails = await this._premiumSubscriptionRepository.getSubscriptionById(subscriptionId);
     appAssert(subscriptionDetails, BAD_REQUEST, "Subscription not found. Please try again.");
+    const userSubscription = await this.userSubscriptionRepository.getSubscriptionDetails(userId);
+    console.log(userSubscription)
+    appAssert(userSubscription?.subscriptionId !== subscriptionId, BAD_REQUEST, `You already have an ${subscriptionDetails.planName} subscription. Please try again later.`);
     const userDetails = await this._userRepository.findUserById(userId);
     appAssert(userDetails, BAD_REQUEST, "User not found. Please try again.");
 

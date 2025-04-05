@@ -8,6 +8,8 @@ import mongoose from "mongoose";
 import { CalorieIntakeModel, ICalorieIntake, IFoodItem } from "../models/caloriesIntakeModel";
 import { ObjectId } from "../models/UserModel";
 import { IWeightLog, WeightLogModel } from "../models/weightLog.model";
+import appAssert from "../../shared/utils/appAssert";
+import { NOT_FOUND } from "../../shared/constants/http";
 
 @Service(ICaloriesDetailsRepositoryToken)
 export class CaloriesRepository implements ICaloriesDetailsRepository {
@@ -80,11 +82,27 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
     const user = await UserDetailsModel.findOne({ userId }).select("-password -__v -_id");
     return user;
   }
+  async findFoodLogById(userId: ObjectId, foodId: ObjectId, date: Date, mealType: string): Promise<ICalorieIntake | null> {
+    const targetDate = new Date(date);
+    targetDate.setUTCHours(0, 0, 0, 0);
+    const pathToMealArray = `meals.${mealType}`;
+    const result = await CalorieIntakeModel.findOne(
+      {
+        userId,
+        date: targetDate,
+        [`${pathToMealArray}._id`]: foodId,
+      },
+      {
+        [`${pathToMealArray}.$`]: 1,
+      }
+    );
+    return result
+  }
 
   async deleteFoodLogByFoodId(
     userId: mongoose.Types.ObjectId,
     foodId: mongoose.Types.ObjectId,
-    date: Date
+    date: Date,
   ): Promise<void> {
 
     const targetDate = date ? new Date(date) : new Date();
@@ -92,7 +110,7 @@ export class CaloriesRepository implements ICaloriesDetailsRepository {
     const existingLog = await CalorieIntakeModel.findOne({ userId, date: targetDate });
 
     if (!existingLog) {
-      return;
+      appAssert(false, NOT_FOUND, "Food log not found for the given date.");
     }
 
     const objectIdFoodId = new mongoose.Types.ObjectId(foodId);

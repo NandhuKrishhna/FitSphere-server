@@ -68,7 +68,10 @@ export class AppointmentRepository implements IAppointmentRepository {
 
     return response;
   }
-
+  async findAppointmentById(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null> {
+    const response = await AppointmentModel.findOne({ _id: id }).exec();
+    return response;
+  }
 
   async cancelAppointment(id: mongoose.Types.ObjectId): Promise<AppointmentDocument | null> {
     const response = await AppointmentModel.findOneAndUpdate(
@@ -159,6 +162,7 @@ export class AppointmentRepository implements IAppointmentRepository {
         data: [
           { $skip: skip },
           { $limit: limitNum },
+          { $sort: { createdAt: -1 } },
           {
             $project: {
               _id: 1,
