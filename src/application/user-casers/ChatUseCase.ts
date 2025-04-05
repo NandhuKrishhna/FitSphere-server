@@ -33,7 +33,7 @@ export class ChatUseCase implements IChatUseCase {
     let imageUrl;
     if (image) {
       const uploadResponse = await cloudinary.uploader.upload(image, { type: "authenticated" });
-      imageUrl = uploadResponse.public_id;
+      imageUrl = uploadResponse.secure_url;
     }
     const newMessage = await this.chatRepository.createMessage({
       conversationId: conversation._id,
