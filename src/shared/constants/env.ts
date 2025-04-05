@@ -13,6 +13,7 @@ export const MONGODB_URL = getEnv("MONGODB_URL");
 export const PORT = getEnv("PORT");
 export const NODE_ENV = getEnv("NODE_ENV");
 export const APP_ORIGIN = getEnv("APP_ORIGIN");
+console.log("APP_ORIGIN:", APP_ORIGIN);
 export const JWT_SECRET = getEnv("JWT_SECRET");
 export const SMTP_USER = getEnv("SMTP_USER");
 export const SMTP_PASS = getEnv("SMTP_PASS");
