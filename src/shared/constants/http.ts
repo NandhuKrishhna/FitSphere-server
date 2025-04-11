@@ -51,53 +51,53 @@ export const LOOP_DETECTED = 508;
 export const NOT_EXTENDED = 510;
 export const NETWORK_AUTHENTICATION_REQUIRED = 511;
 
-export type HttpStatusCode = typeof OK | 
-typeof CREATED |
-typeof ACCEPTED |
-typeof NON_AUTHORITATIVE_INFORMATION |
-typeof NO_CONTENT |
-typeof RESET_CONTENT |
-typeof PARTIAL_CONTENT |
-typeof MULTI_STATUS |
-typeof ALREADY_REPORTED |
-typeof IM_USED |
-typeof BAD_REQUEST |
-typeof UNAUTHORIZED |
-typeof PAYMENT_REQUIRED |
-typeof FORBIDDEN |
-typeof NOT_FOUND |
-typeof METHOD_NOT_ALLOWED |
-typeof NOT_ACCEPTABLE |
-typeof PROXY_AUTHENTICATION_REQUIRED |
-typeof REQUEST_TIMEOUT |
-typeof CONFLICT |
-typeof GONE |
-typeof LENGTH_REQUIRED |
-typeof PRECONDITION_FAILED |
-typeof PAYLOAD_TOO_LARGE |
-typeof URI_TOO_LONG |
-typeof UNSUPPORTED_MEDIA_TYPE |
-typeof RANGE_NOT_SATISFIABLE |
-typeof EXPECTATION_FAILED |
-typeof IM_A_TEAPOT |
-typeof MISDIRECTED_REQUEST |
-typeof UNPROCESSABLE_ENTITY |
-typeof LOCKED |
-typeof FAILED_DEPENDENCY |
-typeof TOO_EARLY |
-typeof UPGRADE_REQUIRED |
-typeof PRECONDITION_REQUIRED |
-typeof TOO_MANY_REQUESTS |
-typeof REQUEST_HEADER_FIELDS_TOO_LARGE |
-typeof UNAVAILABLE_FOR_LEGAL_REASONS |
-typeof INTERNAL_SERVER_ERROR |
-typeof NOT_IMPLEMENTED |
-typeof BAD_GATEWAY |
-typeof SERVICE_UNAVAILABLE |
-typeof GATEWAY_TIMEOUT |
-typeof HTTP_VERSION_NOT_SUPPORTED |
-typeof VARIANT_ALSO_NEGOTIATES |
-typeof INSUFFICIENT_STORAGE |
-typeof LOOP_DETECTED |
-typeof NOT_EXTENDED |
-typeof NETWORK_AUTHENTICATION_REQUIRED
+export type HttpStatusCode = typeof OK |
+    typeof CREATED |
+    typeof ACCEPTED |
+    typeof NON_AUTHORITATIVE_INFORMATION |
+    typeof NO_CONTENT |
+    typeof RESET_CONTENT |
+    typeof PARTIAL_CONTENT |
+    typeof MULTI_STATUS |
+    typeof ALREADY_REPORTED |
+    typeof IM_USED |
+    typeof BAD_REQUEST |
+    typeof UNAUTHORIZED |
+    typeof PAYMENT_REQUIRED |
+    typeof FORBIDDEN |
+    typeof NOT_FOUND |
+    typeof METHOD_NOT_ALLOWED |
+    typeof NOT_ACCEPTABLE |
+    typeof PROXY_AUTHENTICATION_REQUIRED |
+    typeof REQUEST_TIMEOUT |
+    typeof CONFLICT |
+    typeof GONE |
+    typeof LENGTH_REQUIRED |
+    typeof PRECONDITION_FAILED |
+    typeof PAYLOAD_TOO_LARGE |
+    typeof URI_TOO_LONG |
+    typeof UNSUPPORTED_MEDIA_TYPE |
+    typeof RANGE_NOT_SATISFIABLE |
+    typeof EXPECTATION_FAILED |
+    typeof IM_A_TEAPOT |
+    typeof MISDIRECTED_REQUEST |
+    typeof UNPROCESSABLE_ENTITY |
+    typeof LOCKED |
+    typeof FAILED_DEPENDENCY |
+    typeof TOO_EARLY |
+    typeof UPGRADE_REQUIRED |
+    typeof PRECONDITION_REQUIRED |
+    typeof TOO_MANY_REQUESTS |
+    typeof REQUEST_HEADER_FIELDS_TOO_LARGE |
+    typeof UNAVAILABLE_FOR_LEGAL_REASONS |
+    typeof INTERNAL_SERVER_ERROR |
+    typeof NOT_IMPLEMENTED |
+    typeof BAD_GATEWAY |
+    typeof SERVICE_UNAVAILABLE |
+    typeof GATEWAY_TIMEOUT |
+    typeof HTTP_VERSION_NOT_SUPPORTED |
+    typeof VARIANT_ALSO_NEGOTIATES |
+    typeof INSUFFICIENT_STORAGE |
+    typeof LOOP_DETECTED |
+    typeof NOT_EXTENDED |
+    typeof NETWORK_AUTHENTICATION_REQUIRED
