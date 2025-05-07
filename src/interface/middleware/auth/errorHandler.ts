@@ -44,7 +44,9 @@ const errorHandler: ErrorRequestHandler = (error, req: Request, res: Response, n
       message: error.message,
       stack: process.env.NODE_ENV !== "production" ? error.stack : undefined,
     },
+
   };
+  console.log("Error", errorDetails)
 
 
   if (req.path === REFRESH_PATH) {
