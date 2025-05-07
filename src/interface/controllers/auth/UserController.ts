@@ -22,7 +22,7 @@ import { verfiyToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { IRegisterUseCaseToken } from "../../../application/user-casers/interface/IRegisterUseCase";
-import { IUserController, IUserControllerToken } from "../../../application/repositories/IUserController";
+import { IUserController, IUserControllerToken } from "../../controllerInterface/IUserController";
 
 @Service()
 

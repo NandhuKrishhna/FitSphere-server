@@ -12,7 +12,7 @@ import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import appAssert from "../../../shared/utils/appAssert";
 import { IDoctorUseCaseToken } from "../../../application/user-casers/interface/IDoctorUseCase";
-import { IDoctorController, IDoctorControllerToken } from "../../../application/repositories/IDoctorController";
+import { IDoctorController, IDoctorControllerToken } from "../../controllerInterface/IDoctorController";
 
 @Service()
 export class DoctorController implements IDoctorController {

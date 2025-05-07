@@ -12,7 +12,7 @@ import { AppointmentQueryParams } from "../../../domain/types/appointment.types"
 import appAssert from "../../../shared/utils/appAssert";
 import { json } from "stream/consumers";
 import { IDoctorFeatUseCaseToken } from "../../../application/user-casers/interface/IDoctorFeatUseCase";
-import { IDoctorFeatController, IDoctorFeatControllerToken } from "../../../application/repositories/IDoctorFeatController";
+import { IDoctorFeatController, IDoctorFeatControllerToken } from "../../controllerInterface/IDoctorFeatController";
 
 @Service()
 export class DoctorFeatController implements IDoctorFeatController {

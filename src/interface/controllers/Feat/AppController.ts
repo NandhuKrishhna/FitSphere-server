@@ -9,8 +9,8 @@ import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { NotificationQueryParams, TransactionQueryParams, WalletTransactionQuery } from "../../../domain/types/queryParams.types";
 import { IAppUseCaseToken } from "../../../application/user-casers/interface/IAppUseCase";
-import { IAppController } from "../../../application/repositories/IAppController";
-import { IAdminControllerToken } from "../../../application/repositories/IAdminController";
+import { IAppController } from "../../controllerInterface/IAppController";
+import { IAdminControllerToken } from "../../controllerInterface/IAdminController";
 
 
 

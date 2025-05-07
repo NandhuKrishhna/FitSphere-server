@@ -6,7 +6,7 @@ import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { CREATED, NOT_FOUND, OK } from "../../../shared/constants/http";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { IChatUseCaseToken } from "../../../application/user-casers/interface/IChatUseCase";
-import { IChatController, IChatControllerToken } from "../../../application/repositories/IChatController";
+import { IChatController, IChatControllerToken } from "../../controllerInterface/IChatController";
 export type GetMessagesQueryParams = {
   receiverId: string;
   page?: string

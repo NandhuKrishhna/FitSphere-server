@@ -6,7 +6,7 @@ import { Inject, Service } from "typedi";
 import { WebRtcUseCase } from "../../../application/user-casers/WebRtcUseCase";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { IWebRtcUseCaseToken } from "../../../application/user-casers/interface/IWebRtcUseCase";
-import { IWebRtcController, IWebRtcControllerToken } from "../../../application/repositories/IWebRtcCotroller";
+import { IWebRtcController, IWebRtcControllerToken } from "../../controllerInterface/IWebRtcCotroller";
 @Service()
 export class WebRtcController implements IWebRtcController {
 

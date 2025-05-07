@@ -12,7 +12,7 @@ import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import premiumSubscriptionSchema, { editPremiumSubscriptionSchema } from "../../validations/premiumSubscriptionSchema";
 import appAssert from "../../../shared/utils/appAssert";
 import { IAdminUseCaseToken } from "../../../application/user-casers/interface/IAdminUseCase";
-import { IAdminController, IAdminControllerToken } from "../../../application/repositories/IAdminController";
+import { IAdminController, IAdminControllerToken } from "../../controllerInterface/IAdminController";
 
 @Service()
 export class AdminController implements IAdminController {
