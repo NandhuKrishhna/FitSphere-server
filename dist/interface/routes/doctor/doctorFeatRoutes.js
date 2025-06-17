@@ -1,0 +1,24 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const typedi_1 = require("typedi");
+const ChatController_1 = require("../../controllers/Feat/ChatController");
+const DoctorFeatController_1 = require("../../controllers/doctor/DoctorFeatController");
+const AppController_1 = require("../../controllers/Feat/AppController");
+const doctorFeatRouter = (0, express_1.Router)();
+const doctorFeatController = typedi_1.Container.get(DoctorFeatController_1.DoctorFeatController);
+const chatController = typedi_1.Container.get(ChatController_1.ChatController);
+const appController = typedi_1.Container.get(AppController_1.AppController);
+doctorFeatRouter.post("/slot-management", doctorFeatController.slotManagementHandler);
+doctorFeatRouter.get("/get-slots", doctorFeatController.displayAllSlotsHandler);
+doctorFeatRouter.post("/cancel-slot", doctorFeatController.cancelSlotHandler);
+doctorFeatRouter.get("/get/all-appointments", doctorFeatController.getAllAppointmentsHandler);
+doctorFeatRouter.get("/get-all-chats", doctorFeatController.getUsersInSideBarHandler);
+doctorFeatRouter.get("/get-all-messages", chatController.getMessagesHandler);
+doctorFeatRouter.post("/send-message", chatController.sendMessageHandler);
+doctorFeatRouter.get("/get-reviews/:doctorId", appController.fetchReviewsAndRatingHandler);
+doctorFeatRouter.post("/profile", appController.doctorDetailsHandler);
+doctorFeatRouter.get("/wallet/:userId", appController.getWalletHandler);
+//* Profile page Patients
+doctorFeatRouter.get("/patients-appointments", doctorFeatController.profilePageDetailsHandler);
+exports.default = doctorFeatRouter;

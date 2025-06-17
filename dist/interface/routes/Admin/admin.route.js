@@ -1,0 +1,28 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const typedi_1 = require("typedi");
+const AdminController_1 = require("../../controllers/Admin/AdminController");
+const authMiddleware_1 = __importDefault(require("../../middleware/auth/authMiddleware"));
+const roleBaseAuthentication_1 = __importDefault(require("../../middleware/auth/roleBaseAuthentication"));
+const adminRouter = (0, express_1.Router)();
+const adminController = typedi_1.Container.get(AdminController_1.AdminController);
+adminRouter.post("/login", adminController.loginHandler);
+adminRouter.get("/users", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.getAllUsersHandler);
+adminRouter.get("/doctors", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.getAllDoctorsHandler);
+adminRouter.get("/logout", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.logoutHandler);
+adminRouter.get("/notification", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.notificationHandler);
+adminRouter.post("/approve-request", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.approveRequestHandler);
+adminRouter.post("/reject-request", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.rejectRequestHandler);
+adminRouter.get("/doctorDetails", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.getAllDoctorWithDetails);
+adminRouter.post("/unblock-user", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.unblockUserHandler);
+adminRouter.post("/block-user", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.blockUserHandler);
+adminRouter.get("/dashboard", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.adminDasBoardHandler);
+adminRouter.post("/create-subcription-plan", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.addingPremiumSubscription);
+adminRouter.put("/edit-subcription-plan", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.editPremiumSubscription);
+adminRouter.delete("/delete-subscription-plan/:id", authMiddleware_1.default, adminController.deletePremiumSubscription);
+adminRouter.get("/get-subcription-plan", authMiddleware_1.default, (0, roleBaseAuthentication_1.default)(["admin"]), adminController.getAllPremiumSubscription);
+exports.default = adminRouter;

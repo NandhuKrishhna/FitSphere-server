@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const typedi_1 = __importDefault(require("typedi"));
+const CaloriesControllle_1 = require("../../controllers/Feat/CaloriesControllle");
+const caloriesRouter = (0, express_1.Router)();
+const caloriesController = typedi_1.default.get(CaloriesControllle_1.CaloriesController);
+caloriesRouter.post("/add-userdetails", caloriesController.addUserHealthDetails);
+caloriesRouter.patch("/update-userdetails", caloriesController.updateUserDetails);
+caloriesRouter.post("/add-foodlog", caloriesController.addMealHandler);
+caloriesRouter.post("/delete-food", caloriesController.deleteFoodHandler);
+caloriesRouter.post("/get-foodlog", caloriesController.getFoodLogsHandler);
+caloriesRouter.get("/get-userHealthDetails", caloriesController.getUserHealthDetailsHandler);
+caloriesRouter.get("/get-foods", caloriesController.searchFoodHandler);
+caloriesRouter.patch("/edit-food", caloriesController.editFoodHandler);
+caloriesRouter.get("/get-weight-progress", caloriesController.getWeightLogHandler);
+exports.default = caloriesRouter;

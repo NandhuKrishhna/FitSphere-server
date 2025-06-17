@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const UserController_1 = require("../../controllers/auth/UserController");
+const typedi_1 = require("typedi");
+const authRouter = (0, express_1.Router)();
+const userController = typedi_1.Container.get(UserController_1.UserController);
+authRouter.post("/signup", userController.registerHandler);
+authRouter.post("/login", userController.loginHandler);
+authRouter.get("/refresh", userController.refreshHandler);
+authRouter.get("/logout", userController.logoutHandler);
+// verify email{otp} after user signup
+authRouter.post("/verify-email", userController.otpVerifyHandler);
+// authRouter.get("/verify/email/:code" , userController.verifyEmailHandler);
+authRouter.post("/forgot-password", userController.sendPasswordResetHandler);
+authRouter.post("/verify/reset-password/otp", userController.verifyResetPasswordCode);
+authRouter.post("/reset/new-password", userController.resetPasswordHandler);
+authRouter.post("/resend-otp", userController.resendPasswordHandler);
+authRouter.get("/google", userController.googleAuthHandler);
+exports.default = authRouter;

@@ -1,0 +1,42 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const typedi_1 = __importDefault(require("typedi"));
+const AppController_1 = require("../../controllers/Feat/AppController");
+const ChatController_1 = require("../../controllers/Feat/ChatController");
+const PaymentController_1 = require("../../controllers/Feat/PaymentController");
+const AdminController_1 = require("../../controllers/Admin/AdminController");
+const chat_message_limit_middleware_1 = __importDefault(require("../../middleware/auth/chat-message-limit-middleware"));
+const appRouter = (0, express_1.Router)();
+const appController = typedi_1.default.get(AppController_1.AppController);
+const chatController = typedi_1.default.get(ChatController_1.ChatController);
+const paymentController = typedi_1.default.get(PaymentController_1.PaymentController);
+const subscription = typedi_1.default.get(AdminController_1.AdminController);
+appRouter.get("/doctors/all", appController.displayAllDoctorsHandler);
+appRouter.post("/update-profile", appController.updateProfileHandler);
+appRouter.post("/doctor/profile", appController.doctorDetailsHandler);
+appRouter.post("/doctor/slots", appController.getSlotsHandler);
+appRouter.get("/wallet/:userId", appController.getWalletHandler);
+// chat
+appRouter.post("/send-message", chat_message_limit_middleware_1.default, chatController.sendMessageHandler);
+appRouter.get("/conversation", chatController.getMessagesHandler);
+appRouter.get("/get-users", chatController.getAllUsersHandler);
+appRouter.post("/create-conversation", chatController.createConversationHandler);
+appRouter.get("/get-conversation", chatController.getConversationHandler);
+//payment [wallet, transactions, book appointment]
+appRouter.post("/book/slots", paymentController.bookAppointment);
+appRouter.post("/wallet-payment", paymentController.walletPaymentHandler);
+appRouter.post("/verify/payment", paymentController.verifyPaymentHandler);
+appRouter.post("/payment-failure", paymentController.abortPaymentHandler);
+appRouter.post("/cancel/appointments", paymentController.cancelAppointmentHandler);
+appRouter.post("/add-reviews", appController.reviewAndRatingHandler);
+appRouter.patch("/edit-review", appController.editReviewHandler);
+appRouter.delete("/delete-review", appController.deleteReviewHandler);
+appRouter.get("/get-all-subscription-plans", subscription.getAllPremiumSubscription);
+appRouter.post("/buy-subscription", paymentController.premiumSubscriptionHandler);
+appRouter.get("/get-subscription-details", appController.getSubscriptionDetailsHandler);
+// appRouter.post("/start-conversation", chatController.addUsersInSideBarHandler);
+exports.default = appRouter;

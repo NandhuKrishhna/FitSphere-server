@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const typedi_1 = __importDefault(require("typedi"));
+const DoctorController_1 = require("../../controllers/doctor/DoctorController");
+const AppController_1 = require("../../controllers/Feat/AppController");
+const DoctorFeatController_1 = require("../../controllers/doctor/DoctorFeatController");
+const commonRouter = (0, express_1.Router)();
+const doctorController = typedi_1.default.get(DoctorController_1.DoctorController);
+const appController = typedi_1.default.get(AppController_1.AppController);
+const doctorFeatController = typedi_1.default.get(DoctorFeatController_1.DoctorFeatController);
+commonRouter.patch("/update-password", doctorController.updatePasswordHandler);
+commonRouter.get("/get-all-notification", appController.getNotificationsHandler);
+commonRouter.post("/mark-as-read", appController.markAsReadNotificationHandler);
+commonRouter.get("/get-reviews/:doctorId", appController.fetchReviewsAndRatingHandler);
+commonRouter.get("/get-all-ratings", appController.getAllRatingsHandler);
+commonRouter.get("/get-all-transactions", appController.getAllTransactionsHandler);
+commonRouter.get("/get-transaction-history", appController.fetchTransactionHandler);
+commonRouter.get("/get-appointments", doctorFeatController.getAllAppointmentsHandler);
+exports.default = commonRouter;
