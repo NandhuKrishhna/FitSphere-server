@@ -4,7 +4,7 @@ import { DoctorDetails } from "../../domain/entities/DoctorDetails";
 import { DoctorDetailsParams, DoctorProfile, DoctorwithDetails, UpdateDoctorParams } from "../../domain/types/doctorTypes";
 import { DoctorDetailsDocument } from "../../infrastructure/models/doctor.details.model";
 import { DoctorDocument } from "../../infrastructure/models/DoctorModel";
-import { DoctorStats } from "../user-casers/interface-types/UseCase-types";
+import { DoctorStats } from "../user-cases/interface-types/UseCase-types";
 
 export interface IDoctorRepository {
   findDoctorByEmail(email: string): Promise<DoctorDocument | null>

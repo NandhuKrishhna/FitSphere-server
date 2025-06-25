@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { Inject, Service } from "typedi";
-import { CaloriesUseCase } from "../../../application/user-casers/CaloriesUserCase";
+import { CaloriesUseCase } from "../../../application/user-cases/CaloriesUserCase";
 import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { updateUserDetailsSchema, userDetailsSchema } from "../../validations/user.details.schema";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import appAssert from "../../../shared/utils/appAssert";
-import { ICaloriesUseCaseToken } from "../../../application/user-casers/interface/ICaloriesUseCase";
+import { ICaloriesUseCaseToken } from "../../../application/user-cases/interface/ICaloriesUseCase";
 
 @Service()
 export class CaloriesController {

@@ -3,7 +3,7 @@ import { IUserRepository, IUserRepositoryToken } from "../../application/reposit
 import { UserDocument, UserModel } from "../models/UserModel";
 import { User, UserType } from "../../domain/entities/User";
 import mongoose from "mongoose";
-import { UserStats } from "../../application/user-casers/interface-types/UseCase-types";
+import { UserStats } from "../../application/user-cases/interface-types/UseCase-types";
 
 @Service(IUserRepositoryToken)
 export class UserRepository implements IUserRepository {

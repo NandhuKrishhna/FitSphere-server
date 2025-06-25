@@ -3,9 +3,9 @@ import catchErrors from "../../../shared/utils/catchErrors";
 import appAssert from "../../../shared/utils/appAssert";
 import { NOT_FOUND, OK } from "../../../shared/constants/http";
 import { Inject, Service } from "typedi";
-import { WebRtcUseCase } from "../../../application/user-casers/WebRtcUseCase";
+import { WebRtcUseCase } from "../../../application/user-cases/WebRtcUseCase";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
-import { IWebRtcUseCaseToken } from "../../../application/user-casers/interface/IWebRtcUseCase";
+import { IWebRtcUseCaseToken } from "../../../application/user-cases/interface/IWebRtcUseCase";
 import { IWebRtcController, IWebRtcControllerToken } from "../../controllerInterface/IWebRtcCotroller";
 @Service()
 export class WebRtcController implements IWebRtcController {

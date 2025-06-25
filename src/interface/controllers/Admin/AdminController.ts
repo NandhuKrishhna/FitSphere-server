@@ -2,7 +2,7 @@ import { Request, response, Response } from "express";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { loginSchema } from "../../validations/userSchema";
 import { Inject, Service } from "typedi";
-import { AdminUseCase } from "../../../application/user-casers/AdminUseCase";
+import { AdminUseCase } from "../../../application/user-cases/AdminUseCase";
 import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
 import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
 import { verifyToken } from "../../../shared/utils/jwt";
@@ -11,7 +11,7 @@ import { DoctorQueryParams, UserQueryParams } from "../../../domain/types/queryP
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import premiumSubscriptionSchema, { editPremiumSubscriptionSchema } from "../../validations/premiumSubscriptionSchema";
 import appAssert from "../../../shared/utils/appAssert";
-import { IAdminUseCaseToken } from "../../../application/user-casers/interface/IAdminUseCase";
+import { IAdminUseCaseToken } from "../../../application/user-cases/interface/IAdminUseCase";
 import { IAdminController, IAdminControllerToken } from "../../controllerInterface/IAdminController";
 
 @Service()

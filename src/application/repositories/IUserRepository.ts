@@ -1,7 +1,7 @@
 import { Token } from "typedi";
 import mongoose from "mongoose";
 import { UserDocument } from "../../infrastructure/models/UserModel";
-import { UserStats } from "../user-casers/interface-types/UseCase-types";
+import { UserStats } from "../user-cases/interface-types/UseCase-types";
 
 export interface IUserRepository {
   createUser(user: Partial<UserDocument>): Promise<UserDocument>;

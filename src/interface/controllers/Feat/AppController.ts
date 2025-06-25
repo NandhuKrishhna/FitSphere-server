@@ -3,12 +3,11 @@ import catchErrors from "../../../shared/utils/catchErrors";
 import { BAD_REQUEST, OK } from "../../../shared/constants/http";
 import appAssert from "../../../shared/utils/appAssert";
 import { Inject, Service } from "typedi";
-import { AppUseCase } from "../../../application/user-casers/AppUseCase";
+import { AppUseCase } from "../../../application/user-cases/AppUseCase";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { NotificationQueryParams, TransactionQueryParams, WalletTransactionQuery } from "../../../domain/types/queryParams.types";
-import { IAppUseCaseToken } from "../../../application/user-casers/interface/IAppUseCase";
 import { IAppController } from "../../controllerInterface/IAppController";
 import { IAdminControllerToken } from "../../controllerInterface/IAdminController";
 
@@ -152,7 +151,7 @@ export class AppController implements IAppController {
   markAsReadNotificationHandler = catchErrors(async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const notificationId = stringToObjectId(req.body.notificationId);
-    appAssert(notificationId, BAD_REQUEST, "No Notificaiton was found");
+    appAssert(notificationId, BAD_REQUEST, "No Notification was found");
     await this._appUseCase.markAsReadNotification(notificationId);
     res.status(OK).json({
       success: true,

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { Inject, Service } from "typedi";
 import { CREATED, OK, UNAUTHORIZED } from "../../../shared/constants/http";
-import { RegisterUserUseCase } from "../../../application/user-casers/RegisterUserUseCase";
+import { RegisterUserUseCase } from "../../../application/user-cases/RegisterUserUseCase";
 import {
   emailSchema,
   loginSchema,
@@ -21,7 +21,7 @@ import {
 import { verifyToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
-import { IRegisterUseCaseToken } from "../../../application/user-casers/interface/IRegisterUseCase";
+import { IRegisterUseCaseToken } from "../../../application/user-cases/interface/IRegisterUseCase";
 import { IUserController, IUserControllerToken } from "../../controllerInterface/IUserController";
 import { AUTH_SUCCESS_MESSAGE } from "../../../shared/constants/success-message";
 

@@ -1,5 +1,5 @@
 import { Inject, Service } from "typedi";
-import { DoctorUseCase } from "../../../application/user-casers/DoctorUseCase";
+import { DoctorUseCase } from "../../../application/user-cases/DoctorUseCase";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { doctorRegisterSchema, emailSchema, passwordSchema, verificationCodeSchema } from "../../validations/doctorSchema";
 import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
@@ -11,7 +11,7 @@ import { verifyToken } from "../../../shared/utils/jwt";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import appAssert from "../../../shared/utils/appAssert";
-import { IDoctorUseCaseToken } from "../../../application/user-casers/interface/IDoctorUseCase";
+import { IDoctorUseCaseToken } from "../../../application/user-cases/interface/IDoctorUseCase";
 import { IDoctorController, IDoctorControllerToken } from "../../controllerInterface/IDoctorController";
 
 @Service()

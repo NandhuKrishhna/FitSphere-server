@@ -1,11 +1,11 @@
 import { Inject, Service } from "typedi";
-import { ChatUseCase } from "../../../application/user-casers/ChatUseCase";
+import { ChatUseCase } from "../../../application/user-cases/ChatUseCase";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { Request, Response } from "express";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { CREATED, NOT_FOUND, OK } from "../../../shared/constants/http";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
-import { IChatUseCaseToken } from "../../../application/user-casers/interface/IChatUseCase";
+import { IChatUseCaseToken } from "../../../application/user-cases/interface/IChatUseCase";
 import { IChatController, IChatControllerToken } from "../../controllerInterface/IChatController";
 export type GetMessagesQueryParams = {
   receiverId: string;

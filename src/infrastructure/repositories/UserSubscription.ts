@@ -3,7 +3,7 @@ import { IUserSubscriptionRepository, IUserSubscriptionRepositoryToken } from ".
 import mongoose from "mongoose";
 import { IUserSubscription, UserSubscriptionModel } from "../models/userSubscription-model";
 import { PremiumSubscriptionModel } from "../models/premiumSubscriptionModel";
-import { ISubscriptionDetails } from "../../application/user-casers/interface-types/UseCase-types";
+import { ISubscriptionDetails } from "../../application/user-cases/interface-types/UseCase-types";
 export type AddSubscriptionParams = {
     userId: mongoose.Types.ObjectId,
     subscriptionId: mongoose.Types.ObjectId

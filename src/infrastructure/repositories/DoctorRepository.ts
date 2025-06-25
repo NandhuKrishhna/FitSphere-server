@@ -9,7 +9,7 @@ import { DoctorProfile, DoctorwithDetails, UpdateDoctorParams } from "../../doma
 import bcrypt from "bcrypt";
 import { UserModel } from "../models/UserModel";
 import RatingModel from "../models/RatingsModel";
-import { DoctorStats } from "../../application/user-casers/interface-types/UseCase-types";
+import { DoctorStats } from "../../application/user-cases/interface-types/UseCase-types";
 interface MatchStage {
   isApproved: boolean;
   isVerified: boolean;

@@ -7,11 +7,11 @@ import { SlotType } from "../../validations/slot.schema";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import { convertToISTWithOffset } from "../../../shared/utils/date";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
-import { DoctorFeatUseCase } from "../../../application/user-casers/DoctorFeatUseCase";
+import { DoctorFeatUseCase } from "../../../application/user-cases/DoctorFeatUseCase";
 import { AppointmentQueryParams } from "../../../domain/types/appointment.types";
 import appAssert from "../../../shared/utils/appAssert";
 import { json } from "stream/consumers";
-import { IDoctorFeatUseCaseToken } from "../../../application/user-casers/interface/IDoctorFeatUseCase";
+import { IDoctorFeatUseCaseToken } from "../../../application/user-cases/interface/IDoctorFeatUseCase";
 import { IDoctorFeatController, IDoctorFeatControllerToken } from "../../controllerInterface/IDoctorFeatController";
 
 @Service()

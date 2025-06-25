@@ -1,5 +1,5 @@
 import { Inject, Service } from "typedi";
-import { PaymentUseCase } from "../../../application/user-casers/PaymentUseCase";
+import { PaymentUseCase } from "../../../application/user-cases/PaymentUseCase";
 import catchErrors from "../../../shared/utils/catchErrors";
 import { Request, Response } from "express";
 import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
