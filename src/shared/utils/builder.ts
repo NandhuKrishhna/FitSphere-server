@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { NotificationType, OtpCodeTypes, VerificationCodeTypes } from "../constants/verficationCodeTypes";
+import { NotificationType, OtpCodeTypes, VerificationCodeTypes } from "../constants/verificationCodeTypes";
 import { generateOtpExpiration } from "./date";
 import { generateOTP } from "./otpGenerator";
 import { Otp } from "../../domain/entities/Otp";

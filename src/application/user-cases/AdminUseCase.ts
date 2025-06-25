@@ -17,7 +17,7 @@ import Role from "../../shared/constants/UserRole";
 import { IcreateSession } from "../../shared/utils/builder";
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";
 import { ObjectId } from "../../infrastructure/models/UserModel";
-import { NotificationType } from "../../shared/constants/verficationCodeTypes";
+import { NotificationType } from "../../shared/constants/verificationCodeTypes";
 import { getReceiverSocketId } from "../../infrastructure/config/socket.io";
 import { emitNotification, suspendNotification } from "../../shared/utils/emitNotification";
 import { DoctorQueryParams, UserQueryParams } from "../../domain/types/queryParams.types";

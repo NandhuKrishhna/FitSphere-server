@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { NotificationType } from "../../shared/constants/verficationCodeTypes";
+import { NotificationType } from "../../shared/constants/verificationCodeTypes";
 
 export type NotificationStatus = "pending" | "approved" | "rejected" | "read";
 

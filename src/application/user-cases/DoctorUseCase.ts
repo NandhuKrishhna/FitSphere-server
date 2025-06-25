@@ -12,7 +12,7 @@ import { ISessionRepository, ISessionRepositoryToken } from "../repositories/ISe
 import { AccessTokenPayload, RefreshTokenPayload, refreshTokenSignOptions, signToken } from "../../shared/utils/jwt";
 import { IDoctorRepository, IDoctorRepositoryToken } from "../repositories/IDoctorReposirtory";
 import { DoctorDetailsParams, DoctorInfoParams, RegisterDoctorParams } from "../../domain/types/doctorTypes";
-import { NotificationType, OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verficationCodeTypes";
+import { NotificationType, OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verificationCodeTypes";
 import { getVerifyEmailTemplates } from "../../shared/utils/emialTemplates";
 import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../repositories/IOtpReposirtory";
 import { getPendingApprovalEmailTemplate } from "../../shared/utils/doctorEmailTemplates";

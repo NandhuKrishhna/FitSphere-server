@@ -22,7 +22,7 @@ import { refreshTokenSignOptions } from "../../shared/utils/jwt";
 import { sendMail } from "../../shared/constants/sendMail";
 import { getResetPasswordEmailTemplates, getVerifyEmailTemplates } from "../../shared/utils/emialTemplates";
 import { hashPassword } from "../../shared/utils/bcrypt";
-import { OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verficationCodeTypes";
+import { OtpCodeTypes, VerificationCodeTypes } from "../../shared/constants/verificationCodeTypes";
 import { IOptverificationRepository, IOtpReposirtoryCodeToken } from "../repositories/IOtpReposirtory";
 
 import { IWalletRepository, IWalletRepositoryToken } from "../repositories/IWalletRepository";

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { DoctorDetails } from "../../domain/entities/DoctorDetails";
-import { NotificationType } from "../constants/verficationCodeTypes";
+import { NotificationType } from "../constants/verificationCodeTypes";
 import { Notification, NotificationStatus } from "../../domain/entities/Notification";
 import { Slot } from "../../domain/entities/Slot";
 import { SlotDocument } from "../../domain/types/Slot";

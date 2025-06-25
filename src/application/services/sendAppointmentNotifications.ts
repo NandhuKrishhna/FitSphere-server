@@ -4,7 +4,7 @@ import { ISlotRepository, ISlotRepositoryToken } from "../repositories/ISlotRepo
 import { AppointmentDocument } from "../../infrastructure/models/appointmentModel";
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 import Role from "../../shared/constants/UserRole";
-import { NotificationType } from "../../shared/constants/verficationCodeTypes";
+import { NotificationType } from "../../shared/constants/verificationCodeTypes";
 import { formatDate, formatToIndianTime } from "../../shared/utils/timeConvertor";
 import { getReceiverSocketId } from "../../infrastructure/config/socket.io";
 import { emitNotification } from "../../shared/utils/emitNotification";

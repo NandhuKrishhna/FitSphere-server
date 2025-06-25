@@ -15,7 +15,7 @@ import {
 import { IAppointmentRepository, IAppointmentRepositoryToken } from "../repositories/IAppointmentRepository";
 import { INotificationRepository, INotificationRepositoryToken } from "../repositories/INotificationRepository";
 import { ITransactionRepository, ITransactionRepositoryToken } from "../repositories/ITransactionRepository";
-import { NotificationType } from "../../shared/constants/verficationCodeTypes";
+import { NotificationType } from "../../shared/constants/verificationCodeTypes";
 import mongoose, { isValidObjectId } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 import Role from "../../shared/constants/UserRole";

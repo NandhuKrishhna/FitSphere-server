@@ -1,12 +1,12 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
-import { VerificationCodeTypes } from "../../shared/constants/verficationCodeTypes";
+import { VerificationCodeTypes } from "../../shared/constants/verificationCodeTypes";
 
 export interface VerficationCodeDocument extends Document {
   userId: mongoose.Types.ObjectId;
   type: VerificationCodeTypes;
   expiresAt: Date;
   createdAt: Date;
-  _id:mongoose.Types.ObjectId
+  _id: mongoose.Types.ObjectId
 }
 
 const verificationCodeSchema = new Schema<VerficationCodeDocument>({
@@ -32,6 +32,6 @@ const verificationCodeSchema = new Schema<VerficationCodeDocument>({
 });
 
 
-const VerificationCodeModel: Model<VerficationCodeDocument> = 
-mongoose.model<VerficationCodeDocument>("VerificationCode", verificationCodeSchema , "verification_codes");
+const VerificationCodeModel: Model<VerficationCodeDocument> =
+  mongoose.model<VerficationCodeDocument>("VerificationCode", verificationCodeSchema, "verification_codes");
 export default VerificationCodeModel;
