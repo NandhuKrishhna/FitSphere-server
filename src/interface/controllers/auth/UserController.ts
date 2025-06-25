@@ -23,6 +23,7 @@ import appAssert from "../../../shared/utils/appAssert";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { IRegisterUseCaseToken } from "../../../application/user-casers/interface/IRegisterUseCase";
 import { IUserController, IUserControllerToken } from "../../controllerInterface/IUserController";
+import { AUTH_SUCCESS_MESSAGE } from "../../../shared/constants/success-message";
 
 @Service()
 
@@ -42,7 +43,7 @@ export class UserController implements IUserController {
       .status(CREATED)
       .json({
         success: true,
-        message: `Registration successfull. An OTP has been sent to ${user.email}`,
+        message: `${AUTH_SUCCESS_MESSAGE.REGISTRATION_SUCCESS}${user.email}`,
         response: { ...user, accessToken },
       });
   });
@@ -55,7 +56,7 @@ export class UserController implements IUserController {
     await this._registerUserUseCase.verifyOtp(code, userId);
     return res.status(OK).json({
       success: true,
-      message: "Email was successfully verfied",
+      message: AUTH_SUCCESS_MESSAGE.OTP_VERIFICATION_SUCCESS,
     });
   });
 
@@ -69,7 +70,7 @@ export class UserController implements IUserController {
     return setAuthCookies({ res, accessToken, refreshToken })
       .status(OK)
       .json({
-        message: "Login successful",
+        message: AUTH_SUCCESS_MESSAGE.LOGIN_SUCCESS,
         response: { ...user, accessToken },
       });
   });
@@ -83,7 +84,7 @@ export class UserController implements IUserController {
       await this._registerUserUseCase.logoutUser(payload);
     }
     return clearAuthCookies(res).status(OK).json({
-      message: "Logout successful",
+      message: AUTH_SUCCESS_MESSAGE.LOGOUT_SUCCESS,
     });
   });
 
@@ -98,7 +99,7 @@ export class UserController implements IUserController {
       res.cookie("refreshToken", newRefreshToken, generateRefreshTokenCookieOptions());
     }
     return res.status(OK).cookie("accessToken", accessToken, getAccessTokenCookieOptions()).json({
-      message: "Access token refreshed",
+      message: AUTH_SUCCESS_MESSAGE.ACCESS_TOKEN_REFRESHED,
       accessToken,
     });
   });
@@ -109,7 +110,7 @@ export class UserController implements IUserController {
     const verificationCode = verificationCodeSchema.parse(req.params.code);
     await this._registerUserUseCase.verifyEmail(verificationCode);
     return res.status(OK).json({
-      message: "Email was successfully verfied",
+      message: AUTH_SUCCESS_MESSAGE.EMAIL_VERIFIED,
     });
   });
 
@@ -120,7 +121,7 @@ export class UserController implements IUserController {
     const { user } = await this._registerUserUseCase.sendPasswordResetEmail(email, role);
     return res.status(OK).json({
       success: true,
-      message: "Password reset email sent successfully",
+      message: AUTH_SUCCESS_MESSAGE.PASSWORD_RESET_EMAIL_SENT,
       email: user.email,
       userId: user._id,
     });
@@ -134,7 +135,7 @@ export class UserController implements IUserController {
     await this._registerUserUseCase.verifyResetPassword(userId, code);
     return res.status(OK).json({
       success: true,
-      message: "Email was successfully verfied",
+      message: AUTH_SUCCESS_MESSAGE.EMAIL_VERIFIED,
     });
   });
 
@@ -147,7 +148,7 @@ export class UserController implements IUserController {
     await this._registerUserUseCase.resetPassword({ userId, role, ...request });
 
     return clearTempAuthCookies(res).status(OK).json({
-      message: "Password reset successful",
+      message: AUTH_SUCCESS_MESSAGE.PASSWORD_RESET_SUCCESS,
     });
   });
 

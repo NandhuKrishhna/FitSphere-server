@@ -1,0 +1,16 @@
+export const AUTH_SUCCESS_MESSAGE = {
+    REGISTRATION_SUCCESS: "Registration successful. An OTP has been sent to",
+    OTP_VERIFICATION_SUCCESS: "Email was successfully verified.",
+    LOGIN_SUCCESS: "Login successful.",
+    LOGOUT_SUCCESS: "Logout successful.",
+    PASSWORD_RESET_LINK_SENT: "Password reset link has been sent to your email.",
+    PASSWORD_RESET_SUCCESS: "Password has been successfully reset.",
+    ACCOUNT_ACTIVATION_SUCCESS: "Account has been successfully activated.",
+    EMAIL_UPDATE_SUCCESS: "Email has been successfully updated.",
+    PROFILE_UPDATE_SUCCESS: "Profile has been successfully updated.",
+    TWO_FACTOR_AUTH_ENABLED: "Two-factor authentication has been enabled.",
+    TWO_FACTOR_AUTH_DISABLED: "Two-factor authentication has been disabled.",
+    ACCESS_TOKEN_REFRESHED: "Access token has been successfully refreshed.",
+    PASSWORD_RESET_EMAIL_SENT: "Password reset email has been sent successfully.",
+    EMAIL_VERIFIED: "Email has been successfully verified.",
+}

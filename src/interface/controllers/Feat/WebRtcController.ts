@@ -16,8 +16,7 @@ export class WebRtcController implements IWebRtcController {
   //** @desc video meeting handler */
   videoMeetingHandler = catchErrors(async (req: Request, res: Response) => {
     const meetingId = req.body.meetingId;
-    const { userId } = req as AuthenticatedRequest;
-    const { role } = req as AuthenticatedRequest;
+    const { userId, role } = req as AuthenticatedRequest;
     appAssert(meetingId, NOT_FOUND, "Meeting id is required. Or invalid meeting id");
     const appointment = await this._webRtcUseCase.videoMeeting(meetingId, userId, role);
     return res.status(OK).json({
@@ -31,8 +30,6 @@ export class WebRtcController implements IWebRtcController {
   //** @desc end meeting handler */
   leavingMeetAndUpdateStatus = catchErrors(async (req: Request, res: Response) => {
     const meetingId = req.body.meetingId;
-    const { userId } = req as AuthenticatedRequest;
-    const { role } = req as AuthenticatedRequest;
     appAssert(meetingId, NOT_FOUND, "Meeting id is required. Or invalid meeting id");
     await this._webRtcUseCase.leavingMeetAndUpdateStatus(meetingId,);
     return res.status(OK).json({ success: true, message: "Successfully left the meeting" });
