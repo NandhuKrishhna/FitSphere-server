@@ -11,7 +11,7 @@ export interface otpVerificationDocument extends Document {
 
 }
 
-const otpVerificaionSchema = new Schema<otpVerificationDocument>({
+const otpVerificationSchema = new Schema<otpVerificationDocument>({
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -36,6 +36,6 @@ const otpVerificaionSchema = new Schema<otpVerificationDocument>({
   },
 });
 
-const OtpVerficationModel: Model<otpVerificationDocument> =
-  mongoose.model<otpVerificationDocument>("OtpVerfication", otpVerificaionSchema, "otp_verfication");
-export default OtpVerficationModel;
+const OtpVerificationModel: Model<otpVerificationDocument> =
+  mongoose.model<otpVerificationDocument>("OtpVerification", otpVerificationSchema, "otp_verification");
+export default OtpVerificationModel;
