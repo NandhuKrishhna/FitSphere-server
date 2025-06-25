@@ -5,7 +5,7 @@ import { Inject, Service } from "typedi";
 import { AdminUseCase } from "../../../application/user-casers/AdminUseCase";
 import { clearAuthCookies, setAuthCookies } from "../../../shared/utils/setAuthCookies";
 import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
-import { verfiyToken } from "../../../shared/utils/jwt";
+import { verifyToken } from "../../../shared/utils/jwt";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { DoctorQueryParams, UserQueryParams } from "../../../domain/types/queryParams.types";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
@@ -51,7 +51,7 @@ export class AdminController implements IAdminController {
 
   logoutHandler = catchErrors(async (req: Request, res: Response) => {
     const accessToken = req.cookies.accessToken as string | undefined;
-    const { payload } = verfiyToken(accessToken || "");
+    const { payload } = verifyToken(accessToken || "");
     if (payload) {
       await this.adminUseCase.logoutAdmin(payload);
     }

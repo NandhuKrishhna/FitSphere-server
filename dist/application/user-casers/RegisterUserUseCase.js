@@ -156,7 +156,7 @@ let RegisterUserUseCase = class RegisterUserUseCase {
     }
     setRefreshToken(refreshToken) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { payload } = (0, jwt_1.verfiyToken)(refreshToken, {
+            const { payload } = (0, jwt_1.verifyToken)(refreshToken, {
                 secret: jwt_2.refreshTokenSignOptions.secret,
             });
             (0, appAssert_1.default)(payload, http_1.UNAUTHORIZED, "Invalid refresh token");

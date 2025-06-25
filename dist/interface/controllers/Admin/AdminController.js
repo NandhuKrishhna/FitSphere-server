@@ -66,7 +66,7 @@ let AdminController = class AdminController {
         }));
         this.logoutHandler = (0, catchErrors_1.default)((req, res) => __awaiter(this, void 0, void 0, function* () {
             const accessToken = req.cookies.accessToken;
-            const { payload } = (0, jwt_1.verfiyToken)(accessToken || "");
+            const { payload } = (0, jwt_1.verifyToken)(accessToken || "");
             if (payload) {
                 yield this.adminUseCase.logoutAdmin(payload);
             }

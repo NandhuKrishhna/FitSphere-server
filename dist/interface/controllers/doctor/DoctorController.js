@@ -82,13 +82,13 @@ let DoctorController = class DoctorController {
             return (0, setAuthCookies_1.setAuthCookies)({ res, accessToken, refreshToken })
                 .status(http_1.OK)
                 .json({
-                message: "Login successful",
-                response: Object.assign(Object.assign({}, user), { accessToken }),
-            });
+                    message: "Login successful",
+                    response: Object.assign(Object.assign({}, user), { accessToken }),
+                });
         }));
         this.logoutHandler = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const accessToken = req.cookies.accessToken;
-            const { payload } = (0, jwt_1.verfiyToken)(accessToken || "");
+            const { payload } = (0, jwt_1.verifyToken)(accessToken || "");
             if (payload) {
                 yield this._doctorUseCase.logoutUser(payload);
             }

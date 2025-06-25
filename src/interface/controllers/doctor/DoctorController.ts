@@ -7,7 +7,7 @@ import { BAD_REQUEST, CREATED, OK } from "../../../shared/constants/http";
 import { Request, Response } from "express";
 import { doctorDetailsSchema, doctorUpdateSchema } from "../../validations/doctor.details.schema";
 import { loginSchema, otpVerificationSchema } from "../../validations/userSchema";
-import { verfiyToken } from "../../../shared/utils/jwt";
+import { verifyToken } from "../../../shared/utils/jwt";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { AuthenticatedRequest } from "../../middleware/auth/authMiddleware";
 import appAssert from "../../../shared/utils/appAssert";
@@ -81,7 +81,7 @@ export class DoctorController implements IDoctorController {
 
   logoutHandler = async (req: Request, res: Response) => {
     const accessToken = req.cookies.accessToken as string | undefined;
-    const { payload } = verfiyToken(accessToken || "");
+    const { payload } = verifyToken(accessToken || "");
     if (payload) {
       await this._doctorUseCase.logoutUser(payload);
     }

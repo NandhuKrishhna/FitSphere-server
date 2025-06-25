@@ -19,7 +19,7 @@ export const signToken = (payload: AccessTokenPayload | RefreshTokenPayload, opt
   return jwt.sign(payload, secret, { ...defaults, ...signOpts });
 };
 
-export const verfiyToken = <TPayload extends object = AccessTokenPayload>(token: string, options?: VerifyOptions & { secret: string }) => {
+export const verifyToken = <TPayload extends object = AccessTokenPayload>(token: string, options?: VerifyOptions & { secret: string }) => {
   const { secret = JWT_SECRET, ...verifyOpts } = options || {};
   try {
     const payload = jwt.verify(token, secret, { ...defaults, ...verifyOpts }) as TPayload;

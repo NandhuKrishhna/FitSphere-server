@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyResetToken = exports.signResetToken = exports.verfiyToken = exports.signToken = exports.resetTokenOptions = exports.refreshTokenSignOptions = exports.accessTokenOptions = void 0;
+exports.verifyResetToken = exports.signResetToken = exports.verifyToken = exports.signToken = exports.resetTokenOptions = exports.refreshTokenSignOptions = exports.accessTokenOptions = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const env_1 = require("../constants/env");
 const defaults = { audience: ["user"] };
@@ -26,7 +26,7 @@ const signToken = (payload, options) => {
     return jsonwebtoken_1.default.sign(payload, secret, Object.assign(Object.assign({}, defaults), signOpts));
 };
 exports.signToken = signToken;
-const verfiyToken = (token, options) => {
+const verifyToken = (token, options) => {
     const _a = options || {}, { secret = env_1.JWT_SECRET } = _a, verifyOpts = __rest(_a, ["secret"]);
     try {
         const payload = jsonwebtoken_1.default.verify(token, secret, Object.assign(Object.assign({}, defaults), verifyOpts));
@@ -36,7 +36,7 @@ const verfiyToken = (token, options) => {
         return { error: error.message };
     }
 };
-exports.verfiyToken = verfiyToken;
+exports.verifyToken = verifyToken;
 const signResetToken = (payload) => {
     const { secret } = exports.resetTokenOptions, signOtps = __rest(exports.resetTokenOptions, ["secret"]);
     return jsonwebtoken_1.default.sign(payload, secret, Object.assign(Object.assign({}, defaults), signOtps));

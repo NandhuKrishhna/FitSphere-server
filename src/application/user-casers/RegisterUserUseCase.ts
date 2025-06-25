@@ -17,7 +17,7 @@ import {
   TOO_MANY_REQUESTS,
   UNAUTHORIZED,
 } from "../../shared/constants/http";
-import { AccessTokenPayload, RefreshTokenPayload, signToken, verfiyToken } from "../../shared/utils/jwt";
+import { AccessTokenPayload, RefreshTokenPayload, signToken, verifyToken } from "../../shared/utils/jwt";
 import { refreshTokenSignOptions } from "../../shared/utils/jwt";
 import { sendMail } from "../../shared/constants/sendMail";
 import { getResetPasswordEmailTemplates, getVerifyEmailTemplates } from "../../shared/utils/emialTemplates";
@@ -41,10 +41,10 @@ export class RegisterUserUseCase implements IRegisterUseCase {
   constructor(
     @Inject(IUserRepositoryToken) private _userRepository: IUserRepository,
     @Inject(IVerficaitonCodeRepositoryToken) private verificationCodeRepository: IVerficaitonCodeRepository,
-    @Inject(ISessionRepositoryToken) private _sessionRepository: ISessionRepository,
+    @Inject(ISessionRepositoryToken) private __sessionRepository: ISessionRepository,
     @Inject(IOtpReposirtoryCodeToken) private otpRepository: IOptverificationRepository,
-    @Inject(IWalletRepositoryToken) private _walletRespository: IWalletRepository,
-    @Inject(IDoctorRepositoryToken) private doctorRespository: IDoctorRepository,
+    @Inject(IWalletRepositoryToken) private __walletRepository: IWalletRepository,
+    @Inject(IDoctorRepositoryToken) private __doctorRepository: IDoctorRepository,
     @Inject(IUserSubscriptionRepositoryToken) private userSubscriptionRepository: IUserSubscriptionRepository
   ) { }
 
@@ -70,9 +70,9 @@ export class RegisterUserUseCase implements IRegisterUseCase {
     });
 
     const newSession = IcreateSession(user._id as ObjectId, Role.USER, userData.userAgent, oneYearFromNow());
-    const session = await this._sessionRepository.createSession(newSession);
+    const session = await this.__sessionRepository.createSession(newSession);
 
-    await this._walletRespository.createWallet({
+    await this.__walletRepository.createWallet({
       userId: user._id as ObjectId,
       role: "User",
     })
@@ -142,7 +142,7 @@ export class RegisterUserUseCase implements IRegisterUseCase {
     appAssert(isValid, UNAUTHORIZED, "Invalid Email or Password");
 
     const newSession = IcreateSession(existingUser._id as ObjectId, Role.USER, userData.userAgent, oneYearFromNow());
-    const session = await this._sessionRepository.createSession(newSession);
+    const session = await this.__sessionRepository.createSession(newSession);
 
     const sessionInfo: RefreshTokenPayload = {
       sessionId: session._id ?? new mongoose.Types.ObjectId(),
@@ -170,20 +170,20 @@ export class RegisterUserUseCase implements IRegisterUseCase {
   }
 
   async logoutUser(payload: AccessTokenPayload) {
-    await this._sessionRepository.findByIdAndDelete(payload.sessionId);
+    await this.__sessionRepository.findByIdAndDelete(payload.sessionId);
   }
 
   async setRefreshToken(refreshToken: string) {
-    const { payload } = verfiyToken<RefreshTokenPayload>(refreshToken, {
+    const { payload } = verifyToken<RefreshTokenPayload>(refreshToken, {
       secret: refreshTokenSignOptions.secret,
     });
     appAssert(payload, UNAUTHORIZED, "Invalid refresh token");
-    const session = await this._sessionRepository.findById(payload.sessionId);
+    const session = await this.__sessionRepository.findById(payload.sessionId);
     appAssert(session?.role === payload.role, UNAUTHORIZED, "UnAuthorized! Please Login Again");
     appAssert(session && session.expiresAt.getTime() > Date.now(), UNAUTHORIZED, "Session expired");
     const sessionNeedsRefresh = session.expiresAt.getTime() - Date.now() <= ONE_DAY_MS;
     if (sessionNeedsRefresh) {
-      await this._sessionRepository.updateSession(session._id!, {
+      await this.__sessionRepository.updateSession(session._id!, {
         expiresAt: thirtyDaysFromNow(),
       });
     }
@@ -209,16 +209,16 @@ export class RegisterUserUseCase implements IRegisterUseCase {
   }
 
   async verifyEmail(code: string) {
-    const valideCode = await this.verificationCodeRepository.findVerificationCode(
+    const validateCode = await this.verificationCodeRepository.findVerificationCode(
       code,
       VerificationCodeTypes.EmailVerification
     );
-    appAssert(valideCode, NOT_FOUND, "Invalid or expired verification code");
+    appAssert(validateCode, NOT_FOUND, "Invalid or expired verification code");
 
-    const updatedUser = await this._userRepository.updateUserById(valideCode!.userId, { isVerfied: true });
+    const updatedUser = await this._userRepository.updateUserById(validateCode!.userId, { isVerfied: true });
     appAssert(updatedUser, INTERNAL_SERVER_ERROR, "Failed to verify email");
 
-    await this.verificationCodeRepository.deleteVerificationCode(valideCode!.userId);
+    await this.verificationCodeRepository.deleteVerificationCode(validateCode!.userId);
 
     return {
       user: updatedUser,
@@ -230,7 +230,7 @@ export class RegisterUserUseCase implements IRegisterUseCase {
     let user;
     role === Role.USER
       ? (user = await this._userRepository.findUserByEmail(email))
-      : (user = await this.doctorRespository.findDoctorByEmail(email));
+      : (user = await this.__doctorRepository.findDoctorByEmail(email));
     appAssert(user, NOT_FOUND, "User not found");
     appAssert(user.status !== "blocked", UNAUTHORIZED, "Your account is suspended. Please contact with our team");
     const fiveMinAgo = fiveMinutesAgo();
@@ -261,7 +261,7 @@ export class RegisterUserUseCase implements IRegisterUseCase {
     let existingUser;
     role === Role.USER
       ? (existingUser = await this._userRepository.findUserById(userId))
-      : (existingUser = await this.doctorRespository.findDoctorByID(userId));
+      : (existingUser = await this.__doctorRepository.findDoctorByID(userId));
 
     if (!existingUser) {
       appAssert(false, NOT_FOUND, "User not found");
@@ -273,12 +273,12 @@ export class RegisterUserUseCase implements IRegisterUseCase {
     let updatedUser;
     role === Role.USER
       ? (updatedUser = await this._userRepository.updateUserById(userId, { password: hashedPassword }))
-      : (updatedUser = await this.doctorRespository.updateUserById(userId, { password: hashedPassword }));
+      : (updatedUser = await this.__doctorRepository.updateUserById(userId, { password: hashedPassword }));
 
     appAssert(updatedUser, NOT_FOUND, "User not found");
 
     await this.otpRepository.deleteOtpByUserId(userId);
-    await this._sessionRepository.deleteSessionByID(userId);
+    await this.__sessionRepository.deleteSessionByID(userId);
 
     return {
       user: updatedUser,
@@ -290,7 +290,7 @@ export class RegisterUserUseCase implements IRegisterUseCase {
     let user;
     role === Role.USER
       ? (user = await this._userRepository.findUserByEmail(email))
-      : (user = await this.doctorRespository.findDoctorByEmail(email));
+      : (user = await this.__doctorRepository.findDoctorByEmail(email));
     appAssert(user, NOT_FOUND, "User not found");
     await this.otpRepository.deleteOtpByUserId(user._id as ObjectId);
     const otpCode = IcreateOtp(user._id as ObjectId, OtpCodeTypes.EmailVerification);
@@ -327,9 +327,9 @@ export class RegisterUserUseCase implements IRegisterUseCase {
       });
 
       const newSession = IcreateSession(user._id as ObjectId, Role.USER, "", oneYearFromNow());
-      await this._sessionRepository.createSession(newSession);
+      await this.__sessionRepository.createSession(newSession);
 
-      await this._walletRespository.createWallet({
+      await this.__walletRepository.createWallet({
         userId: user._id as ObjectId,
         role: "User",
       });

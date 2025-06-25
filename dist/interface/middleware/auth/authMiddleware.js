@@ -22,7 +22,7 @@ const adminModel_1 = require("../../../infrastructure/models/adminModel");
 const authenticate = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const accessToken = req.cookies.accessToken;
     (0, appAssert_1.default)(accessToken, http_1.UNAUTHORIZED, "Not authorized", "InvalidAccessToken" /* AppErrorCode.InvalidAccessToken */);
-    const { error, payload } = (0, jwt_1.verfiyToken)(accessToken);
+    const { error, payload } = (0, jwt_1.verifyToken)(accessToken);
     (0, appAssert_1.default)(payload, http_1.UNAUTHORIZED, error === "jwt expired" ? "Token expired" : "Invalid token", "InvalidAccessToken" /* AppErrorCode.InvalidAccessToken */);
     req.userId = payload.userId;
     req.sessionId = payload.sessionId;

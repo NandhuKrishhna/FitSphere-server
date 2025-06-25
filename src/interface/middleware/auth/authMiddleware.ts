@@ -1,6 +1,6 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import catchErrors from "../../../shared/utils/catchErrors";
-import { UserRole, verfiyToken } from "../../../shared/utils/jwt";
+import { UserRole, verifyToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
 import { UNAUTHORIZED } from "../../../shared/constants/http";
 import AppErrorCode from "../../../shared/constants/appErrorCode";
@@ -21,7 +21,7 @@ const authenticate: RequestHandler = catchErrors(async (req: Request, res: Respo
   const accessToken = req.cookies.accessToken as string | undefined;
   appAssert(accessToken, UNAUTHORIZED, "Not authorized", AppErrorCode.InvalidAccessToken);
 
-  const { error, payload } = verfiyToken(accessToken);
+  const { error, payload } = verifyToken(accessToken);
 
   appAssert(
     payload,

@@ -18,7 +18,7 @@ import {
   getAccessTokenCookieOptions,
   setAuthCookies,
 } from "../../../shared/utils/setAuthCookies";
-import { verfiyToken } from "../../../shared/utils/jwt";
+import { verifyToken } from "../../../shared/utils/jwt";
 import appAssert from "../../../shared/utils/appAssert";
 import { stringToObjectId } from "../../../shared/utils/bcrypt";
 import { IRegisterUseCaseToken } from "../../../application/user-casers/interface/IRegisterUseCase";
@@ -79,7 +79,7 @@ export class UserController implements IUserController {
   //** @description: This method is used to logout a user.
   logoutHandler = catchErrors(async (req: Request, res: Response) => {
     const accessToken = req.cookies.accessToken as string | undefined;
-    const { payload } = verfiyToken(accessToken || "");
+    const { payload } = verifyToken(accessToken || "");
     if (payload) {
       await this._registerUserUseCase.logoutUser(payload);
     }
