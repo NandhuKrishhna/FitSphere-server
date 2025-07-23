@@ -35,7 +35,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async updateProfile(userId: mongoose.Types.ObjectId, profilePic: string): Promise<UserDocument | null> {
-
+    console.log(`Updating profile picture for user ID: ${userId} with URL: ${profilePic}`);
     const result = await UserModel.findOneAndUpdate(
       { _id: userId },
       { profilePicture: profilePic },
@@ -58,6 +58,8 @@ export class UserRepository implements IUserRepository {
         }
       }
     ]);
+
+
 
     return stats.length > 0 ? stats[0] : {
       totalUsers: 0,
