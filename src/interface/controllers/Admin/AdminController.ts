@@ -83,7 +83,7 @@ export class AdminController implements IAdminController {
     await this.adminUseCase.rejectRequest(id, reason);
     return res.status(OK).json({
       success: true,
-      message: "Request Rejected",
+      message: "Request Rejected. This change is for testing purpose.",
     });
   });
 
@@ -91,7 +91,7 @@ export class AdminController implements IAdminController {
     const doctorsWithDetails = await this.adminUseCase.findAllDoctorsDetails();
     res.status(OK).json({
       success: true,
-      message: "Doctor Details  fetch successfully ",
+      message: "Doctor Details  fetch successfully ghjklsdkfjnbneklkfdmfkdmnfoisndfosmidfosdfoisjdfio",
       doctorsWithDetails,
     });
   });
