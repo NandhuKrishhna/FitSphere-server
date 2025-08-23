@@ -91,7 +91,7 @@ export class AdminController implements IAdminController {
     const doctorsWithDetails = await this.adminUseCase.findAllDoctorsDetails();
     res.status(OK).json({
       success: true,
-      message: "Doctor Details  fetch successfully ",
+      message: "Doctor Details  fetch successfully ghjklsdkfjnbneklkfdmfkdmnfoisndfosmidfosdfoisjdfio",
       doctorsWithDetails,
     });
   });
