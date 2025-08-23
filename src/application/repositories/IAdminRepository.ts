@@ -1,15 +1,22 @@
+import { DoctorQueryParams, UserQueryParams } from "../../domain/types/queryParams.types";
+import { PaginatedDoctors, PaginatedUsers } from "../../infrastructure/repositories/AdminRepository";
+
+import { AdminDocument } from "../../infrastructure/models/adminModel";
+import { Doctor } from "../../domain/entities/Doctors";
+import { DoctorDocument } from "../../infrastructure/models/DoctorModel";
+import { LookUpDoctor } from "../../domain/types/doctorTypes";
 import { Token } from "typedi";
 import { User } from "../../domain/entities/User";
-import { Doctor } from "../../domain/entities/Doctors";
-import mongoose from "mongoose";
-import { LookUpDoctor } from "../../domain/types/doctorTypes";
-import { DoctorDocument } from "../../infrastructure/models/DoctorModel";
 import { UserDocument } from "../../infrastructure/models/UserModel";
-import { PaginatedDoctors, PaginatedUsers } from "../../infrastructure/repositories/AdminRepository";
-import { AdminDocument } from "../../infrastructure/models/adminModel";
-import { DoctorQueryParams, UserQueryParams } from "../../domain/types/queryParams.types";
+import mongoose from "mongoose";
 
 export interface IAdminRepository {
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
     findAdminByEmail(email: string): Promise<AdminDocument | null>;
     getAllUsers(queryParams: UserQueryParams): Promise<PaginatedUsers | null>;
     getAllDoctors(queryParams: DoctorQueryParams): Promise<PaginatedDoctors | null>;
