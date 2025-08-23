@@ -12,6 +12,12 @@ import mongoose from "mongoose";
 
 export interface IAdminRepository {
     findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
+    findAdminByEmail(email: string): Promise<AdminDocument | null>;
     getAllUsers(queryParams: UserQueryParams): Promise<PaginatedUsers | null>;
     getAllDoctors(queryParams: DoctorQueryParams): Promise<PaginatedDoctors | null>;
     approveRequest(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null>;
