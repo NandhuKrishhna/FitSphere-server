@@ -2,21 +2,13 @@ import { DoctorQueryParams, UserQueryParams } from "../../domain/types/queryPara
 import { PaginatedDoctors, PaginatedUsers } from "../../infrastructure/repositories/AdminRepository";
 
 import { AdminDocument } from "../../infrastructure/models/adminModel";
-import { Doctor } from "../../domain/entities/Doctors";
 import { DoctorDocument } from "../../infrastructure/models/DoctorModel";
 import { LookUpDoctor } from "../../domain/types/doctorTypes";
 import { Token } from "typedi";
-import { User } from "../../domain/entities/User";
 import { UserDocument } from "../../infrastructure/models/UserModel";
 import mongoose from "mongoose";
 
 export interface IAdminRepository {
-    findAdminByEmail(email: string): Promise<AdminDocument | null>;
-    findAdminByEmail(email: string): Promise<AdminDocument | null>;
-    findAdminByEmail(email: string): Promise<AdminDocument | null>;
-    findAdminByEmail(email: string): Promise<AdminDocument | null>;
-    findAdminByEmail(email: string): Promise<AdminDocument | null>;
-    findAdminByEmail(email: string): Promise<AdminDocument | null>;
     findAdminByEmail(email: string): Promise<AdminDocument | null>;
     getAllUsers(queryParams: UserQueryParams): Promise<PaginatedUsers | null>;
     getAllDoctors(queryParams: DoctorQueryParams): Promise<PaginatedDoctors | null>;
@@ -25,8 +17,8 @@ export interface IAdminRepository {
     doctorDetails(): Promise<LookUpDoctor | null>
     unblockById(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null>;
     blockById(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null>;
-     blockByOBjectid(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null>;
-      blockById(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null>;
+    blockByOBjectid(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null>;
+    blockById(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null>;
 }
 
 export const IAdminRepositoryToken = new Token<IAdminRepository>();
