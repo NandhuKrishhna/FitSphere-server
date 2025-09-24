@@ -1,11 +1,19 @@
-import { Service } from "typedi";
-import { IAdminRepository, IAdminRepositoryToken } from "../../application/repositories/IAdminRepository";
 import { AdminDocument, AdminModel } from "../models/adminModel";
-import { UserDocument, UserModel } from "../models/UserModel";
 import { DoctorDocument, DoctorModel } from "../models/DoctorModel";
-import mongoose from "mongoose";
+import {
+  DoctorQueryParams,
+  UserQueryParams,
+} from "../../domain/types/queryParams.types";
+import {
+  IAdminRepository,
+  IAdminRepositoryToken,
+} from "../../application/repositories/IAdminRepository";
+import { UserDocument, UserModel } from "../models/UserModel";
+
 import { LookUpDoctor } from "../../domain/types/doctorTypes";
-import { DoctorQueryParams, UserQueryParams } from "../../domain/types/queryParams.types";
+import { Service } from "typedi";
+import mongoose from "mongoose";
+
 export type PaginatedUsers = {
   users: UserDocument[];
   totalUsers: number;
@@ -34,8 +42,21 @@ export class AdminRepository implements IAdminRepository {
     return admin;
   }
 
-  async getAllUsers(queryParams: UserQueryParams): Promise<PaginatedUsers | null> {
-    const { page = "1", limit = "5", sortBy = "createdAt", sortOrder = "desc", search, email, name, isVerfied, isActive, status } = queryParams;
+  async getAllUsers(
+    queryParams: UserQueryParams
+  ): Promise<PaginatedUsers | null> {
+    const {
+      page = "1",
+      limit = "5",
+      sortBy = "createdAt",
+      sortOrder = "desc",
+      search,
+      email,
+      name,
+      isVerfied,
+      isActive,
+      status,
+    } = queryParams;
 
     const pageNumber = parseInt(page, 10);
     const pageSize = parseInt(limit, 10);
@@ -53,7 +74,7 @@ export class AdminRepository implements IAdminRepository {
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } }
+        { email: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -91,7 +112,9 @@ export class AdminRepository implements IAdminRepository {
     };
   }
 
-  async getAllDoctors(queryParams: DoctorQueryParams): Promise<PaginatedDoctors | null> {
+  async getAllDoctors(
+    queryParams: DoctorQueryParams
+  ): Promise<PaginatedDoctors | null> {
     const {
       page = "1",
       limit = "10",
@@ -103,7 +126,7 @@ export class AdminRepository implements IAdminRepository {
       status,
       isApproved,
       isVerified,
-      isActive
+      isActive,
     } = queryParams;
 
     const pageNumber = parseInt(page, 10);
@@ -116,13 +139,13 @@ export class AdminRepository implements IAdminRepository {
       filter.email = email;
     }
     if (name) {
-      filter.name = name
+      filter.name = name;
     }
 
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } }
+        { email: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -142,7 +165,6 @@ export class AdminRepository implements IAdminRepository {
       filter.status = status;
     }
 
-
     const doctors = await DoctorModel.find(filter)
       .select("-password -__v -createdAt -updatedAt")
       .sort({ [sortBy]: sortDirection })
@@ -150,11 +172,19 @@ export class AdminRepository implements IAdminRepository {
       .limit(pageSize);
 
     const totalDoctors = await DoctorModel.countDocuments(filter);
-    const verifiedDoctors = await DoctorModel.countDocuments({ isVerfied: true });
+    const verifiedDoctors = await DoctorModel.countDocuments({
+      isVerfied: true,
+    });
     const activeDoctors = await DoctorModel.countDocuments({ isActive: true });
-    const blockedDoctors = await DoctorModel.countDocuments({ status: "blocked" });
-    const pendingDoctors = await DoctorModel.countDocuments({ isApproved: false });
-    const approvedDoctors = await DoctorModel.countDocuments({ isApproved: true });
+    const blockedDoctors = await DoctorModel.countDocuments({
+      status: "blocked",
+    });
+    const pendingDoctors = await DoctorModel.countDocuments({
+      isApproved: false,
+    });
+    const approvedDoctors = await DoctorModel.countDocuments({
+      isApproved: true,
+    });
 
     return {
       doctors,
@@ -169,14 +199,24 @@ export class AdminRepository implements IAdminRepository {
     };
   }
 
-
-
-  async approveRequest(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null> {
-    return await DoctorModel.findByIdAndUpdate(id, { $set: { isApproved: true } }, { new: true });
+  async approveRequest(
+    id: mongoose.Types.ObjectId
+  ): Promise<DoctorDocument | null> {
+    return await DoctorModel.findByIdAndUpdate(
+      id,
+      { $set: { isApproved: true } },
+      { new: true }
+    );
   }
 
-  async rejectRequest(id: mongoose.Types.ObjectId): Promise<DoctorDocument | null> {
-    const response = await DoctorModel.findByIdAndUpdate(id, { $set: { isApproved: false } }, { new: true });
+  async rejectRequest(
+    id: mongoose.Types.ObjectId
+  ): Promise<DoctorDocument | null> {
+    const response = await DoctorModel.findByIdAndUpdate(
+      id,
+      { $set: { isApproved: false } },
+      { new: true }
+    );
     return response;
   }
   async doctorDetails(): Promise<LookUpDoctor | null> {
@@ -210,11 +250,22 @@ export class AdminRepository implements IAdminRepository {
     }
   }
 
-  async unblockById(id: mongoose.Types.ObjectId, role: string): Promise<UserDocument | DoctorDocument | null> {
+  async unblockById(
+    id: mongoose.Types.ObjectId,
+    role: string
+  ): Promise<UserDocument | DoctorDocument | null> {
     if (role === "user") {
-      return await UserModel.findOneAndUpdate({ _id: id }, { $set: { status: "active" } }, { new: true });
+      return await UserModel.findOneAndUpdate(
+        { _id: id },
+        { $set: { status: "active" } },
+        { new: true }
+      );
     } else {
-      return await DoctorModel.findOneAndUpdate({ _id: id }, { $set: { status: "active" } }, { new: true });
+      return await DoctorModel.findOneAndUpdate(
+        { _id: id },
+        { $set: { status: "active" } },
+        { new: true }
+      );
     }
   }
 
@@ -236,5 +287,4 @@ export class AdminRepository implements IAdminRepository {
       );
     }
   }
-
 }
